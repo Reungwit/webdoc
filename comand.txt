@@ -3,3 +3,5 @@ python manage.py runserver
 สร้างตาราง 
 python manage.py makemigrations
 python manage.py migrate
+
+123

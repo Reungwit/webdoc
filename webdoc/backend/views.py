@@ -30,7 +30,18 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+<<<<<<< Updated upstream
 from django.contrib.auth.decorators import login_required
+=======
+def index(request):
+    return render(request, './index.html')  # หรือชื่อ template ที่คุณใช้
+
+def manage_doc(request):
+    return render(request, './index.html')  # หรือชื่อ template ที่คุณใช้
+
+def about(request):
+    return render(request, 'index.html')  # หรือชื่อ template ที่คุณใช้
+>>>>>>> Stashed changes
 
 @login_required
 def index_view(request):

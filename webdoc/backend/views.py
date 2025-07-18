@@ -3,13 +3,6 @@ from django.contrib.auth import login, authenticate, logout
 from .forms import RegisterForm, LoginForm
 from django.contrib.auth.decorators import login_required
 
-# ข้อมูลตัวอย่าง sections (ถ้าใช้ในหน้า index)
-sections = [
-    {'slug': 'ทก01', 'name': 'ทก.01'},
-    {'slug': 'บทที่1', 'name': 'บทที่ 1'},
-    {'slug': 'บทที่2', 'name': 'บทที่ 2'},
-]
-
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -34,24 +27,42 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('webdoc:login')  # ใส่ namespace
+    return redirect('login')
 
-@login_required
-def index_view(request):
-    # ส่งข้อมูล sections ไปให้ template ถ้าต้องการ
-    return render(request, 'index.html', {'sections': sections})
+def index(request):
+    return render(request, 'index.html')  
 
-@login_required
 def manage_doc(request):
-    return render(request, 'manage_doc.html')  # แยก template ตามหน้าที่
+    return render(request, 'index.html')  
 
-@login_required
 def about(request):
-    return render(request, 'about.html')
+    return render(request, 'index.html')  
 
-@login_required
-def section_detail(request, slug):
-    # หา section_name จาก slug
-    section_name = next((s['name'] for s in sections if s['slug'] == slug), "ไม่พบส่วนนี้")
-    context = {'section_name': section_name}
-    return render(request, 'section_detail.html', context)
+def cover_view(request):
+    return render(request, 'cover.html')
+
+def sp_project_form_view(request):
+    return render(request, 'sp_project_form.html')
+
+def intro_view(request):
+    return render(request, 'intro.html')
+
+def chapter_1_view(request):
+    return render(request, 'chapter_1.html')
+
+def chapter_2_view(request):
+    return render(request, 'chapter_2.html')
+
+def chapter_3_view(request):
+    return render(request, 'chapter_3.html')
+
+def chapter_4_view(request):
+    return render(request, 'chapter_4.html')
+
+def chapter_5_view(request):
+    return render(request, 'chapter_5.html')
+
+def refer_view(request):
+    return render(request, 'chapter_5.html')
+
+

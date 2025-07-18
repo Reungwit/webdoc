@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-5">
@@ -15,6 +16,81 @@
             </div>
         </div>
         {% endfor %}
+=======
+{%load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ระบบจัดรูปเล่มเอกสารอัตโนมัติ</title>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <img class ="img_logo" src="{% static 'img/kmutnb_logo.png' %}" alt="logo" width ="50" ; >
+            <a href="{% url 'index' %}">หน้าแรก</a>
+            <a href="{% url 'manage_doc' %}">จัดการรูปเล่ม</a>
+            <a href="{% url 'about' %}">เกี่ยวกับ</a>
+        </div>
+        <div class="nav-right">
+            {% if request.user.is_authenticated %}
+                <span class="username">สวัสดีคุณ {{ request.user.first_name|default:request.user.username }}</span>
+                <a href="{% url 'logout' %}" class="logout-btn">ออกจากระบบ</a>
+            {% else %}
+                <a href="{% url 'login' %}">เข้าสู่ระบบ</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- เนื้อหาแต่ละหน้า -->
+      <div class="card-container">
+        <div class="card">
+            <h3>แบบเสนอโครงการพิเศษ ทก.01</h3>
+            <p></p>
+            <a href="{% url 'sp_project_form' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+         <div class="card">
+            <h3>หน้าปก</h3>
+            <p></p>
+            <a href="{% url 'cover' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+        <div class="card">
+            <h3>บทคัดย่อ</h3>
+            <p></p>
+            <a href="{% url 'intro' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+        <div class="card">
+            <h3>บทที่ 1</h3>
+            <p></p>
+            <a href="{% url 'chapter_1' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+        <div class="card">
+            <h3>บทที่ 2</h3>
+            <p></p>
+            <a href="{% url 'chapter_2' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+        <div class="card">
+            <h3>บทที่ 3</h3>
+            <p></p>
+            <a href="{% url 'chapter_3' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+         <div class="card">
+            <h3>บทที่ 4</h3>
+            <p></p>
+            <a href="{% url 'chapter_4' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+         <div class="card">
+            <h3>บทที่ 5</h3>
+            <p></p>
+            <a href="{% url 'chapter_5' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+         <div class="card">
+            <h3>บรรณานุกรม</h3>
+            <p></p>
+            <a href="{% url 'refer' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+>>>>>>> master
     </div>
 </div>
 {% endblock %}

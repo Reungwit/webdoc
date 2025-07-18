@@ -29,6 +29,15 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+def index(request):
+    return render(request, 'index.html')  # หรือชื่อ template ที่คุณใช้
+
+def manage_doc(request):
+    return render(request, 'index.html')  # หรือชื่อ template ที่คุณใช้
+
+def about(request):
+    return render(request, 'index.html')  # หรือชื่อ template ที่คุณใช้
+
 @login_required
 def index_view(request):
     return render(request, 'index.html')

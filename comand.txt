@@ -4,9 +4,10 @@ python manage.py runserver
 python manage.py makemigrations
 python manage.py migrate
 
-<<<<<<< Updated upstream
-123
+
 =======
+=======
+>>>>>>> Stashed changes
 พรอม
 ตอนนี้ฉันทำโปรเจค จัดรูปเล่มเอกสารอัตโนมัติ ใช้งานผ่านเว็บไซต์ ใช้ django สร้างเว็บไซต์ และใช้ python docx 
 ในการจัดรูปแบบเอกสาร และใช้ database เป็น Mysql ร่วมกับ phpMyadmin และมีdocker ในอนาคต อยากให้คุณช่วยดูในเรื่องการสร้างเว็บไซต์ 
@@ -14,8 +15,8 @@ python manage.py migrate
 คุณอ้างอิงจากความรู้ที่คุณมีหรือหามาได้เท่านั้นไม่เอาข้อมูลที่สร้างขึ้นมาใหม่เอง
 เพื่อป้องกันข้อผิดพลาดจาก AI Hallucination
 
-เริ่มต้นจากสร้างโปรเจค เว็บไซต์ด้วย django สำหรับสมัครสมาชิกและล็อกอินโดยเก็บข้อมูล อีเมล ,ชื่อ ,รหัสผ่าน ,ยืนยันรหัส ก่อน  ตั้งชื่อโปรเจคว่า webdoc
+เริ่มต้นจากสร้างโปรเจค เว็บไซต์ด้วย django  ตั้งชื่อโปรเจคว่า webdoc
 พร้อมกับการตั้งค่าให้เชื่อมกับ phpMyadmin 
 python manage.py startapp backend
 
->>>>>>> Stashed changes
+

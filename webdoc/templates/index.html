@@ -1,11 +1,32 @@
+{%load static %}
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-    <title>หน้าหลัก</title>
+    <meta charset="UTF-8">
+    <title>Webdoc</title>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
 </head>
 <body>
-    <h1>ยินดีต้อนรับ {{ request.user.name }}!</h1>
-    <p>คุณเข้าสู่ระบบเรียบร้อยแล้ว</p>
-    <a href="{% url 'logout' %}">ออกจากระบบ</a>
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">WebDoc</div>
+            <a href="{% url 'index' %}">หน้าแรก</a>
+            <a href="{% url 'manage_doc' %}">จัดการรูปเล่ม</a>
+            <a href="{% url 'about' %}">เกี่ยวกับ</a>
+        </div>
+        <div class="nav-right">
+            {% if request.user.is_authenticated %}
+                <span class="username">สวัสดีคุณ {{ request.user.first_name|default:request.user.username }}</span>
+                <a href="{% url 'logout' %}" class="logout-btn">ออกจากระบบ</a>
+            {% else %}
+                <a href="{% url 'login' %}">เข้าสู่ระบบ</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- เนื้อหาแต่ละหน้า -->
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
 </body>
 </html>

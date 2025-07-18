@@ -1,8 +1,18 @@
-body{
-    margin: 0px;
-    padding: 0px;
+
+* {
+    box-sizing: border-box;
 }
 
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+/* Navbar */
 .navbar {
     background-color: #000;
     color: white;
@@ -20,8 +30,11 @@ body{
     font-weight: bold;
 }
 
-.nav-left .logo {
-    font-size: 20px;
+.nav-left .img_logo{
+    align-items: center;
+    justify-content: center;
+    margin-right: 150px;
+    font-size: 50px;
     font-weight: bold;
     margin-right: 20px;
 }
@@ -46,4 +59,49 @@ body{
     padding: 5px 10px;
     border-radius: 5px;
     text-decoration: none;
+}
+/* Navbar End */
+
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: scale(1.02);
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.card p {
+    color: #666;
+}
+
+.card-button {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.card-button:hover {
+    background-color: #0056b3;
 }

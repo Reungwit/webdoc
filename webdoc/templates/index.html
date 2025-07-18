@@ -3,13 +3,13 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>Webdoc</title>
+    <title>ระบบจัดรูปเล่มเอกสารอัตโนมัติ</title>
     <link rel="stylesheet" href="{% static 'css/index.css' %}">
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-left">
-            <div class="logo">WebDoc</div>
+            <img class ="img_logo" src="{% static 'img/kmutnb_logo.png' %}" alt="logo" width ="50" ; >
             <a href="{% url 'index' %}">หน้าแรก</a>
             <a href="{% url 'manage_doc' %}">จัดการรูปเล่ม</a>
             <a href="{% url 'about' %}">เกี่ยวกับ</a>
@@ -25,8 +25,52 @@
     </nav>
 
     <!-- เนื้อหาแต่ละหน้า -->
-    <div class="content">
-        {% block content %}{% endblock %}
+      <div class="card-container">
+        <div class="card">
+            <h3>แบบเสนอโครงการพิเศษ ทก.01</h3>
+            <p></p>
+            <a href="{% url 'sp_project_form' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+         <div class="card">
+            <h3>หน้าปก</h3>
+            <p></p>
+            <a href="{% url 'cover' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+        <div class="card">
+            <h3>บทคัดย่อ</h3>
+            <p></p>
+            <a href="{% url 'intro' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+        <div class="card">
+            <h3>บทที่ 1</h3>
+            <p></p>
+            <a href="{% url 'chapter_1' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+        <div class="card">
+            <h3>บทที่ 2</h3>
+            <p></p>
+            <a href="{% url 'chapter_2' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+        <div class="card">
+            <h3>บทที่ 3</h3>
+            <p></p>
+            <a href="{% url 'chapter_3' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+         <div class="card">
+            <h3>บทที่ 4</h3>
+            <p></p>
+            <a href="{% url 'chapter_4' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+         <div class="card">
+            <h3>บทที่ 5</h3>
+            <p></p>
+            <a href="{% url 'chapter_5' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+         <div class="card">
+            <h3>บรรณานุกรม</h3>
+            <p></p>
+            <a href="{% url 'refer' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
     </div>
 </body>
 </html>

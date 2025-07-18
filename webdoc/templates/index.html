@@ -1,32 +1,19 @@
-{%load static %}
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <title>Webdoc</title>
-    <link rel="stylesheet" href="{% static 'css/index.css' %}">
-</head>
-<body>
-    <nav class="navbar">
-        <div class="nav-left">
-            <div class="logo">WebDoc</div>
-            <a href="{% url 'index' %}">หน้าแรก</a>
-            <a href="{% url 'manage_doc' %}">จัดการรูปเล่ม</a>
-            <a href="{% url 'about' %}">เกี่ยวกับ</a>
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">📚 เลือกส่วนของรูปเล่มปริญญานิพนธ์</h2>
+    <div class="row">
+        {% for section in sections %}
+        <div class="col-md-3 mb-4">
+            <div class="card text-center shadow-sm border-primary">
+                <div class="card-body">
+                    <h5 class="card-title">{{ section.name }}</h5>
+                    <a href="{% url 'webdoc:section_detail' section.slug %}" class="btn btn-outline-primary mt-3">
+                    </a>
+                </div>
+            </div>
         </div>
-        <div class="nav-right">
-            {% if request.user.is_authenticated %}
-                <span class="username">สวัสดีคุณ {{ request.user.first_name|default:request.user.username }}</span>
-                <a href="{% url 'logout' %}" class="logout-btn">ออกจากระบบ</a>
-            {% else %}
-                <a href="{% url 'login' %}">เข้าสู่ระบบ</a>
-            {% endif %}
-        </div>
-    </nav>
-
-    <!-- เนื้อหาแต่ละหน้า -->
-    <div class="content">
-        {% block content %}{% endblock %}
+        {% endfor %}
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

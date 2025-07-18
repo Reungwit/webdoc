@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-primary">คุณกำลังดู: {{ section_name }}</h2>
+    <p>นี่คือหน้า {{ section_name }}. ส่วนเนื้อหาเราจะทำทีหลัง.</p>
+    <a href="{% url 'webdoc:index' %}" class="btn btn-secondary mt-3">⬅️ กลับหน้าหลัก</a>
+</div>
+{% endblock %}

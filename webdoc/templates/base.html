@@ -3,10 +3,11 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>Webdoc</title>
+    <title>{% block title %}WebDoc{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/index.css' %}">
 </head>
 <body>
+    <!-- ✅ ส่วนที่ 1: Navbar -->
     <nav class="navbar">
         <div class="nav-left">
             <div class="logo">WebDoc</div>
@@ -24,7 +25,7 @@
         </div>
     </nav>
 
-    <!-- เนื้อหาแต่ละหน้า -->
+    <!-- ✅ ส่วนที่ 2: เนื้อหาแต่ละหน้า -->
     <div class="content">
         {% block content %}{% endblock %}
     </div>

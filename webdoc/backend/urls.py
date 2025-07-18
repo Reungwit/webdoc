@@ -7,6 +7,7 @@ urlpatterns = [
     path('manage/', views.manage_doc, name='manage_doc'),
     path('about/', views.about, name='about'),
     path('logout/', views.logout_view, name='logout'),
+    path('register/', views.register_view, name='register'),
     path('', views.login_view, name='login'),
     path('cover/', views.cover_view, name='cover'),
     path('sp_project_form/', views.sp_project_form_view, name='sp_project_form'),

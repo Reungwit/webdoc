@@ -1,0 +1,26 @@
+{%load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบเสนอโครงการพิเศษ ทก.01</title>
+    <link rel="stylesheet" href="{% static 'css/sp_project_form.css' %}">
+</head>
+<body>
+    <form method="POST" action="{% url 'sp_project_form' %}">
+    {% csrf_token %}
+    <label for="name_th">ชื่อโครงงาน (ภาษาไทย):</label>
+    <input type="text" id="name_th" name="name_th" size = "50"><br><br>
+
+    <label for="name_en">ชื่อโครงงาน (ภาษาอังกฤษ):</label>
+    <input type="text" id="name_en" name="name_en" size = "50" ><br><br>
+
+     <label for="name_en">ชื่อโครงงาน (ภาษาอังกฤษ):</label>
+    <input type="text" id="name_en" name="name_en" size = "50" ><br><br>
+
+    <button type="submit">บันทึก</button>
+    <button type="submit">สร้างเอกสาร</button>
+</form>
+</body>
+</html>

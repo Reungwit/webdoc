@@ -2,10 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from .forms import RegisterForm,LoginForm
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.http import HttpResponse
+from man_doc.doc_sp_01 import doc_sp_01  # ←  นำเข้าไฟล์ที่คุณแยกไว้
 
-@login_required
-def index_view(request):
-    return render(request, 'index.html')
 
 def register_view(request):
     if request.method == 'POST':
@@ -69,4 +69,20 @@ def chapter_5_view(request):
 def refer_view(request):
     return render(request, 'chapter_5.html')
 
+
+def sp_project_form_view(request):
+    if request.method == 'POST':
+        name_th = request.POST.get('name_th')
+        name_en = request.POST.get('name_en')
+
+        doc = doc_sp_01(name_th, name_en)
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        response['Content-Disposition'] = 'attachment; filename=sp_project_form.docx'
+        doc.save(response)
+        return response
+
+    return render(request, 'sp_project_form.html')
 

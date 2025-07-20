@@ -72,10 +72,30 @@ def refer_view(request):
 
 def sp_project_form_view(request):
     if request.method == 'POST':
-        name_th = request.POST.get('name_th')
-        name_en = request.POST.get('name_en')
+        name_pro_th = request.POST.get('name_pro_th')
+        name_pro_en = request.POST.get('name_pro_en')
+        case_stu = request.POST.get('case_stu')
+        term = request.POST.get('term')
+        school_y = request.POST.get('school_y')
+        adviser = request.POST.get('adviser')
+        co_advisor = request.POST.get('co_advisor')
+        strategic = request.POST.get('strategic')
+        plan = request.POST.get('plan')
+        key_result = request.POST.get('key_result')
+        # เก็บรายชื่อนักศึกษาจาก name_author_th_1, 2, 3,...
+        authors = []
+        i = 1
+        while True:
+            key = f'name_author_th_{i}'
+            value = request.POST.get(key)
+            if value:
+                authors.append(value)
+                i += 1
+            else:
+                break
 
-        doc = doc_sp_01(name_th, name_en)
+        # ส่ง authors ไปยัง doc_sp_01
+        doc = doc_sp_01(name_pro_th, name_pro_en, authors,case_stu,term,school_y,adviser,co_advisor,strategic,plan,key_result)
 
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'

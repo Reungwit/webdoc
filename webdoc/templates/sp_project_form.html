@@ -1,107 +1,133 @@
-{%load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบเสนอโครงการพิเศษ ทก.01</title>
-    <link rel="stylesheet" href="{% static 'css/sp_project_form.css' %}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>แบบเสนอโครงการพิเศษ ทก.01</title>
+  <link rel="stylesheet" href="{% static 'css/sp_project_form.css' %}">
 </head>
 <body>
-    <form method="POST" action="{% url 'sp_project_form' %}">
-    {% csrf_token %}
-    <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
-    <input type="text" id="name_pro_th" name="name_pro_th" size = "50"><br><br>
+<form method="POST" action="{% url 'sp_project_form' %}">
+  {% csrf_token %}
 
-    <label for="name_pro_en">ชื่อโครงงาน (ภาษาอังกฤษ):</label><br>
-    <input type="text" id="name_pro_en" name="name_pro_en" size = "50" ><br><br>
-    
+  <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
+  <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
 
-    <label for="case_stu">กรณีศึกษา (ถ้ามี):</label><br>
-    <input type="text" id="case_stu" name="case_stu" size = "50" ><br><br>
+  <label for="name_pro_en">ชื่อโครงงาน (ภาษาอังกฤษ):</label><br>
+  <input type="text" id="name_pro_en" name="name_pro_en" size="50" value="{{ initial.name_pro_en|default:'' }}"><br><br>
 
+  <label for="case_stu">กรณีศึกษา (ถ้ามี):</label><br>
+  <input type="text" id="case_stu" name="case_stu" size="50" value="{{ initial.case_stu|default:'' }}"><br><br>
 
-    <div id="author-container">
+  <div id="author-container">
     <label for="name_author_th_1">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 1</label><br>
-    <input type="text" id="name_author_th_1" name="name_author_th_1" size="50"><br><br>
-</div>
+    <input type="text" id="name_author_th_1" name="name_author_th_1" size="50" value="{{ initial.authors.0|default:'' }}"><br><br>
 
-<button type="button" onclick="addAuthor()">เพิ่ม</button>
-<button type="button" onclick="removeAuthor()">ลบ</button><br><br>
-        
-    <label for="term">ภาคเรียนที่</label><br>
-    <input type="text" id="term" name="term" size = "30" ><br><br>
+    {% comment %} <label for="name_author_th_2">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 2</label><br>
+    <input type="text" id="name_author_th_2" name="name_author_th_2" size="50" value="{{ initial.authors.1|default:'' }}"><br><br>
 
-    <label for="school_y">ปีการศึกษา </label><br>
-    <input type="text" id="school_y" name="school_y" size = "50" ><br><br>
+    <label for="name_author_th_3">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 3</label><br>
+    <input type="text" id="name_author_th_3" name="name_author_th_3" size="50" value="{{ initial.authors.2|default:'' }}"><br><br> {% endcomment %}
+  </div>
 
-    <label for="adviser">อาจารย์ที่ปรึกษา </label><br>
-    <input type="text" id="adviser" name="adviser" size = "50" ><br><br>
+  <button type="button" onclick="addAuthor()">เพิ่ม</button>
+  <button type="button" onclick="removeAuthor()">ลบ</button><br><br>
 
-    <label for="co_advisor">อาจารย์ที่ปรึกษาร่วม </label><br>
-    <input type="text" id="co_advisor" name="co_advisor" size = "50" ><br><br>
+  <label for="term">ภาคเรียนที่</label><br>
+  <input type="text" id="term" name="term" size="30" value="{{ initial.term|default:'' }}"><br><br>
 
-    <label for="strategic">ยุทธศาสตร์ที่ ...และรายละเอียด </label><br>
-    <input type="text" id="strategic" name="strategic" size = "50" ><br><br>
+  <label for="school_y">ปีการศึกษา</label><br>
+  <input type="text" id="school_y" name="school_y" size="50" value="{{ initial.school_y|default:'' }}"><br><br>
 
-    <label for="">แผนงานที่...และรายละเอียด </label><br>
-    <input type="text" id="plan" name="plan" size = "50" ><br><br>
+  <label for="adviser">อาจารย์ที่ปรึกษา</label><br>
+  <input type="text" id="adviser" name="adviser" size="50" value="{{ initial.adviser|default:'' }}"><br><br>
 
-    <label for="">ผลลัพธ์ที่สำคัญ (key result) </label><br>
-    <textarea type="text" id="key_result" name="key_result" size = "50" ></textarea><br><br>
+  <label for="co_advisor">อาจารย์ที่ปรึกษาร่วม</label><br>
+  <input type="text" id="co_advisor" name="co_advisor" size="50" value="{{ initial.co_advisor|default:'' }}"><br><br>
 
+  <label for="strategic">ยุทธศาสตร์ที่ ...และรายละเอียด</label><br>
+  <input type="text" id="strategic" name="strategic" size="50" value="{{ initial.strategic|default:'' }}"><br><br>
 
-ิ<br><br>
-    <button type="submit">บันทึก</button>
-    <button type="submit">สร้างเอกสาร</button>
+  <label for="plan">แผนงานที่...และรายละเอียด</label><br>
+  <input type="text" id="plan" name="plan" size="50" value="{{ initial.plan|default:'' }}"><br><br>
+
+  <label for="key_result">ผลลัพธ์ที่สำคัญ (key result)</label><br>
+  <textarea id="key_result" name="key_result" rows="5" cols="80">{{ initial.key_result|default:'' }}</textarea><br><br>
+
+  <button type="submit" name="action" value="save">บันทึกข้อมูล</button>
+  <button type="submit" name="action" value="get_data">ดึงข้อมูล</button>
+  <button type="submit" name="action" value="generate">สร้างเอกสาร</button>
+  
+
+  {% if success %}
+    <p style="color: green;">✅ บันทึกข้อมูลเรียบร้อย</p>
+  {% endif %}
 </form>
 
-
-
 <script>
-    let authorCount = 1;
-    const maxAuthors = 3;
+  let authorCount = 1;
+  const maxAuthors = 3;
+  const container = document.getElementById('author-container');
 
-    function addAuthor(){
-        if (authorCount >= maxAuthors) return;
-        authorCount++;
+  const authors = {{ initial.authors|default:"[]"|safe }};
 
-        const container = document.getElementById('author-container');
-        const label = document.createElement('label');
-        label.setAttribute('for', `name_author_th_${authorCount}`);
-        label.textContent = `ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ ${authorCount}`;
+  function createAuthorInput(index, name = '') {
+    const label = document.createElement('label');
+    label.setAttribute('for', `name_author_th_${index}`);
+    label.textContent = `ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ ${index}`;
 
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.id = `name_author_th_${authorCount}`;
-        input.name = `name_author_th_${authorCount}`;
-        input.size = 50;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = `name_author_th_${index}`;
+    input.name = `name_author_th_${index}`;
+    input.size = 50;
+    input.value = name;
 
-        container.appendChild(label);
-        container.appendChild(document.createElement('br'));
-        container.appendChild(input);
-        container.appendChild(document.createElement('br'));
-        container.appendChild(document.createElement('br'));
+    container.appendChild(label);
+    container.appendChild(document.createElement('br'));
+    container.appendChild(input);
+    container.appendChild(document.createElement('br'));
+    container.appendChild(document.createElement('br'));
+  }
 
-        // ปิดปุ่มเพิ่มถ้าครบ 3 คน
-        if (authorCount === maxAuthors){
-            document.getElementById('add-button').disabled = true;
-        }
+  function renderAuthorsFromData() {
+    // ล้างทั้งหมดก่อน
+    container.innerHTML = '';
+    if (authors.length === 0) {
+      createAuthorInput(1);
+      authorCount = 1;
+    } else {
+      authors.forEach((name, index) => {
+        createAuthorInput(index + 1, name);
+      });
+      authorCount = authors.length;
     }
 
-    function removeAuthor(){
-        if (authorCount > 1){
-            const container = document.getElementById('author-container');
-            // ลบ <br>, <br>, input, label ของคนล่าสุด
-            for (let i = 0; i < 5; i++) {
-                container.removeChild(container.lastElementChild);
-            }
-            authorCount--;
-            document.getElementById('add-button').disabled = false;
-        }
+    document.getElementById('add-button').disabled = authorCount >= maxAuthors;
+  }
+
+  function addAuthor() {
+    if (authorCount >= maxAuthors) return;
+    authorCount++;
+    createAuthorInput(authorCount);
+    if (authorCount === maxAuthors) {
+      document.getElementById('add-button').disabled = true;
     }
+  }
+
+  function removeAuthor() {
+    if (authorCount > 1) {
+      for (let i = 0; i < 4; i++) {
+        container.removeChild(container.lastElementChild);
+      }
+      authorCount--;
+      document.getElementById('add-button').disabled = false;
+    }
+  }
+
+  // เมื่อหน้าโหลดเสร็จ
+  document.addEventListener("DOMContentLoaded", renderAuthorsFromData);
 </script>
-
-
 </body>
 </html>

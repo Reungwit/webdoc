@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
+from django.conf import settings
 class CustomUser(AbstractUser):
+    user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=150)
 
@@ -10,3 +11,42 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class SpProject(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_column='user_id',
+        to_field='user_id'
+    )
+    name_pro_th = models.CharField(max_length=255)
+    name_pro_en = models.CharField(max_length=255)
+    case_stu = models.CharField(max_length=100)
+    term = models.CharField(max_length=50)
+    school_y = models.CharField(max_length=10)
+    adviser = models.CharField(max_length=255)
+    co_advisor = models.CharField(max_length=255, blank=True, null=True)
+    strategic = models.TextField()
+    plan = models.TextField()
+    key_result = models.TextField()
+
+    class Meta:
+        db_table = 'sp_project'
+
+class SpProjectAuthor(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100)
+    userid = models.IntegerField()  # FK ไป backend_customuser.user_id (คุณอาจ map เพิ่มภายหลัง)
+    
+    # ✅ FK ไป sp_project.id
+    project = models.ForeignKey(
+        'SpProject',
+        on_delete=models.CASCADE,
+        db_column='sp_id',         # ใช้ชื่อคอลัมน์จริงใน DB
+        to_field='id'              # FK ชี้ไปยัง SpProject.id
+    )
+
+    class Meta:
+        db_table = 'sp_project_author'
+        managed = False  # เนื่องจากคุณสร้างตารางเองใน MySQL

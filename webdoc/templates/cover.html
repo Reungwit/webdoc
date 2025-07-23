@@ -8,23 +8,34 @@
 <body>
     <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
     <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
-    <label for="name_pro_th">ชื่อโครงงาน (อังกฤษ):</label><br>
-    <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
+
+    <label for="name_pro_en">ชื่อโครงงาน (อังกฤษ):</label><br>
+    <input type="text" id="name_pro_en" name="name_pro_en" size="50" value="{{ initial.name_pro_en|default:'' }}"><br><br>
+
     <label for="name_pro_th">ชื่อผู้จัดทำคนที่ 1 (ภาษาไทย):</label><br>
     <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
+
+    <button type="button" onclick="addAuthor()">เพิ่ม</button>
+    <button type="button" onclick="removeAuthor()">ลบ</button><br><br>
+
     <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
     <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
+
     <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
     <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
 
     <button type="submit" name="action" value="save">บันทึกข้อมูล</button>
     <button type="submit" name="action" value="get_data">ดึงข้อมูล</button>
     <button type="submit" name="action" value="generate_cover_th">สร้างหน้าปกไทย</button>
-    <button type="submit" name="action" value="get_cover">สร้างหน้าปกรอง</button>
-    <button type="submit" name="action" value="generate_cover_eng">สร้างหน้าปกอังกฤษ</button>
+    <button type="submit" name="action" value="generate_cover_sec">สร้างหน้าปกรอง</button>
+    <button type="submit" name="action" value="generate_cover_en">สร้างหน้าปกอังกฤษ</button>
     
 
-  
+  {% load static %}
+<script src="{% static 'js/sp_project.js' %}"></script>
+<script>
+    const authors = {{ initial.authors|default:"[]"|safe }};
+</script>
 
 </body>
 </html>

@@ -3,7 +3,7 @@
   const maxAuthors = 3;
   const container = document.getElementById('author-container');
 
-  const authors = {{ initial.authors|default:"[]"|safe }};
+
 
   function createAuthorInput(index, name = '') {
     const label = document.createElement('label');

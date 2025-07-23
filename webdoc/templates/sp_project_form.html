@@ -66,5 +66,8 @@
 </form>
 {% load static %}
 <script src="{% static 'js/sp_project.js' %}"></script>
+<script>
+    const authors = {{ initial.authors|default:"[]"|safe }};
+</script>
 </body>
 </html>

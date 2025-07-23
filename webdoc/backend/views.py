@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import HttpResponse
 from man_doc.doc_sp_01 import doc_sp_01  # ←  นำเข้าไฟล์ที่คุณแยกไว้
-from man_doc.doc_cover import doc_cover_th  # ←  นำเข้าไฟล์ที่คุณแยกไว้
 from .models import SpProject, SpProjectAuthor
 from django.http import HttpResponse
 
@@ -72,37 +71,7 @@ def refer_view(request):
     return render(request, 'chapter_5.html')
 
 
-def doc_cover_th_view(request):
-    user = request.user
-    initial = {}
 
-    if request.method == 'POST':
-        action = request.POST.get('action')
-
-        if action == 'get_data':
-            try:
-                project = SpProject.objects.get(user=user)
-                initial = {
-                    'name_pro_th': project.name_pro_th,
-                    'name_pro_en': project.name_pro_en,
-                    'case_stu': project.case_stu,
-                    'term': project.term,
-                    'school_y': project.school_y,
-                    'adviser': project.adviser,
-                    'co_advisor': project.co_advisor,
-                    'strategic': project.strategic,
-                    'plan': project.plan,
-                    'key_result': project.key_result,
-                }
-
-                authors = list(
-                    SpProjectAuthor.objects.filter(userid=user.user_id, project=project)
-                    .values_list('name', flat=True)
-                )
-                initial['authors'] = authors
-
-            except SpProject.DoesNotExist:
-                initial = {}
 
 def sp_project_form_view(request):
     user = request.user
@@ -135,20 +104,6 @@ def sp_project_form_view(request):
 
             except SpProject.DoesNotExist:
                 initial = {}
-
-        if action == 'generate':
-                doc = doc_sp_01(
-                    name_pro_th, name_pro_en, authors,
-                    case_stu, term, school_y,
-                    adviser, co_advisor,
-                    strategic, plan, key_result
-                )
-                response = HttpResponse(
-                    content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                )
-                response['Content-Disposition'] = 'attachment; filename=sp_project_form.docx'
-                doc.save(response)
-                return response
 
         elif action == 'save' or action == 'generate':
             # ดึงข้อมูลจาก POST

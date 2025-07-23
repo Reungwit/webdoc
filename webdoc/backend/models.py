@@ -50,19 +50,3 @@ class SpProjectAuthor(models.Model):
     class Meta:
         db_table = 'sp_project_author'
         managed = False  # เนื่องจากคุณสร้างตารางเองใน MySQL
-
-class DocCover(models.Model):
-    cover_id = models.AutoField(primary_key=True)  # ใช้ cover_id เป็น PK
-    project_name_th = models.CharField(max_length=500)
-    project_name_en = models.CharField(max_length=500)
-    author1_name_th = models.CharField(max_length=255)
-    author2_name_th = models.CharField(max_length=255, blank=True, null=True)
-    author1_name_en = models.CharField(max_length=255)
-    author2_name_en = models.CharField(max_length=255, blank=True, null=True)
-    academic_year = models.CharField(max_length=10)
-
-    class Meta:
-        db_table = 'doc_cover'
-
-    def __str__(self):
-        return f"{self.project_name_th} ({self.academic_year})"

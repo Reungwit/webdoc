@@ -1,3 +1,4 @@
+ {% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +7,8 @@
     <title>Document</title>
 </head>
 <body>
+    <form method="POST" action="{% url 'sp_project_form' %}">
+  {% csrf_token %}
     <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
     <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
 
@@ -34,8 +37,8 @@
     <button type="submit" name="action" value="generate_cover_en">สร้างหน้าปกอังกฤษ</button>
     
 
-  {% load static %}
-<script src="{% static 'js/sp_project.js' %}"></script>
+
+<script src="{% static 'js/cover.js' %}"></script>
 <script>
     const authors = {{ initial.authors|default:"[]"|safe }};
 </script>

@@ -1,3 +1,4 @@
+ {% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,23 +7,28 @@
     <title>Document</title>
 </head>
 <body>
+    <form method="POST" action="{% url 'sp_project_form' %}">
+  {% csrf_token %}
     <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
     <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
 
     <label for="name_pro_en">ชื่อโครงงาน (อังกฤษ):</label><br>
     <input type="text" id="name_pro_en" name="name_pro_en" size="50" value="{{ initial.name_pro_en|default:'' }}"><br><br>
 
-    <label for="name_pro_th">ชื่อผู้จัดทำคนที่ 1 (ภาษาไทย):</label><br>
-    <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
+    <label for="name_author_th_1">ชื่อผู้จัดทำคนที่ 1 (ภาษาไทย):</label><br>
+    <input type="text" id="name_author_th_1" name="name_author_th_1" size="50" value="{{ initial.name_author_th_1|default:'' }}"><br><br>
 
     <button type="button" onclick="addAuthor()">เพิ่ม</button>
     <button type="button" onclick="removeAuthor()">ลบ</button><br><br>
 
-    <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
-    <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
+    <label for="name_author_en_1">ชื่อผู้จัดทำคนที่ 1 (ภาษาอังกฤษ):</label><br>
+    <input type="text" id="name_author_en_1" name="name_author_en_1" size="50" value="{{ initial.name_author_en_1|default:'' }}"><br><br>
 
-    <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
-    <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
+    <button type="button" onclick="addAuthor()">เพิ่ม</button>
+    <button type="button" onclick="removeAuthor()">ลบ</button><br><br>
+
+    <label for="school_y">ปีการศึกษา</label><br>
+    <input type="text" id="school_y" name="school_y" size="50" value="{{ initial.school_y|default:'' }}"><br><br>
 
     <button type="submit" name="action" value="save">บันทึกข้อมูล</button>
     <button type="submit" name="action" value="get_data">ดึงข้อมูล</button>
@@ -31,8 +37,8 @@
     <button type="submit" name="action" value="generate_cover_en">สร้างหน้าปกอังกฤษ</button>
     
 
-  {% load static %}
-<script src="{% static 'js/sp_project.js' %}"></script>
+
+<script src="{% static 'js/cover.js' %}"></script>
 <script>
     const authors = {{ initial.authors|default:"[]"|safe }};
 </script>

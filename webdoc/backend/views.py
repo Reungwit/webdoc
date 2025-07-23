@@ -90,14 +90,16 @@ def doc_cover_view(request):
             'name_pro_th': project.project_name_th,
             'name_pro_en': project.project_name_en,
             'academic_year': project.academic_year,
-            }
-           initial['authors_th_json'] = json.dumps(initial.get('authors_th', []))
-           initial['authors_en_json'] = json.dumps(initial.get('authors_en', []))
-            print("✅ DEBUG: initial =", initial)
-            print("DB Author 1 (TH):", project.author1_name_th)
-            print("DB Author 2 (TH):", project.author2_name_th)
+            'authors_th': [project.author1_name_th or '', project.author2_name_th or ''],
+            'authors_en': [project.author1_name_en or '', project.author2_name_en or ''],
+        }
+
+        # ✅ เยื้องตรงระดับกับ initial
+            initial['authors_th_json'] = json.dumps(initial.get('authors_th', []))
+            initial['authors_en_json'] = json.dumps(initial.get('authors_en', []))
+
         except DocCover.DoesNotExist:
-            initial = {}
+                initial = {}
 
         return render(request, 'cover.html', {'initial': initial})
 

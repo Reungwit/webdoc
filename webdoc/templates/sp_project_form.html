@@ -5,7 +5,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>แบบเสนอโครงการพิเศษ ทก.01</title>
-  <link rel="stylesheet" href="{% static 'css/sp_project_form.css' %}">
 </head>
 <body>
 <form method="POST" action="{% url 'sp_project_form' %}">
@@ -24,6 +23,11 @@
     <label for="name_author_th_1">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 1</label><br>
     <input type="text" id="name_author_th_1" name="name_author_th_1" size="50" value="{{ initial.authors.0|default:'' }}"><br><br>
 
+    {% comment %} <label for="name_author_th_2">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 2</label><br>
+    <input type="text" id="name_author_th_2" name="name_author_th_2" size="50" value="{{ initial.authors.1|default:'' }}"><br><br>
+
+    <label for="name_author_th_3">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 3</label><br>
+    <input type="text" id="name_author_th_3" name="name_author_th_3" size="50" value="{{ initial.authors.2|default:'' }}"><br><br> {% endcomment %}
   </div>
 
   <button type="button" onclick="addAuthor()">เพิ่ม</button>
@@ -45,10 +49,7 @@
   <input type="text" id="strategic" name="strategic" size="50" value="{{ initial.strategic|default:'' }}"><br><br>
 
   <label for="plan">แผนงานที่...และรายละเอียด</label><br>
-  <textarea id="plan" name="plan" size="50" rows="5" cols="80" 
-          maxlength=""
-          wrap="hard"
-          oninput="autoWrapByWord(this) ">{{ initial.plan|default:'' }}</textarea><br><br>
+  <input type="text" id="plan" name="plan" size="50" value="{{ initial.plan|default:'' }}"><br><br>
 
   <label for="key_result">ผลลัพธ์ที่สำคัญ (key result)</label><br>
   <textarea id="key_result" name="key_result" rows="5" cols="80">{{ initial.key_result|default:'' }}</textarea><br><br>
@@ -58,11 +59,7 @@
   <button type="submit" name="action" value="generate">สร้างเอกสาร</button>
   
 
-  {% if success %}
-    <p style="color: green;">บันทึกข้อมูลเรียบร้อย</p>
-  {% endif %}
-</form>
-{% load static %}
+
 <script src="{% static 'js/sp_project.js' %}"></script>
 <script>
     const authors = {{ initial.authors|default:"[]"|safe }};

@@ -1,4 +1,3 @@
-    
 from docx import Document
 from docx.shared import Pt
 from docx.oxml.ns import qn
@@ -8,9 +7,12 @@ from docx.shared import Pt, Cm, Inches
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-def doc_cover_th(name_pro_th, name_pro_en, authors,case_stu,term,school_y,adviser,co_advisor,strategic,plan,key_result):
+def doc_cover_th( project_name_th, project_name_en,
+                author1_th, author2_th,
+                author1_en, author2_en,
+                academic_year):
 
-    doc = docx.Document()
+    doc = Document()
     style = doc.styles["Normal"]
     style.font.name = "TH SarabunPSK"
     style.element.rPr.rFonts.set(qn("w:eastAsia"), "TH SarabunPSK")
@@ -20,13 +22,13 @@ def doc_cover_th(name_pro_th, name_pro_en, authors,case_stu,term,school_y,advise
     style.paragraph_format.space_after = Pt(0)
 
     doc.add_paragraph("").alignment = 1
-    title = doc.add_paragraph(project_title_th)
+    title = doc.add_paragraph(project_name_th)
     title.alignment = 1
-    doc.add_paragraph(project_title_en).alignment = 1
+    doc.add_paragraph(project_name_en).alignment = 1
 
     doc.add_paragraph("\n\n\n\n\n\n")
-    doc.add_paragraph(f" {author_th_1}").alignment = 1
-    doc.add_paragraph(f" {author_th_2}").alignment = 1
+    doc.add_paragraph(f" {author1_th}").alignment = 1
+    doc.add_paragraph(f" {author2_th}").alignment = 1
     doc.add_paragraph("\n\n\n\n\n\n\n\n")
     doc.add_paragraph("ปริญญานิพนธ์นี้เป็นส่วนหนึ่งของการศึกษาตามหลักสูตรอุตสาหกรรมศาสตรบัณฑิต").alignment = 1
     doc.add_paragraph("สาขาวิชาเทคโนโลยีสารสนเทศ ภาควิชาเทคโนโลยีสารสนเทศ").alignment = 1

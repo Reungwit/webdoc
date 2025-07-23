@@ -5,8 +5,11 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import HttpResponse
 from man_doc.doc_sp_01 import doc_sp_01  # ←  นำเข้าไฟล์ที่คุณแยกไว้
+from man_doc.doc_cover import doc_cover_th  # ←  นำเข้าไฟล์ที่คุณแยกไว้
 from .models import SpProject, SpProjectAuthor
-from django.http import HttpResponse
+from .models import DocCover
+from docx import Document
+
 
 def register_view(request):
     if request.method == 'POST':
@@ -43,7 +46,7 @@ def manage_doc(request):
 def about(request):
     return render(request, 'index.html')  
 
-def cover_view(request):
+def cover(request):
     return render(request, 'cover.html')
 
 def sp_project_form_view(request):
@@ -71,7 +74,58 @@ def refer_view(request):
     return render(request, 'chapter_5.html')
 
 
+def doc_cover_view(request):
+    user = request.user
+    action = request.POST.get('action')
 
+    if request.method == 'POST' and action in ['save_cover', 'generate_cover_th']:
+        # รับค่าจากฟอร์ม
+        project_name_th = request.POST.get('name_pro_th', '')
+        project_name_en = request.POST.get('name_pro_en', '')
+        author1_th = request.POST.get('name_author_th_1', '')
+        author2_th = request.POST.get('name_author_th_2', '')
+        author1_en = request.POST.get('name_author_en_1', '')
+        author2_en = request.POST.get('name_author_en_2', '')
+        academic_year = request.POST.get('school_y', '')
+
+        # บันทึกหรืออัปเดตในฐานข้อมูล
+        DocCover.objects.update_or_create(
+            user=user,
+            defaults={
+                'project_name_th': project_name_th,
+                'project_name_en': project_name_en,
+                'author1_name_th': author1_th,
+                'author2_name_th': author2_th,
+                'author1_name_en': author1_en,
+                'author2_name_en': author2_en,
+                'academic_year': academic_year,
+            }
+        )
+
+        # ถ้าเป็นการ generate เอกสาร
+        if action == 'generate_cover_th':
+            doc = doc_cover_th(
+                project_name_th, project_name_en,
+                author1_th, author2_th,
+                author1_en, author2_en,
+                academic_year
+            )
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            )
+            response['Content-Disposition'] = 'attachment; filename=cover_th.docx'
+            doc.save(response)
+            return response
+
+        return redirect('cover')  # ชื่อ URL ต้องตรงกับ path name ใน urls.py
+
+    return render(request, 'cover.html')  # สำหรับ GET หรือ action อื่น ๆ
+
+
+
+
+
+        
 
 def sp_project_form_view(request):
     user = request.user
@@ -104,6 +158,8 @@ def sp_project_form_view(request):
 
             except SpProject.DoesNotExist:
                 initial = {}
+
+        
 
         elif action == 'save' or action == 'generate':
             # ดึงข้อมูลจาก POST

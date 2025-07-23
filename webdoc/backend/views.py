@@ -8,7 +8,7 @@ from man_doc.doc_sp_01 import doc_sp_01  # ←  นำเข้าไฟล์�
 from man_doc.doc_cover import doc_cover_th  # ←  นำเข้าไฟล์ที่คุณแยกไว้
 from .models import SpProject, SpProjectAuthor
 from .models import DocCover
-from docx import Document
+
 
 
 def register_view(request):

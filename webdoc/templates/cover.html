@@ -20,17 +20,17 @@
 
     <!-- ผู้จัดทำ -->
     <div id="author-container"
-         data-authors-th='{{ initial.authors_th|default:"[]"|safe }}'
-         data-authors-en='{{ initial.authors_en|default:"[]"|safe }}'>
-      <!-- JS จะเพิ่ม input ของผู้จัดทำที่นี่ -->
-    </div>
+     data-authors-th='{{ initial.authors_th_json|safe }}'
+     data-authors-en='{{ initial.authors_en_json|safe }}'>
+</div>
+
 
     <button type="button" id="add-button" onclick="addAuthor()">เพิ่ม</button>
     <button type="button" onclick="removeAuthor()">ลบ</button><br><br>
 
     <!-- ปีการศึกษา -->
-    <label for="school_y">ปีการศึกษา:</label><br>
-    <input type="text" id="school_y" name="school_y" size="50" value="{{ initial.school_y|default:'' }}"><br><br>
+    <label for="academic_year">ปีการศึกษา:</label><br>
+    <input type="text" id="academic_year" name="academic_year" size="50" value="{{ initial.academic_year|default:'' }}"><br><br>
 
     <!-- ปุ่ม action -->
     <button type="submit" name="action" value="save_cover">บันทึกข้อมูล</button>

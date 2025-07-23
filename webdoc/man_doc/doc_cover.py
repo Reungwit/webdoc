@@ -13,7 +13,7 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 def doc_cover_th( project_name_th, project_name_en,
                 author1_th, author2_th,
                 author1_en, author2_en,
-                academic_year):
+                school_y):
 
     doc = Document()
     style = doc.styles["Normal"]

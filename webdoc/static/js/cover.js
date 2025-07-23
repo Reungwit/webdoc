@@ -1,9 +1,20 @@
-let authorCount = 0;
+let authorCount = 1;
 const maxAuthors = 3;
 const container = document.getElementById('author-container');
 
-const authors_th = JSON.parse(container.dataset.authorsTh || '[]');
-const authors_en = JSON.parse(container.dataset.authorsEn || '[]');
+let authors_th = [];
+let authors_en = [];
+
+try {
+  authors_th = JSON.parse(container.dataset.authorsTh || '[]') || [];
+  authors_en = JSON.parse(container.dataset.authorsEn || '[]') || [];
+} catch (e) {
+  authors_th = [];
+  authors_en = [];
+}
+
+
+
 
 function createAuthorInput(index, name_th = '', name_en = '') {
   // label + input ภาษาไทย
@@ -46,6 +57,7 @@ function createAuthorInput(index, name_th = '', name_en = '') {
 function renderAuthorsFromData() {
   container.innerHTML = '';
   const count = Math.max(authors_th.length, authors_en.length);
+
   if (count === 0) {
     createAuthorInput(1);
     authorCount = 1;
@@ -58,6 +70,7 @@ function renderAuthorsFromData() {
 
   document.getElementById('add-button').disabled = authorCount >= maxAuthors;
 }
+
 
 function addAuthor() {
   if (authorCount >= maxAuthors) return;
@@ -80,3 +93,4 @@ function removeAuthor() {
 }
 
 document.addEventListener("DOMContentLoaded", renderAuthorsFromData);
+console.log("Loaded authors_th:", authors_th);

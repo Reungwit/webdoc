@@ -8,7 +8,7 @@ from man_doc.doc_sp_01 import doc_sp_01  # ←  นำเข้าไฟล์�
 from man_doc.doc_cover import doc_cover_th  # ←  นำเข้าไฟล์ที่คุณแยกไว้
 from .models import SpProject, SpProjectAuthor
 from .models import DocCover
-
+import json
 
 
 def register_view(request):
@@ -74,21 +74,41 @@ def refer_view(request):
     return render(request, 'chapter_5.html')
 
 
+@login_required
 def doc_cover_view(request):
     user = request.user
     action = request.POST.get('action')
+    initial = {}
 
+    # 🔹 แยก get_data_cover ออกมา
+    if request.method == 'POST' and action == 'get_data_cover':
+        try:
+            project = DocCover.objects.get(user=user)
+            initial = {
+    'name_pro_th': project.project_name_th,
+    'name_pro_en': project.project_name_en,
+    'academic_year': project.academic_year,
+            }
+            initial['authors_th_json'] = json.dumps(initial['authors_th'])
+            initial['authors_en_json'] = json.dumps(initial['authors_en'])
+            print("✅ DEBUG: initial =", initial)
+            print("DB Author 1 (TH):", project.author1_name_th)
+            print("DB Author 2 (TH):", project.author2_name_th)
+        except DocCover.DoesNotExist:
+            initial = {}
+
+        return render(request, 'cover.html', {'initial': initial})
+
+    # 🔹 ส่วนบันทึก / สร้างเอกสาร
     if request.method == 'POST' and action in ['save_cover', 'generate_cover_th']:
-        # รับค่าจากฟอร์ม
         project_name_th = request.POST.get('name_pro_th', '')
         project_name_en = request.POST.get('name_pro_en', '')
         author1_th = request.POST.get('name_author_th_1', '')
         author2_th = request.POST.get('name_author_th_2', '')
         author1_en = request.POST.get('name_author_en_1', '')
         author2_en = request.POST.get('name_author_en_2', '')
-        academic_year = request.POST.get('school_y', '')
+        academic_year = request.POST.get('academic_year', '')
 
-        # บันทึกหรืออัปเดตในฐานข้อมูล
         DocCover.objects.update_or_create(
             user=user,
             defaults={
@@ -102,7 +122,6 @@ def doc_cover_view(request):
             }
         )
 
-        # ถ้าเป็นการ generate เอกสาร
         if action == 'generate_cover_th':
             doc = doc_cover_th(
                 project_name_th, project_name_en,
@@ -117,12 +136,10 @@ def doc_cover_view(request):
             doc.save(response)
             return response
 
-        return redirect('cover')  # ชื่อ URL ต้องตรงกับ path name ใน urls.py
+        return redirect('cover')
 
-    return render(request, 'cover.html')  # สำหรับ GET หรือ action อื่น ๆ
-
-
-
+    # 🔹 สำหรับ GET ธรรมดา
+    return render(request, 'cover.html')
 
 
         

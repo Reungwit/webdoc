@@ -1,10 +1,11 @@
- {% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>หน้าปก</title>
+    <link rel="stylesheet" href="{% static 'css/sp_project_form.css' %}">
 </head>
 <body>
     <form method="POST" action="{% url 'sp_project_form' %}">
@@ -15,8 +16,12 @@
     <label for="name_pro_en">ชื่อโครงงาน (อังกฤษ):</label><br>
     <input type="text" id="name_pro_en" name="name_pro_en" size="50" value="{{ initial.name_pro_en|default:'' }}"><br><br>
 
-    <label for="name_author_th_1">ชื่อผู้จัดทำคนที่ 1 (ภาษาไทย):</label><br>
-    <input type="text" id="name_author_th_1" name="name_author_th_1" size="50" value="{{ initial.name_author_th_1|default:'' }}"><br><br>
+    <div id="author-container">
+    <label for="name_author_th_1">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 1</label><br>
+    <input type="text" id="name_author_th_1" name="name_author_th_1" size="50" value="{{ initial.authors.0|default:'' }}"><br><br>
+
+    
+  </div>
 
     <button type="button" onclick="addAuthor()">เพิ่ม</button>
     <button type="button" onclick="removeAuthor()">ลบ</button><br><br>

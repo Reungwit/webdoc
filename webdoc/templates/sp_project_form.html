@@ -5,7 +5,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>แบบเสนอโครงการพิเศษ ทก.01</title>
-  <link rel="stylesheet" href="{% static 'css/sp_project_form.css' %}">
 </head>
 <body>
 <form method="POST" action="{% url 'sp_project_form' %}">
@@ -60,11 +59,7 @@
   <button type="submit" name="action" value="generate">สร้างเอกสาร</button>
   
 
-  {% if success %}
-    <p style="color: green;">✅ บันทึกข้อมูลเรียบร้อย</p>
-  {% endif %}
-</form>
-{% load static %}
+
 <script src="{% static 'js/sp_project.js' %}"></script>
 <script>
     const authors = {{ initial.authors|default:"[]"|safe }};

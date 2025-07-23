@@ -1,26 +1,25 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
-from .forms import RegisterForm,LoginForm
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
 from django.http import HttpResponse
-from man_doc.doc_sp_01 import doc_sp_01  # ←  นำเข้าไฟล์ที่คุณแยกไว้
-from man_doc.doc_cover import doc_cover_th  # ←  นำเข้าไฟล์ที่คุณแยกไว้
-from .models import SpProject, SpProjectAuthor
-from .models import DocCover
 
+from .forms import RegisterForm, LoginForm
+from .models import SpProject, SpProjectAuthor, DocCover
+from man_doc.doc_sp_01 import doc_sp_01
+from man_doc.doc_cover import doc_cover_th, doc_cover_en, doc_cover_sec  # <-- ถ้ามี doc_cover_en ต้อง import ด้วย
 
-
+# Register / Login / Logout
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('login')  
+            return redirect('login')
     else:
         form = RegisterForm()
     return render(request, 'register.html', {'form': form})
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -33,18 +32,22 @@ def login_view(request):
         form = LoginForm()
     return render(request, 'login.html', {'form': form})
 
+
 def logout_view(request):
     logout(request)
     return redirect('login')
 
+
+# Static Pages
+
 def index(request):
-    return render(request, 'index.html')  
+    return render(request, 'index.html')
 
 def manage_doc(request):
-    return render(request, 'index.html')  
+    return render(request, 'index.html')
 
 def about(request):
-    return render(request, 'index.html')  
+    return render(request, 'index.html')
 
 def cover(request):
     return render(request, 'cover.html')
@@ -74,12 +77,14 @@ def refer_view(request):
     return render(request, 'chapter_5.html')
 
 
+
+# หน้าปกปริญญานิพนธ์
+
 def doc_cover_view(request):
     user = request.user
     action = request.POST.get('action')
 
-    if request.method == 'POST' and action in ['save_cover', 'generate_cover_th']:
-        # รับค่าจากฟอร์ม
+    if request.method == 'POST' and action in ['save_cover', 'generate_cover_th', 'generate_cover_en', 'generate_cover_sec']:
         project_name_th = request.POST.get('name_pro_th', '')
         project_name_en = request.POST.get('name_pro_en', '')
         author1_th = request.POST.get('name_author_th_1', '')
@@ -88,7 +93,7 @@ def doc_cover_view(request):
         author2_en = request.POST.get('name_author_en_2', '')
         academic_year = request.POST.get('school_y', '')
 
-        # บันทึกหรืออัปเดตในฐานข้อมูล
+        # บันทึกหรืออัปเดตข้อมูลหน้าปก
         DocCover.objects.update_or_create(
             user=user,
             defaults={
@@ -102,30 +107,33 @@ def doc_cover_view(request):
             }
         )
 
-        # ถ้าเป็นการ generate เอกสาร
+        # สร้างไฟล์ .docx ถ้าเลือก generate
         if action == 'generate_cover_th':
-            doc = doc_cover_th(
-                project_name_th, project_name_en,
-                author1_th, author2_th,
-                author1_en, author2_en,
-                academic_year
-            )
-            response = HttpResponse(
-                content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            )
+            doc = doc_cover_th(project_name_th, project_name_en, author1_th, author2_th, author1_en, author2_en, academic_year)
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
             response['Content-Disposition'] = 'attachment; filename=cover_th.docx'
             doc.save(response)
             return response
 
-        return redirect('cover')  # ชื่อ URL ต้องตรงกับ path name ใน urls.py
+        elif action == 'generate_cover_en':
+            doc = doc_cover_en(project_name_th, project_name_en, author1_th, author2_th, author1_en, author2_en, academic_year)
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            response['Content-Disposition'] = 'attachment; filename=cover_en.docx'
+            doc.save(response)
+            return response
+        elif action == 'generate_cover_sec':
+            doc = doc_cover_sec(project_name_th, project_name_en, author1_th, author2_th, author1_en, author2_en, academic_year)
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            response['Content-Disposition'] = 'attachment; filename=cover_sec.docx'
+            doc.save(response)
+            return response
 
-    return render(request, 'cover.html')  # สำหรับ GET หรือ action อื่น ๆ
+
+    return render(request, 'cover.html')
 
 
 
-
-
-        
+# แบบฟอร์ม ทก.01
 
 def sp_project_form_view(request):
     user = request.user
@@ -155,14 +163,10 @@ def sp_project_form_view(request):
                     .values_list('name', flat=True)
                 )
                 initial['authors'] = authors
-
             except SpProject.DoesNotExist:
                 initial = {}
 
-        
-
-        elif action == 'save' or action == 'generate':
-            # ดึงข้อมูลจาก POST
+        elif action in ['save', 'generate']:
             name_pro_th = request.POST.get('name_pro_th', '')
             name_pro_en = request.POST.get('name_pro_en', '')
             case_stu = request.POST.get('case_stu', '')
@@ -173,13 +177,14 @@ def sp_project_form_view(request):
             strategic = request.POST.get('strategic', '')
             plan = request.POST.get('plan', '')
             key_result = request.POST.get('key_result', '')
+
             authors = [
                 request.POST.get(f'name_author_th_{i}', '')
                 for i in range(1, 4)
                 if request.POST.get(f'name_author_th_{i}', '')
             ]
 
-            # บันทึกลง DB
+            # บันทึกลงฐานข้อมูล
             project, created = SpProject.objects.update_or_create(
                 user=user,
                 defaults={
@@ -196,16 +201,12 @@ def sp_project_form_view(request):
                 }
             )
 
-            # อัปเดตชื่อผู้จัดทำ
+            # ลบแล้วบันทึกชื่อผู้จัดทำใหม่
             SpProjectAuthor.objects.filter(userid=user.user_id, project=project).delete()
             for name in authors:
-                SpProjectAuthor.objects.create(
-                    userid=user.user_id,
-                    name=name,
-                    project=project
-                )
+                SpProjectAuthor.objects.create(userid=user.user_id, name=name, project=project)
 
-            # สร้าง docx ถ้าผู้ใช้กด generate
+            # สร้างเอกสาร docx
             if action == 'generate':
                 doc = doc_sp_01(
                     name_pro_th, name_pro_en, authors,
@@ -213,13 +214,9 @@ def sp_project_form_view(request):
                     adviser, co_advisor,
                     strategic, plan, key_result
                 )
-                response = HttpResponse(
-                    content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                )
+                response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                 response['Content-Disposition'] = 'attachment; filename=sp_project_form.docx'
                 doc.save(response)
                 return response
-
-        
 
     return render(request, 'sp_project_form.html', {'initial': initial})

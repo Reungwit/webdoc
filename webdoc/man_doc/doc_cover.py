@@ -10,6 +10,7 @@ import os
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 
+#หน้าปกไทย
 def doc_cover_th( project_name_th, project_name_en,
                 author1_th, author2_th,
                 author1_en, author2_en,
@@ -20,34 +21,77 @@ def doc_cover_th( project_name_th, project_name_en,
     style.font.name = "TH SarabunPSK"
     style.element.rPr.rFonts.set(qn("w:eastAsia"), "TH SarabunPSK")
     style.font.size = Pt(16)
-    # style.font.bold = True
+    style.font.bold = True
     style.paragraph_format.space_before = Pt(0)
     style.paragraph_format.space_after = Pt(0)
     style.paragraph_format.line_spacing = 1.0
     # ตั้งค่าขอบกระดาษ
     section = doc.sections[0]
-    section.top_margin = Inches(0.8)
+    section.top_margin = Inches(1.5)
     section.bottom_margin = Inches(1)
     section.left_margin = Inches(1.5)
     section.right_margin = Inches(1)
+
+    # ดึง path รูปภาพ (สมมุติแหม่มวางไว้ในโฟลเดอร์ static/images/)
+    logo_path = os.path.join('static', 'img', 'kmutnb_logo_cover.png')
+
+# แทรกรูปภาพ
+    doc.add_picture(logo_path, width=Inches(1.7))
+
+# จัดรูปให้อยู่ตรงกลาง
+    last_paragraph = doc.paragraphs[-1]            
+    last_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+
     # add_page_number(section)
     doc.add_paragraph("").alignment = 1
     title = doc.add_paragraph(project_name_th)
     title.alignment = 1
     doc.add_paragraph(project_name_en).alignment = 1
 
-    
-# ดึง path รูปภาพ (สมมุติแหม่มวางไว้ในโฟลเดอร์ static/images/)
-    logo_path = os.path.join('static', 'img', 'kmutnb_logo_cover.png')
-
-# แทรกรูปภาพ
-    doc.add_picture(logo_path, width=Inches(2))
-
-# จัดรูปให้อยู่ตรงกลาง
-    last_paragraph = doc.paragraphs[-1]            
-    last_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
     doc.add_paragraph("\n\n\n\n\n\n")
+    doc.add_paragraph(f" {author1_th}").alignment = 1
+    doc.add_paragraph(f" {author2_th}").alignment = 1
+    doc.add_paragraph("\n\n\n\n")
+    doc.add_paragraph("ปริญญานิพนธ์นี้เป็นส่วนหนึ่งของการศึกษาตามหลักสูตรอุตสาหกรรมศาสตรบัณฑิต").alignment = 1
+    doc.add_paragraph("สาขาวิชาเทคโนโลยีสารสนเทศ ภาควิชาเทคโนโลยีสารสนเทศ").alignment = 1
+    doc.add_paragraph("คณะเทคโนโลยีและการจัดการอุตสาหกรรม").alignment = 1
+    doc.add_paragraph("มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
+    doc.add_paragraph(f"ปีการศึกษา {academic_year}").alignment = 1
+    doc.add_paragraph("ลิขสิทธิ์ของมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
+
+    return doc
+
+#หน้าปกรอง
+def doc_cover_sec( project_name_th, project_name_en,
+                author1_th, author2_th,
+                author1_en, author2_en,
+                academic_year):
+
+    doc = Document()
+    style = doc.styles["Normal"]
+    style.font.name = "TH SarabunPSK"
+    style.element.rPr.rFonts.set(qn("w:eastAsia"), "TH SarabunPSK")
+    style.font.size = Pt(16)
+    #style.font.bold = True
+    style.paragraph_format.space_before = Pt(0)
+    style.paragraph_format.space_after = Pt(0)
+    style.paragraph_format.line_spacing = 1.0
+    # ตั้งค่าขอบกระดาษ
+    section = doc.sections[0]
+    section.top_margin = Inches(1)
+    section.bottom_margin = Inches(1)
+    section.left_margin = Inches(1.5)
+    section.right_margin = Inches(1)
+
+    # add_page_number(section)
+    doc.add_paragraph("").alignment = 1
+    title = doc.add_paragraph(project_name_th)
+    title.alignment = 1
+    doc.add_paragraph(project_name_en).alignment = 1
+
+
+    doc.add_paragraph("\n\n\n\n\n\n\n\n")
     doc.add_paragraph(f" {author1_th}").alignment = 1
     doc.add_paragraph(f" {author2_th}").alignment = 1
     doc.add_paragraph("\n\n\n\n\n\n\n\n")
@@ -59,7 +103,54 @@ def doc_cover_th( project_name_th, project_name_en,
     doc.add_paragraph("ลิขสิทธิ์ของมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
 
     return doc
+#หน้าปกภาษาอังกฤษ
+def doc_cover_en(project_name_th, project_name_en,
+                 author1_th, author2_th,
+                 author1_en, author2_en,
+                 academic_year):
 
+    doc = Document()
+    style = doc.styles["Normal"]
+    style.font.name = "TH SarabunPSK"
+    style.element.rPr.rFonts.set(qn("w:eastAsia"), "TH SarabunPSK")
+    style.font.size = Pt(16)
+    #style.font.bold = True
+    style.paragraph_format.space_before = Pt(0)
+    style.paragraph_format.space_after = Pt(0)
+    style.paragraph_format.line_spacing = 1.0
+
+    section = doc.sections[0]
+    section.top_margin = Inches(1)
+    section.bottom_margin = Inches(1)
+    section.left_margin = Inches(1.5)
+    section.right_margin = Inches(1)
+
+    doc.add_paragraph("").alignment = 1
+    title = doc.add_paragraph(project_name_en)
+    title.alignment = 1
+
+    doc.add_paragraph("\n\n\n\n\n\n\n\n")
+    doc.add_paragraph(f"{author1_en}").alignment = 1
+    doc.add_paragraph(f"{author2_en}").alignment = 1
+    doc.add_paragraph("\n\n\n\n\n\n\n\n")
+    doc.add_paragraph("PROJECT REPORT SUBMITTED IN PARTIAL FULFILLMENT OF THE REQUIREMENTS").alignment = 1
+    doc.add_paragraph("FOR THE BACHELOR’S DEGREE OF INDUSTRIAL TECHNOLOGY").alignment = 1
+    doc.add_paragraph("PROGRAM IN INFORMATION TECHNOLOGY").alignment = 1
+    doc.add_paragraph("DEPARTMENT OF INFORMATION TECHNOLOGY").alignment = 1
+    doc.add_paragraph("FACULTY OF INDUSTRIAL TECHNOLOGY AND MANAGEMENT").alignment = 1
+    doc.add_paragraph("KING MONGKUT'S UNIVERSITY OF TECHNOLOGY NORTH BANGKOK").alignment = 1
+
+    # ✅ แปลงปี พ.ศ. → ค.ศ. ด้วยการลด 543
+    try:
+        academic_year_int = int(academic_year)
+        gregorian_year = academic_year_int - 543
+        doc.add_paragraph(f"ACADEMIC YEAR {gregorian_year}").alignment = 1
+    except:
+        doc.add_paragraph("ACADEMIC YEAR (____)").alignment = 1
+
+    doc.add_paragraph("COPYRIGHT OF KING MONGKUT'S UNIVERSITY OF TECHNOLOGY NORTH BANGKOK").alignment = 1
+
+    return doc
 
 def add_page_number(section):
     footer = section.footer
@@ -145,6 +236,6 @@ def add_wrapped_paragraph(doc, label, text, n=16):
         if i == 0:
             p.add_run(line)
         else:
-            p.add_run().add_break()         # ✅ บรรทัดใหม่จริง
+            p.add_run().add_break()         # บรรทัดใหม่จริง
             p.add_run(line)
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY

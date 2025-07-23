@@ -1,6 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+
 class CustomUser(AbstractUser):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True)
@@ -50,3 +53,24 @@ class SpProjectAuthor(models.Model):
     class Meta:
         db_table = 'sp_project_author'
         managed = False  # เนื่องจากคุณสร้างตารางเองใน MySQL
+
+class DocCover(models.Model):
+    cover_id = models.AutoField(primary_key=True)
+    project_name_th = models.CharField(max_length=500, null=True)
+    project_name_en = models.CharField(max_length=500, null=True)
+    author1_name_th = models.CharField(max_length=255, null=True)
+    author2_name_th = models.CharField(max_length=255, null=True)
+    author1_name_en = models.CharField(max_length=255, null=True)
+    author2_name_en = models.CharField(max_length=255, null=True)
+    academic_year = models.CharField(max_length=10, null=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_column='user_id',
+        to_field='user_id'
+    )
+
+    class Meta:
+        db_table = 'doc_cover'
+        managed = False  # เพราะคุณสร้างตารางเองใน phpMyAdmin
+

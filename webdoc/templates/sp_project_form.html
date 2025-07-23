@@ -24,11 +24,6 @@
     <label for="name_author_th_1">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 1</label><br>
     <input type="text" id="name_author_th_1" name="name_author_th_1" size="50" value="{{ initial.authors.0|default:'' }}"><br><br>
 
-    {% comment %} <label for="name_author_th_2">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 2</label><br>
-    <input type="text" id="name_author_th_2" name="name_author_th_2" size="50" value="{{ initial.authors.1|default:'' }}"><br><br>
-
-    <label for="name_author_th_3">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 3</label><br>
-    <input type="text" id="name_author_th_3" name="name_author_th_3" size="50" value="{{ initial.authors.2|default:'' }}"><br><br> {% endcomment %}
   </div>
 
   <button type="button" onclick="addAuthor()">เพิ่ม</button>
@@ -50,7 +45,10 @@
   <input type="text" id="strategic" name="strategic" size="50" value="{{ initial.strategic|default:'' }}"><br><br>
 
   <label for="plan">แผนงานที่...และรายละเอียด</label><br>
-  <input type="text" id="plan" name="plan" size="50" value="{{ initial.plan|default:'' }}"><br><br>
+  <textarea id="plan" name="plan" size="50" rows="5" cols="80" 
+          maxlength=""
+          wrap="hard"
+          oninput="autoWrapByWord(this) ">{{ initial.plan|default:'' }}</textarea><br><br>
 
   <label for="key_result">ผลลัพธ์ที่สำคัญ (key result)</label><br>
   <textarea id="key_result" name="key_result" rows="5" cols="80">{{ initial.key_result|default:'' }}</textarea><br><br>
@@ -61,7 +59,7 @@
   
 
   {% if success %}
-    <p style="color: green;">✅ บันทึกข้อมูลเรียบร้อย</p>
+    <p style="color: green;">บันทึกข้อมูลเรียบร้อย</p>
   {% endif %}
 </form>
 
@@ -91,7 +89,7 @@
     container.appendChild(document.createElement('br'));
   }
 
-  function renderAuthorsFromData() {
+  function renderAuthorsFromData(){
     // ล้างทั้งหมดก่อน
     container.innerHTML = '';
     if (authors.length === 0) {
@@ -107,7 +105,7 @@
     document.getElementById('add-button').disabled = authorCount >= maxAuthors;
   }
 
-  function addAuthor() {
+  function addAuthor(){
     if (authorCount >= maxAuthors) return;
     authorCount++;
     createAuthorInput(authorCount);
@@ -116,7 +114,7 @@
     }
   }
 
-  function removeAuthor() {
+  function removeAuthor(){
     if (authorCount > 1) {
       for (let i = 0; i < 4; i++) {
         container.removeChild(container.lastElementChild);
@@ -128,6 +126,27 @@
 
   // เมื่อหน้าโหลดเสร็จ
   document.addEventListener("DOMContentLoaded", renderAuthorsFromData);
+
+  function autoWrapByWord(textarea) {
+  const maxPerLine = 65;  // ความยาวสูงสุดต่อบรรทัด
+  const words = textarea.value.split(/\s+/);  // แยกคำตามช่องว่าง
+  let line = '';
+  let result = '';
+
+  for (const word of words) {
+    // ถ้าบรรทัดปัจจุบันรวมคำใหม่แล้วเกิน limit
+    if ((line + word).length > maxPerLine) {
+      result += line.trimEnd() + '\n';
+      line = word + ' ';
+    } else {
+      line += word + ' ';
+    }
+  }
+
+  result += line.trimEnd();  // เพิ่มบรรทัดสุดท้าย
+
+  textarea.value = result;
+}
 </script>
 </body>
 </html>

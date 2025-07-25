@@ -12,21 +12,28 @@ def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('login')
+            form.save()
+            email = form.cleaned_data.get('email')
+            raw_password = form.cleaned_data.get('password1')
+
+            user = authenticate(request, email=email, password=raw_password)
+            if user is not None:
+                login(request, user)
+                return redirect('index')
     else:
         form = RegisterForm()
     return render(request, 'register.html', {'form': form})
+
 
 
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirect('index')
+            user = form.get_user()  # จากฟอร์ม login
+            if user is not None:
+                login(request, user)
+                return redirect('index')
     else:
         form = LoginForm()
     return render(request, 'login.html', {'form': form})
@@ -38,7 +45,7 @@ def logout_view(request):
 
 
 # Static Pages
-
+@login_required
 def index(request):
     return render(request, 'index.html')
 
@@ -94,7 +101,7 @@ def doc_cover_view(request):
             'authors_en': [project.author1_name_en or '', project.author2_name_en or ''],
         }
 
-        # ✅ เยื้องตรงระดับกับ initial
+        
             initial['authors_th_json'] = json.dumps(initial.get('authors_th', []))
             initial['authors_en_json'] = json.dumps(initial.get('authors_en', []))
 

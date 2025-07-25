@@ -53,6 +53,7 @@ class SpProjectAuthor(models.Model):
     class Meta:
         db_table = 'sp_project_author'
         managed = False  # เนื่องจากคุณสร้างตารางเองใน MySQL
+        
 # ตั้งตามชื่อตาราง แต่ต้องขึ้นต้นด้วยพิมพ์ใหญ่
 class DocCover(models.Model):
     cover_id = models.AutoField(primary_key=True)

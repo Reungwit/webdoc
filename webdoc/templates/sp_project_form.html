@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>แบบเสนอโครงการพิเศษ ทก.01</title>
+</head>
+<body>
+<form method="POST" action="{% url 'sp_project_form' %}">
+  {% csrf_token %}
+
+  <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
+  <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
+
+  <label for="name_pro_en">ชื่อโครงงาน (ภาษาอังกฤษ):</label><br>
+  <input type="text" id="name_pro_en" name="name_pro_en" size="50" value="{{ initial.name_pro_en|default:'' }}"><br><br>
+
+  <label for="case_stu">กรณีศึกษา (ถ้ามี):</label><br>
+  <input type="text" id="case_stu" name="case_stu" size="50" value="{{ initial.case_stu|default:'' }}"><br><br>
+
+  <div id="author-container">
+    <label for="name_author_th_1">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 1</label><br>
+    <input type="text" id="name_author_th_1" name="name_author_th_1" size="50" value="{{ initial.authors.0|default:'' }}"><br><br>
+
+  </div>
+
+  <button type="button" onclick="addAuthor()">เพิ่ม</button>
+  <button type="button" onclick="removeAuthor()">ลบ</button><br><br>
+
+  <label for="term">ภาคเรียนที่</label><br>
+  <input type="text" id="term" name="term" size="30" value="{{ initial.term|default:'' }}"><br><br>
+
+  <label for="school_y">ปีการศึกษา</label><br>
+  <input type="text" id="school_y" name="school_y" size="50" value="{{ initial.school_y|default:'' }}"><br><br>
+
+  <label for="adviser">อาจารย์ที่ปรึกษา</label><br>
+  <input type="text" id="adviser" name="adviser" size="50" value="{{ initial.adviser|default:'' }}"><br><br>
+
+  <label for="co_advisor">อาจารย์ที่ปรึกษาร่วม</label><br>
+  <input type="text" id="co_advisor" name="co_advisor" size="50" value="{{ initial.co_advisor|default:'' }}"><br><br>
+
+  <label for="strategic">ยุทธศาสตร์ที่ ...และรายละเอียด</label><br>
+  <input type="text" id="strategic" name="strategic" size="50" value="{{ initial.strategic|default:'' }}"><br><br>
+
+  <label for="plan">แผนงานที่...และรายละเอียด</label><br>
+  <input type="text" id="plan" name="plan" size="50" value="{{ initial.plan|default:'' }}"><br><br>
+
+  <label for="key_result">ผลลัพธ์ที่สำคัญ (key result)</label><br>
+  <textarea id="key_result" name="key_result" rows="5" cols="80">{{ initial.key_result|default:'' }}</textarea><br><br>
+
+  <button type="submit" name="action" value="save">บันทึกข้อมูล</button>
+  <button type="submit" name="action" value="get_data">ดึงข้อมูล</button>
+  <button type="submit" name="action" value="generate">สร้างเอกสาร</button>
+  
+
+
+<script src="{% static 'js/sp_project.js' %}"></script>
+<script>
+    const authors = {{ initial.authors|default:"[]"|safe }};
+</script>
+</body>
+</html>

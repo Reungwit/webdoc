@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หน้าปก</title>
+    <link rel="stylesheet" href="{% static 'css/sp_project_form.css' %}">
+</head>
+<body>
+  <form method="POST" action="{% url 'cover' %}">
+    {% csrf_token %}
+
+    <!-- ชื่อโครงงาน -->
+    <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
+    <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
+
+    <label for="name_pro_en">ชื่อโครงงาน (อังกฤษ):</label><br>
+    <input type="text" id="name_pro_en" name="name_pro_en" size="50" value="{{ initial.name_pro_en|default:'' }}"><br><br>
+
+    <!-- ผู้จัดทำ -->
+    <div id="author-container"
+     data-authors-th='{{ initial.authors_th_json|safe }}'
+     data-authors-en='{{ initial.authors_en_json|safe }}'>
+</div>
+
+
+    <button type="button" id="add-button" onclick="addAuthor()">เพิ่ม</button>
+    <button type="button" onclick="removeAuthor()">ลบ</button><br><br>
+
+    <!-- ปีการศึกษา -->
+    <label for="academic_year">ปีการศึกษา:</label><br>
+    <input type="text" id="academic_year" name="academic_year" size="50" value="{{ initial.academic_year|default:'' }}"><br><br>
+
+    <!-- ปุ่ม action -->
+    <button type="submit" name="action" value="save_cover">บันทึกข้อมูล</button>
+    <button type="submit" name="action" value="get_data_cover">ดึงข้อมูล</button>
+    <button type="submit" name="action" value="generate_cover_th">สร้างหน้าปกไทย</button>
+    <button type="submit" name="action" value="generate_cover_sec">สร้างหน้าปกรอง</button>
+    <button type="submit" name="action" value="generate_cover_en">สร้างหน้าปกอังกฤษ</button>
+  </form>
+
+  <!-- โหลด JS -->
+  <script src="{% static 'js/cover.js' %}"></script>
+  <script>
+    <script>
+  const authors_th = {{ initial.authors_th|default:"[]"|safe }};
+  const authors_en = {{ initial.authors_en|default:"[]"|safe }};
+</script>
+
+  </script>
+</body>
+</html>

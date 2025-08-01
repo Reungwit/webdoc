@@ -3,7 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-
+from django.db.models import JSONField
 class CustomUser(AbstractUser):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True)
@@ -39,6 +39,8 @@ class SpProject(models.Model):
     purpose_1 = models.CharField(max_length=255)
     purpose_2 = models.CharField(max_length=255)
     purpose_3 = models.CharField(max_length=255)
+    scope_json = JSONField(blank=True, null=True)
+    
     class Meta:
         db_table = 'sp_project'
 

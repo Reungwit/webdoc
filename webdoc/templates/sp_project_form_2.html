@@ -33,28 +33,18 @@
 
   </div>
 
-  <button type="button" onclick="addPurpose()">เพิ่ม วัตถุประสงค์</button>
+  <button type="button" id="add-button" onclick="addPurpose()">เพิ่ม วัตถุประสงค์</button>
   <button type="button" onclick="removePurpose()">ลบ วัตถุประสงค์</button><br><br>
 
   <div id="scope_container">
-     <label for="">ขอบเขตหัวข้อใหญ่ ข้อที่ 1</label><br>
-    <input type="text" id="scope_b_1" name="scope_b_1" size="80" value="{{ initial.scope_b_1.0|default:'' }} " ><br><br>
-
-    <button type="button" onclick="addScope_b()">เพิ่ม ขอบเขตหัวข้อใหญ่</button>
-  <button type="button" onclick="removeScope_b()">ลบ ขอบเขตหัวข้อใหญ่</button><br><br>
-
-
-     <label for="">ขอบเขตหัวข้อย่อย ข้อที่ 1</label><br>
-    <input type="text" id="scope_s_1" name="scope_s_1" size="80" value="{{ initial.scope_b_1.0|default:'' }} " ><br><br>    
-
-    <button type="button" onclick="addScope_s()">เพิ่ม ขอบเขตหัวข้อย่อย</button>
-  <button type="button" onclick="removeScope_s()">ลบ ขอบเขตหัวข้อย่อย</button><br><br>
-
-
+   
   </div>
 
-
-  {% comment %} Button {% endcomment %}
+<button type="button" onclick="addScopeB()">เพิ่ม ขอบเขตหัวข้อใหญ่</button>
+<button type="button" onclick="removeScopeB()">ลบ ขอบเขตหัวข้อใหญ่</button>
+<input type="hidden" id="scope_count" name="scope_count" value="1">
+<!-- scope_subcount_x hidden field จะถูก JS สร้างอัตโนมัติ -->
+  {% comment %} Button {% endcomment %} <br><br>
 
   <button type="submit" name="action" value="save">บันทึกข้อมูล</button>
   <button type="submit" name="action" value="get_data">ดึงข้อมูล</button>
@@ -63,7 +53,13 @@
 
   <script src="{% static 'js/sp_project.js' %}"></script>
  <script>
-   const purpose = {{ initial.purpose|default:"[]"|safe }}; 
+   window.purpose = [
+    "{{ initial.purpose_1|default:'' }}",
+    "{{ initial.purpose_2|default:'' }}",
+    "{{ initial.purpose_3|default:'' }}"
+].filter(Boolean); // เอาเฉพาะที่ไม่ว่าง
+ console.log("SC Initial", {{ initial.scope_data|default:'[]'|safe }});
+  window.scopeInitial = {{ initial.scope_data|default:'[]'|safe }};
   
  </script>
 </body>

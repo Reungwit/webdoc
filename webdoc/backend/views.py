@@ -164,17 +164,18 @@ def doc_cover_view(request):
 
 
 # แบบฟอร์ม ทก.01
-@login_required
+
+
+
 @login_required
 def sp_project_form_view(request):
     user = request.user
     initial = {}
 
-    # ถ้า POST (ทั้งหน้า 1, หน้า 2)
     if request.method == 'POST':
         action = request.POST.get('action')
-
-        # เก็บค่าทุกฟิลด์ที่ต้องใช้ ไม่ว่าจะมาจากหน้าไหน
+        print(">>> ACTION =", action)  # 🧪 ตรวจดูว่า Django รับค่าอะไรจริงๆ
+        
         name_pro_th = request.POST.get('name_pro_th', '')
         name_pro_en = request.POST.get('name_pro_en', '')
         case_stu = request.POST.get('case_stu', '')
@@ -191,17 +192,91 @@ def sp_project_form_view(request):
         purpose_1 = request.POST.get('purpose_1', '')
         purpose_2 = request.POST.get('purpose_2', '')
         purpose_3 = request.POST.get('purpose_3', '')
-        # Authors (รองรับสูงสุด 2 คน)
         authors = [
-            request.POST.get(f'name_author_th_{i}', '')
-            for i in range(1, 3)
-            if request.POST.get(f'name_author_th_{i}', '')
+            request.POST.get('name_author_th_1', ''),
+            request.POST.get('name_author_th_2', '')
         ]
 
-        # บันทึกหรืออัปเดต
-        project, created = SpProject.objects.update_or_create(
-            user=user,
-            defaults={
+        # ✅ อ่าน scope
+        scope_data = []
+        scope_count = int(request.POST.get('scope_count', 1))
+        for i in range(1, scope_count + 1):
+            main = request.POST.get(f'scope_b_{i}', '').strip()
+            sub_count = int(request.POST.get(f'scope_subcount_{i}', 1))
+            subs = []
+            for j in range(1, sub_count + 1):
+                sub = request.POST.get(f'scope_s_{i}_{j}', '').strip()
+                if sub:
+                    subs.append(sub)
+            scope_data.append({'main': main, 'subs': subs})
+        
+        # 1. ดักกรณี get_data: แค่โหลด ไม่เซฟ/ไม่ update_or_create ใดๆ
+        if action == 'get_data':
+            try:
+                project = SpProject.objects.get(user=user)
+                scope_data = project.scope_json or []
+                initial['scope_data'] = scope_data
+
+                initial = {
+                    'name_pro_th': project.name_pro_th,
+                    'name_pro_en': project.name_pro_en,
+                    'case_stu': project.case_stu,
+                    'term': project.term,
+                    'school_y': project.school_y,
+                    'adviser': project.adviser,
+                    'co_advisor': project.co_advisor,
+                    'strategic': project.strategic,
+                    'plan': project.plan,
+                    'key_result': project.key_result,
+                    'bg_and_sig_para1': project.bg_and_sig_para1,
+                    'bg_and_sig_para2': project.bg_and_sig_para2,
+                    'bg_and_sig_para3': project.bg_and_sig_para3,
+                    'purpose_1': project.purpose_1,
+                    'purpose_2': project.purpose_2,
+                    'purpose_3': project.purpose_3,
+                    'authors': list(
+                        SpProjectAuthor.objects.filter(userid=user.user_id, project=project)
+                        .values_list('name', flat=True)
+                    ),
+                    'scope_data': scope_data,
+                }
+            except SpProject.DoesNotExist:
+                initial = {}
+        # if request.path.endswith('/sp_project_form_2/'):
+        #     return render(request, 'sp_project_form_2.html', {'initial': initial})
+        # else:
+        #     return render(request, 'sp_project_form.html', {'initial': initial})
+
+        if action == 'save':
+        # 2. กรณีบันทึกข้อมูล (save) 
+            # ------- Save/update DB -------
+            project, created = SpProject.objects.update_or_create(
+                user=user,
+                defaults={
+                    'name_pro_th': name_pro_th,
+                    'name_pro_en': name_pro_en,
+                    'case_stu': case_stu,
+                    'term': term,
+                    'school_y': school_y,
+                    'adviser': adviser,
+                    'co_advisor': co_advisor,
+                    'strategic': strategic,
+                    'plan': plan,
+                    'key_result': key_result,
+                    'bg_and_sig_para1': bg_and_sig_para1,
+                    'bg_and_sig_para2': bg_and_sig_para2,
+                    'bg_and_sig_para3': bg_and_sig_para3,
+                    'purpose_1': purpose_1,
+                    'purpose_2': purpose_2,
+                    'purpose_3': purpose_3,
+                    'scope_json': json.dumps(scope_data, ensure_ascii=False),
+                }
+            )
+            SpProjectAuthor.objects.filter(userid=user.user_id, project=project).delete()
+            for name in authors:
+                SpProjectAuthor.objects.create(userid=user.user_id, name=name, project=project)
+
+            initial = {
                 'name_pro_th': name_pro_th,
                 'name_pro_en': name_pro_en,
                 'case_stu': case_stu,
@@ -218,87 +293,29 @@ def sp_project_form_view(request):
                 'purpose_1': purpose_1,
                 'purpose_2': purpose_2,
                 'purpose_3': purpose_3,
+                'authors': authors,
+                'scope_data': scope_data,
             }
-        )
 
-        # บันทึก/อัปเดต authors
-        SpProjectAuthor.objects.filter(userid=user.user_id, project=project).delete()
-        for name in authors:
-            SpProjectAuthor.objects.create(userid=user.user_id, name=name, project=project)
-
-        # เตรียม initial คืน (ดึงจาก project ที่เพิ่งบันทึก)
-        initial = {
-            'name_pro_th': name_pro_th,
-            'name_pro_en': name_pro_en,
-            'case_stu': case_stu,
-            'term': term,
-            'school_y': school_y,
-            'adviser': adviser,
-            'co_advisor': co_advisor,
-            'strategic': strategic,
-            'plan': plan,
-            'key_result': key_result,
-            'bg_and_sig_para1': bg_and_sig_para1,
-            'bg_and_sig_para2': bg_and_sig_para2,
-            'bg_and_sig_para3': bg_and_sig_para3,
-            'purpose_1': purpose_1,
-            'purpose_2': purpose_2,
-            'purpose_3': purpose_3,
-            'authors': authors,
-        }
-
-        # กรณี generate เอกสาร
-        if action == 'generate':
-            doc = doc_sp_01(
-                name_pro_th, name_pro_en, authors,
+        # ----- กรณี generate -----
+        elif action == 'generate':
+                print("=== GENERATE ACTION ===")
+                doc = doc_sp_01(name_pro_th, name_pro_en, authors,
                 case_stu, term, school_y,
                 adviser, co_advisor,
                 strategic, plan, key_result,
                 bg_and_sig_para1, bg_and_sig_para2, bg_and_sig_para3,
-                purpose_1, purpose_2, purpose_3
+                purpose_1, purpose_2, purpose_3,scope_data
             )
-            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-            response['Content-Disposition'] = 'attachment; filename=sp_project_form.docx'
-            doc.save(response)
-            return response
-
-        # ดัก path ว่าอยู่หน้าไหน (สำคัญ)
-        if request.path.endswith('/sp_project_form_2/'):
-            return render(request, 'sp_project_form_2.html', {'initial': initial})
-        else:
-            return render(request, 'sp_project_form.html', {'initial': initial})
-
-    # GET method (โหลดข้อมูลมาโชว์)
+                response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                response['Content-Disposition'] = 'attachment; filename=sp_project_form.docx'
+                doc.save(response)
+                return response
+        
+    if request.path.endswith('/sp_project_form_2/'):
+        return render(request, 'sp_project_form_2.html', {'initial': initial})
     else:
-        try:
-            project = SpProject.objects.get(user=user)
-            initial = {
-                'name_pro_th': project.name_pro_th,
-                'name_pro_en': project.name_pro_en,
-                'case_stu': project.case_stu,
-                'term': project.term,
-                'school_y': project.school_y,
-                'adviser': project.adviser,
-                'co_advisor': project.co_advisor,
-                'strategic': project.strategic,
-                'plan': project.plan,
-                'key_result': project.key_result,
-                'bg_and_sig_para1': project.bg_and_sig_para1,
-                'bg_and_sig_para2': project.bg_and_sig_para2,
-                'bg_and_sig_para3': project.bg_and_sig_para3,
-                'purpose_1': project.purpose_1,
-                'purpose_2': project.purpose_2,
-                'purpose_3': project.purpose_3,
-                'authors': list(
-                    SpProjectAuthor.objects.filter(userid=user.user_id, project=project)
-                    .values_list('name', flat=True)
-                ),
-            }
-        except SpProject.DoesNotExist:
-            initial = {}
+        return render(request, 'sp_project_form.html', {'initial': initial})
+    
 
-        if request.path.endswith('/sp_project_form_2/'):
-            return render(request, 'sp_project_form_2.html', {'initial': initial})
-        else:
-            return render(request, 'sp_project_form.html', {'initial': initial})
-
+       

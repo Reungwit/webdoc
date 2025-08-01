@@ -14,7 +14,7 @@ from docx.document import Document as DocxDocument
 def doc_sp_01(name_pro_th, name_pro_en, authors,case_stu,
               term,school_y,adviser,co_advisor,strategic,
               plan,key_result,bg_and_sig_para1,bg_and_sig_para2,bg_and_sig_para3,
-              purpose_1,purpose_2,purpose_3):
+              purpose_1,purpose_2,purpose_3,scope_data):
     
 
     doc = Document()
@@ -110,7 +110,18 @@ def doc_sp_01(name_pro_th, name_pro_en, authors,case_stu,
     p.add_run("2.3 ขอบเขตการทำโครงงาน ").bold = True
     p.add_run("(Scope of Special Project)")
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-    
+    # ========== ส่วนขอบเขต ==========
+    # doc.add_heading('2.3 ขอบเขตการทำโครงงาน (Scope of Special Project)', level=2)
+    for i, item in enumerate(scope_data, start=1):
+        main = item.get('main', '').strip()
+        if main:
+            add_paragraph_indent(doc, f"2.3.{i} {main}")  # ✅ ไม่มีเลขอัตโนมัติ
+
+        for j, sub in enumerate(item.get('subs', []), start=1):
+            sub = sub.strip()
+            if sub:
+                add_paragraph_indent(doc, f"\t2.3.{i}.{j} {sub}")  # ✅ ไม่มี bullet
+
     
     
     

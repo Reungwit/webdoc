@@ -282,6 +282,8 @@ CREATE TABLE `doc_cover` (
 INSERT INTO `doc_cover` (`cover_id`, `project_name_th`, `project_name_en`, `author1_name_th`, `author2_name_th`, `author1_name_en`, `author2_name_en`, `academic_year`, `user_id`) VALUES
 (6, 'ัระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'นายเรืองวิชญ์  สิงห์หล้า', '', 'Reungwit Singla', '', '2568', 2);
 
+
+
 -- --------------------------------------------------------
 
 --
@@ -308,6 +310,7 @@ CREATE TABLE `sp_project` (
   `purpose_3` varchar(255) NOT NULL,
   `user_id` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 --
 -- Dumping data for table `sp_project`

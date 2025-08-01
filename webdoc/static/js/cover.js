@@ -1,5 +1,5 @@
 let authorCount = 1;
-const maxAuthors = 3;
+const maxAuthors = 2;
 const container = document.getElementById('author-container');
 
 let authors_th = [];
@@ -76,7 +76,7 @@ function addAuthor() {
   if (authorCount >= maxAuthors) return;
   authorCount++;
   createAuthorInput(authorCount);
-  if (authorCount === maxAuthors) {
+  if (authorCount == maxAuthors) {
     document.getElementById('add-button').disabled = true;
   }
 }

@@ -6,7 +6,10 @@ from .forms import RegisterForm, LoginForm
 from .models import SpProject, SpProjectAuthor, DocCover
 from man_doc.doc_sp_01 import doc_sp_01
 from man_doc.doc_cover import doc_cover_th, doc_cover_en, doc_cover_sec  # <-- ถ้ามี doc_cover_en ต้อง import ด้วย
+from .models import Abstract
+from django.http import HttpResponse
 import json
+from django.shortcuts import render
 # Register / Login / Logout
 def register_view(request):
     if request.method == 'POST':
@@ -186,6 +189,7 @@ def sp_project_form_view(request):
             except SpProject.DoesNotExist:
                 initial = {}
 
+<<<<<<< Updated upstream
         elif action in ['save', 'generate']:
             name_pro_th = request.POST.get('name_pro_th', '')
             name_pro_en = request.POST.get('name_pro_en', '')
@@ -240,3 +244,82 @@ def sp_project_form_view(request):
                 return response
 
     return render(request, 'sp_project_form.html', {'initial': initial})
+=======
+        if request.path.endswith('/sp_project_form_2/'):
+            return render(request, 'sp_project_form_2.html', {'initial': initial})
+        else:
+            return render(request, 'sp_project_form.html', {'initial': initial})
+        
+#ของบทคัดย่อ
+
+def intro_view(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        # if 'fetch' in request.POST:
+        #     # กรณีดึงข้อมูลล่าสุด
+        #     try:
+        #         latest_data = Abstract.objects.latest('abstract_id')
+        #         return render(request, 'intro.html', {
+        #             'abstract': latest_data,
+        #             'success_message': 'ดึงข้อมูลล่าสุดสำเร็จ'
+        #         })
+        #     except Abstract.DoesNotExist:
+        #         return render(request, 'intro.html', {
+        #             'error_message': 'ยังไม่มีข้อมูลในระบบ'
+        #         })
+
+        if action == 'save_intro':
+            try:
+                # ฟังก์ชันแปลงค่าเป็น int อย่างปลอดภัย
+                def safe_int(val, default=0):
+                    try:
+                        return int(val)
+                    except (TypeError, ValueError):
+                        return default
+
+                # ดึงค่า abstract_id (ถ้ามี) เพื่อระบุว่าบันทึกใหม่หรืออัปเดต
+                abstract_id = request.POST.get('abstract_id')
+                if abstract_id:
+                    lookup = {'abstract_id': abstract_id}
+                else:
+                    project_name_th = request.POST.get('project_name_th', '').strip()
+                    academic_year_th = request.POST.get('academic_year_th', '').strip()
+                    if not project_name_th or not academic_year_th.isdigit():
+                        return render(request, 'intro.html', {'error_message': 'กรุณากรอกชื่อโปรเจคและปีการศึกษาให้ถูกต้อง'})
+                    lookup = {
+                        'project_name_th': project_name_th,
+                        'academic_year_th': int(academic_year_th),
+                    }
+
+                # ใช้ update_or_create บันทึกหรืออัปเดตข้อมูลบทคัดย่อ
+                obj, created = Abstract.objects.update_or_create(
+                    defaults={
+                        'author1_th': request.POST.get('author1_th', ''),
+                        'author1_en': request.POST.get('author1_en', ''),
+                        'author2_th': request.POST.get('author2_th', ''),
+                        'author2_en': request.POST.get('author2_en', ''),
+                        'project_name_en': request.POST.get('project_name_en', ''),
+                        'abstract_th': request.POST.get('abstract_th', ''),
+                        'abstract_en': request.POST.get('abstract_en', ''),
+                        'major_th': request.POST.get('major_th', ''),
+                        'major_en': request.POST.get('major_en', ''),
+                        'advisor_th': request.POST.get('advisor_th', ''),
+                        'advisor_en': request.POST.get('advisor_en', ''),
+                        'coadvisor_th': request.POST.get('coadvisor_th', ''),
+                        'coadvisor_en': request.POST.get('coadvisor_en', ''),
+                        'academic_year_en': safe_int(request.POST.get('academic_year_en')),
+                        'keyword_th': request.POST.get('keyword_th', ''),
+                        'keyword_en': request.POST.get('keyword_en', ''),
+                    },
+                    **lookup
+                )
+                msg = 'สร้างข้อมูลใหม่' if created else 'อัปเดตข้อมูลเรียบร้อยแล้ว'
+                return render(request, 'intro.html', {'success_message': msg, 'abstract': obj})
+
+            except Exception as e:
+                return render(request, 'intro.html', {'error_message': f'เกิดข้อผิดพลาด: {e}'})
+
+    # กรณี GET หรือ method อื่นๆ
+    return render(request, 'intro.html')
+>>>>>>> Stashed changes

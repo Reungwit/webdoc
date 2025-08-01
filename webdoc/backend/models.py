@@ -33,6 +33,15 @@ class SpProject(models.Model):
     strategic = models.TextField()
     plan = models.TextField()
     key_result = models.TextField()
+<<<<<<< Updated upstream
+=======
+    bg_and_sig_para1 = models.TextField(default='')
+    bg_and_sig_para2 = models.TextField(default='')
+    bg_and_sig_para3 = models.TextField(default='')
+    purpose_1 = models.CharField(max_length=255, default='')
+    purpose_2 = models.CharField(max_length=255, default='')
+    purpose_3 = models.CharField(max_length=255, default='')
+>>>>>>> Stashed changes
 
     class Meta:
         db_table = 'sp_project'
@@ -73,4 +82,29 @@ class DocCover(models.Model):
     class Meta:
         db_table = 'doc_cover'
         managed = False  # เพราะคุณสร้างตารางเองใน phpMyAdmin
+
+class Abstract(models.Model): 
+    abstract_id = models.AutoField(primary_key=True)
+
+    author1_th = models.CharField(max_length=255)
+    author1_en = models.CharField(max_length=255)
+    author2_th = models.CharField(max_length=255)
+    author2_en = models.CharField(max_length=255)
+    project_name_th = models.CharField(max_length=255)
+    project_name_en = models.CharField(max_length=255)
+    abstract_th = models.TextField()
+    abstract_en = models.TextField()
+    major_th = models.CharField(max_length=255)
+    major_en = models.CharField(max_length=255)
+    advisor_th = models.CharField(max_length=255)
+    advisor_en = models.CharField(max_length=255)
+    coadvisor_th = models.CharField(max_length=255)
+    coadvisor_en = models.CharField(max_length=255)
+    academic_year_th = models.IntegerField()
+    academic_year_en = models.IntegerField()
+    keyword_th = models.CharField(max_length=255)
+    keyword_en = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'abstract'
 

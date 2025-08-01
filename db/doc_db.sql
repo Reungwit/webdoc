@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 22, 2025 at 06:00 PM
+-- Generation Time: Aug 01, 2025 at 06:19 AM
 -- Server version: 8.0.42
 -- PHP Version: 8.2.12
 
@@ -85,7 +85,15 @@ INSERT INTO `auth_permission` (`id`, `name`, `content_type_id`, `codename`) VALU
 (21, 'Can add user', 6, 'add_customuser'),
 (22, 'Can change user', 6, 'change_customuser'),
 (23, 'Can delete user', 6, 'delete_customuser'),
-(24, 'Can view user', 6, 'view_customuser');
+(24, 'Can view user', 6, 'view_customuser'),
+(25, 'Can add sp project', 7, 'add_spproject'),
+(26, 'Can change sp project', 7, 'change_spproject'),
+(27, 'Can delete sp project', 7, 'delete_spproject'),
+(28, 'Can view sp project', 7, 'view_spproject'),
+(29, 'Can add sp project author', 8, 'add_spprojectauthor'),
+(30, 'Can change sp project author', 8, 'change_spprojectauthor'),
+(31, 'Can delete sp project author', 8, 'delete_spprojectauthor'),
+(32, 'Can view sp project author', 8, 'view_spprojectauthor');
 
 -- --------------------------------------------------------
 
@@ -113,9 +121,10 @@ CREATE TABLE `backend_customuser` (
 --
 
 INSERT INTO `backend_customuser` (`user_id`, `password`, `last_login`, `is_superuser`, `is_active`, `username`, `first_name`, `last_name`, `is_staff`, `date_joined`, `email`, `full_name`) VALUES
-(1, 'pbkdf2_sha256$870000$kBh9QE2VrV9CBGBTobhxHz$Lkd2/zbMenIpTPk9QV32loYJQmUZWLn/RaDDPokd4XY=', '2025-07-22 15:36:04.089272', 1, 1, 'admin', '', '', 1, '2025-07-13 05:06:37.253416', 'admin@gmail.com', ''),
-(2, 'pbkdf2_sha256$870000$O10Of0E6RmlMPPsYBCOSol$p+bus7K12Z4+qHFcduQpsvtGaFYducHVJsTNjyEWST4=', '2025-07-22 15:37:58.807975', 0, 1, 'BossReungwit', '', '', 0, '2025-07-13 05:28:03.461600', 'singlaboss@gmail.com', 'ZA'),
-(4, 'pbkdf2_sha256$870000$RdkraQ3A6nbkI9mJgK5OnM$rbDGJ77Uo0TpfQC8PS+2uWfHFy1Ovdlh78Maq2Xmd74=', NULL, 0, 1, 'test', '', '', 0, '2025-07-18 03:35:54.750817', 'test@gmail.com', 'test');
+(1, 'pbkdf2_sha256$870000$kBh9QE2VrV9CBGBTobhxHz$Lkd2/zbMenIpTPk9QV32loYJQmUZWLn/RaDDPokd4XY=', '2025-07-26 13:12:23.697885', 1, 1, 'admin', '', '', 1, '2025-07-13 05:06:37.253416', 'admin@gmail.com', ''),
+(2, 'pbkdf2_sha256$870000$O10Of0E6RmlMPPsYBCOSol$p+bus7K12Z4+qHFcduQpsvtGaFYducHVJsTNjyEWST4=', '2025-07-30 06:59:45.203766', 0, 1, 'BossReungwit', '', '', 0, '2025-07-13 05:28:03.461600', 'singlaboss@gmail.com', 'ZA'),
+(4, 'pbkdf2_sha256$870000$RdkraQ3A6nbkI9mJgK5OnM$rbDGJ77Uo0TpfQC8PS+2uWfHFy1Ovdlh78Maq2Xmd74=', NULL, 0, 1, 'test', '', '', 0, '2025-07-18 03:35:54.750817', 'test@gmail.com', 'test'),
+(6, 'pbkdf2_sha256$870000$DYOn2AU52ffoHSvsp5FJbz$iHtyKDdSMUgjFgEVv8iAJsro8UPJY7Bedy/fsY/ssoI=', '2025-07-25 14:41:40.237073', 0, 1, 'test1', '', '', 0, '2025-07-25 14:41:39.728345', 'test1@gmail.com', 'ZA');
 
 -- --------------------------------------------------------
 
@@ -179,6 +188,8 @@ INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES
 (3, 'auth', 'group'),
 (2, 'auth', 'permission'),
 (6, 'backend', 'customuser'),
+(7, 'backend', 'spproject'),
+(8, 'backend', 'spprojectauthor'),
 (4, 'contenttypes', 'contenttype'),
 (5, 'sessions', 'session');
 
@@ -218,7 +229,8 @@ INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
 (16, 'admin', '0001_initial', '2025-07-13 05:05:56.713800'),
 (17, 'admin', '0002_logentry_remove_auto_add', '2025-07-13 05:05:56.719933'),
 (18, 'admin', '0003_logentry_add_action_flag_choices', '2025-07-13 05:05:56.724933'),
-(19, 'sessions', '0001_initial', '2025-07-13 05:05:56.745980');
+(19, 'sessions', '0001_initial', '2025-07-13 05:05:56.745980'),
+(20, 'backend', '0002_spproject_spprojectauthor', '2025-07-27 03:54:26.871014');
 
 -- --------------------------------------------------------
 
@@ -237,10 +249,38 @@ CREATE TABLE `django_session` (
 --
 
 INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALUES
+('49qrs07dynexh8hpdymi3v1i579fbso8', '.eJxVizsOAyEMRO9CHa3AJoudMlLOgYwBscqnCLtVlLvnI4qkm5k372GibGuLWy_3uGRzMGB2v1sSPZfbB4w0fdkofTpdZbkcx-nPbNLbW_Oca_ahirfZpoAlw8zkiWbHwBAIS90jIKIrmqx6ZmEgq6rOWSbzfAEbHjRU:1ufeZV:SY1SdF0G4mNQXioqpef2W2y68MFtEVERYkxGOewcDVI', '2025-08-09 13:04:17.518052'),
+('5z45m03x890ef1mdebby15eb2i70gd4b', '.eJxVizsOAyEMRO9CHa3AJoudMlLOgYwBscqnCLtVlLvnI4qkm5k372GibGuLWy_3uGRzMGB2v1sSPZfbB4w0fdkofTpdZbkcx-nPbNLbW_Oca_ahirfZpoAlw8zkiWbHwBAIS90jIKIrmqx6ZmEgq6rOWSbzfAEbHjRU:1uh0mv:WfaaYFPxOmU6foc_vw6RbEQqLXx9d5NpCB5S6s6MZRw', '2025-08-13 06:59:45.208762'),
 ('9i0yn5ufbr0r73dwaypc5bbfwcou5exu', 'e30:1uaovv:8lutfgnT3_ORdoaPfHiEye8y_3n798y41el-NahXeAs', '2025-07-27 05:07:27.713320'),
-('v9gxg24u6hp5qyz0l4e3bj2ud0r5s6af', '.eJxVizsOAyEMRO9CHa3AJoudMlLOgYwBscqnCLtVlLvnI4qkm5k372GibGuLWy_3uGRzMGB2v1sSPZfbB4w0fdkofTpdZbkcx-nPbNLbW_Oca_ahirfZpoAlw8zkiWbHwBAIS90jIKIrmqx6ZmEgq6rOWSbzfAEbHjRU:1ueF42:fAaM8Dl8Gm4-8D847PSHnlVatPsPoW-RPXVEUBjed6g', '2025-08-05 15:37:58.809975'),
+('jbwpe3nxqallot4k533hfkwwolhpkd71', '.eJxVizsOAyEMRO9CHa3AJoudMlLOgYwBscqnCLtVlLvnI4qkm5k372GibGuLWy_3uGRzMGB2v1sSPZfbB4w0fdkofTpdZbkcx-nPbNLbW_Oca_ahirfZpoAlw8zkiWbHwBAIS90jIKIrmqx6ZmEgq6rOWSbzfAEbHjRU:1ufeg7:QCCqJkebRKoSPi6SBeCIWMQiENlnsva-Ot9O71ab5EU', '2025-08-09 13:11:07.840171'),
+('orwc9gs7h2423gbt3hrul23nz6x5fztd', 'e30:1ufJZn:V0C31YNWlrZgBlrbJ7uGjjT8zlizqV8Q4ss152Ilk9s', '2025-08-08 14:39:11.966251'),
 ('vq3w1ecq34694ot5ig7qnqur7pzdszr1', 'e30:1ucbn2:7faVuZa-IAuaqSyPQuoUxbb0NvyDi0m5gxPNGZcGybU', '2025-08-01 03:29:40.543057'),
 ('wpjhggmnryvlh8dwjkfotcdpkdwjlm7x', 'e30:1uaowt:xDpWe91KBstbfQPRahJFExy_LQpTsovMWMqDFwWneGs', '2025-07-27 05:08:27.607318');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `doc_cover`
+--
+
+CREATE TABLE `doc_cover` (
+  `cover_id` int NOT NULL,
+  `project_name_th` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `project_name_en` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `author1_name_th` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `author2_name_th` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `author1_name_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `author2_name_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `academic_year` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `user_id` bigint NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `doc_cover`
+--
+
+INSERT INTO `doc_cover` (`cover_id`, `project_name_th`, `project_name_en`, `author1_name_th`, `author2_name_th`, `author1_name_en`, `author2_name_en`, `academic_year`, `user_id`) VALUES
+(6, 'ัระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'นายเรืองวิชญ์  สิงห์หล้า', '', 'Reungwit Singla', '', '2568', 2);
 
 -- --------------------------------------------------------
 
@@ -260,6 +300,12 @@ CREATE TABLE `sp_project` (
   `strategic` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
   `plan` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
   `key_result` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `bg_and_sig_para1` longtext NOT NULL,
+  `bg_and_sig_para2` longtext NOT NULL,
+  `bg_and_sig_para3` longtext NOT NULL,
+  `purpose_1` varchar(255) NOT NULL,
+  `purpose_2` varchar(255) NOT NULL,
+  `purpose_3` varchar(255) NOT NULL,
   `user_id` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -267,8 +313,9 @@ CREATE TABLE `sp_project` (
 -- Dumping data for table `sp_project`
 --
 
-INSERT INTO `sp_project` (`id`, `name_pro_th`, `name_pro_en`, `case_stu`, `term`, `school_y`, `adviser`, `co_advisor`, `strategic`, `plan`, `key_result`, `user_id`) VALUES
-(10, 'ัระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'ไม่มี', '2', '2567', 'ผศ.จสต.นพเก้า ทองใบ', 'ไม่มี', '5 การพัฒนาวิทยาศาสตร์ เทคโนโลยี การวิจัย และ นวัตกรรมระดับขั้นแนวหน้าที่ก้าวหน้าล้ำยุค เพื่อสร้างโอกาสใหม่ และความพร้อมของประเทศในอนาคต', '20 พัฒนาโครงสร้างพื้นฐาน ด้านวิทยาศาสตร์ วิจัย และนวัตกรรมและโครงสร้าง พื้นฐานทางคุณภาพของประเทศที่รองรับการวิจัยขั้นแนวหน้า และการพัฒนาเทคโนโลยีและนวัตกรรมสู่อนาคต', 'ประเทศไทยมีโครงสร้างพื้นฐานด้านวิทยาศาสตร์ วิจัย นวัตกรรมที่สำคัญ\r\nเทคโนโลยีพื้นฐาน และโครงสร้างพื้นฐานทางคุณภาพสำหรับการวิจัยขั้นแนวหน้าที่\r\nทัดเทียมมาตรฐานสากลและสามารถรองรับการพัฒนาอย่างก้าวกระโดดสู่อนาคต \r\n', 2);
+INSERT INTO `sp_project` (`id`, `name_pro_th`, `name_pro_en`, `case_stu`, `term`, `school_y`, `adviser`, `co_advisor`, `strategic`, `plan`, `key_result`, `bg_and_sig_para1`, `bg_and_sig_para2`, `bg_and_sig_para3`, `purpose_1`, `purpose_2`, `purpose_3`, `user_id`) VALUES
+(11, 'ัระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'ไม่มี', '2', '2567', 'ผศ.จสต.นพเก้า ทองใบ', 'ไม่มี', '', '', '', '', '', '', '', '', '', 1),
+(17, 'ระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'ไม่มี', '2', '2567', 'ผศ.จสต.นพเก้า ทองใบ', 'ไม่มี', '', '', '', '', '', '', 'เพื่อพัฒนาระบบสนับสนุนการจัดทำเล่ม ทก. และ โครงงานพิเศษ', '', '', 2);
 
 -- --------------------------------------------------------
 
@@ -288,8 +335,9 @@ CREATE TABLE `sp_project_author` (
 --
 
 INSERT INTO `sp_project_author` (`id`, `name`, `userid`, `sp_id`) VALUES
-(30, 'นายเรืองวิชญ์  สิงห์หล้า', 2, 10),
-(31, 'นางสาวสุกฤตา  กาหาวงศ์', 2, 10);
+(40, 'นายเรืองวิชญ์  สิงห์หล้า', 1, 11),
+(41, 'นางสาวสุกฤตา  กาหาวงศ์', 1, 11),
+(318, 'นายเรืองวิชญ์  สิงห์หล้า', 2, 17);
 
 --
 -- Indexes for dumped tables
@@ -370,6 +418,13 @@ ALTER TABLE `django_session`
   ADD KEY `django_session_expire_date_a5c62663` (`expire_date`);
 
 --
+-- Indexes for table `doc_cover`
+--
+ALTER TABLE `doc_cover`
+  ADD PRIMARY KEY (`cover_id`),
+  ADD KEY `userid_doccover` (`user_id`);
+
+--
 -- Indexes for table `sp_project`
 --
 ALTER TABLE `sp_project`
@@ -404,13 +459,13 @@ ALTER TABLE `auth_group_permissions`
 -- AUTO_INCREMENT for table `auth_permission`
 --
 ALTER TABLE `auth_permission`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `backend_customuser`
 --
 ALTER TABLE `backend_customuser`
-  MODIFY `user_id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `user_id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `backend_customuser_groups`
@@ -434,25 +489,31 @@ ALTER TABLE `django_admin_log`
 -- AUTO_INCREMENT for table `django_content_type`
 --
 ALTER TABLE `django_content_type`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+
+--
+-- AUTO_INCREMENT for table `doc_cover`
+--
+ALTER TABLE `doc_cover`
+  MODIFY `cover_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `sp_project`
 --
 ALTER TABLE `sp_project`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `sp_project_author`
 --
 ALTER TABLE `sp_project_author`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=319;
 
 --
 -- Constraints for dumped tables
@@ -491,6 +552,12 @@ ALTER TABLE `backend_customuser_user_permissions`
 ALTER TABLE `django_admin_log`
   ADD CONSTRAINT `django_admin_log_content_type_id_c4bce8eb_fk_django_co` FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`),
   ADD CONSTRAINT `django_admin_log_user_id_c564eba6_fk_backend_customuser_id` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`);
+
+--
+-- Constraints for table `doc_cover`
+--
+ALTER TABLE `doc_cover`
+  ADD CONSTRAINT `userid_doccover` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 --
 -- Constraints for table `sp_project`

@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบเสนอโครงการพิเศษ ทก.01(ต่อ)</title>
+</head>
+<body>
+    <form id="myForm" method="POST" action="{% url 'sp_project_form_2' %}">
+  {% csrf_token %}
+    <!-- Hidden fields ทุกช่องจากหน้าแรก -->
+  <input type="hidden" name="name_pro_th" value="{{ initial.name_pro_th|default:'' }}">
+  <input type="hidden" name="name_pro_en" value="{{ initial.name_pro_en|default:'' }}">
+  <input type="hidden" name="case_stu" value="{{ initial.case_stu|default:'' }}">
+  <input type="hidden" name="term" value="{{ initial.term|default:'' }}">
+  <input type="hidden" name="school_y" value="{{ initial.school_y|default:'' }}">
+  <input type="hidden" name="adviser" value="{{ initial.adviser|default:'' }}">
+  <input type="hidden" name="co_advisor" value="{{ initial.co_advisor|default:'' }}">
+  <input type="hidden" name="strategic" value="{{ initial.strategic|default:'' }}">
+  <input type="hidden" name="plan" value="{{ initial.plan|default:'' }}">
+  <input type="hidden" name="key_result" value="{{ initial.key_result|default:'' }}">
+  <input type="hidden" name="bg_and_sig_para1" value="{{ initial.bg_and_sig_para1|default:'' }}">
+  <input type="hidden" name="bg_and_sig_para2" value="{{ initial.bg_and_sig_para2|default:'' }}">
+  <input type="hidden" name="bg_and_sig_para3" value="{{ initial.bg_and_sig_para3|default:'' }}">
+  <input type="hidden" name="name_author_th_1" value="{{ initial.authors.0|default:'' }}">
+  <input type="hidden" name="name_author_th_2" value="{{ initial.authors.1|default:'' }}">
+  <!-- ช่องกรอกใหม่ของหน้า 2 ต่อจากนี้ -->
+
+    <div id="purpose_container">
+    <label for="">วัตถุประสงค์ ข้อที่ 1</label><br>
+    <input type="text" id="purpose_1" name="purpose_1" size="50" value="{{ initial.purpose.0|default:'' }} " ><br><br>
+
+  </div>
+
+  <button type="button" onclick="addPurpose()">เพิ่ม วัตถุประสงค์</button>
+  <button type="button" onclick="removePurpose()">ลบ วัตถุประสงค์</button><br><br>
+
+  <div id="scope_container">
+     <label for="">ขอบเขตหัวข้อใหญ่ ข้อที่ 1</label><br>
+    <input type="text" id="scope_b_1" name="scope_b_1" size="80" value="{{ initial.scope_b_1.0|default:'' }} " ><br><br>
+
+    <button type="button" onclick="addScope_b()">เพิ่ม ขอบเขตหัวข้อใหญ่</button>
+  <button type="button" onclick="removeScope_b()">ลบ ขอบเขตหัวข้อใหญ่</button><br><br>
+
+
+     <label for="">ขอบเขตหัวข้อย่อย ข้อที่ 1</label><br>
+    <input type="text" id="scope_s_1" name="scope_s_1" size="80" value="{{ initial.scope_b_1.0|default:'' }} " ><br><br>    
+
+    <button type="button" onclick="addScope_s()">เพิ่ม ขอบเขตหัวข้อย่อย</button>
+  <button type="button" onclick="removeScope_s()">ลบ ขอบเขตหัวข้อย่อย</button><br><br>
+
+
+  </div>
+
+
+  {% comment %} Button {% endcomment %}
+
+  <button type="submit" name="action" value="save">บันทึกข้อมูล</button>
+  <button type="submit" name="action" value="get_data">ดึงข้อมูล</button>
+  <button type="submit" name="action" value="generate">สร้างเอกสาร</button>
+  <a href="{% url 'sp_project_form_2' %}" class="card-button">ไปยังหน้าถัดไป</a>
+
+  <script src="{% static 'js/sp_project.js' %}"></script>
+ <script>
+   const purpose = {{ initial.purpose|default:"[]"|safe }}; 
+  
+ </script>
+</body>
+</html>

@@ -33,7 +33,12 @@ class SpProject(models.Model):
     strategic = models.TextField()
     plan = models.TextField()
     key_result = models.TextField()
-
+    bg_and_sig_para1 = models.TextField()
+    bg_and_sig_para2 = models.TextField()
+    bg_and_sig_para3 = models.TextField()
+    purpose_1 = models.CharField(max_length=255)
+    purpose_2 = models.CharField(max_length=255)
+    purpose_3 = models.CharField(max_length=255)
     class Meta:
         db_table = 'sp_project'
 

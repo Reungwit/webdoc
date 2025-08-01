@@ -61,6 +61,9 @@ def cover(request):
 def sp_project_form_view(request):
     return render(request, 'sp_project_form.html')
 
+def sp_project_form_2_view(request):
+    return render(request, 'sp_project_form_2.html')
+
 def intro_view(request):
     return render(request, 'intro.html')
 
@@ -161,89 +164,141 @@ def doc_cover_view(request):
 
 
 # แบบฟอร์ม ทก.01
-
+@login_required
+@login_required
 def sp_project_form_view(request):
     user = request.user
     initial = {}
 
+    # ถ้า POST (ทั้งหน้า 1, หน้า 2)
     if request.method == 'POST':
         action = request.POST.get('action')
 
-        if action == 'get_data':
-            try:
-                project = SpProject.objects.get(user=user)
-                initial = {
-                    'name_pro_th': project.name_pro_th,
-                    'name_pro_en': project.name_pro_en,
-                    'case_stu': project.case_stu,
-                    'term': project.term,
-                    'school_y': project.school_y,
-                    'adviser': project.adviser,
-                    'co_advisor': project.co_advisor,
-                    'strategic': project.strategic,
-                    'plan': project.plan,
-                    'key_result': project.key_result,
-                }
+        # เก็บค่าทุกฟิลด์ที่ต้องใช้ ไม่ว่าจะมาจากหน้าไหน
+        name_pro_th = request.POST.get('name_pro_th', '')
+        name_pro_en = request.POST.get('name_pro_en', '')
+        case_stu = request.POST.get('case_stu', '')
+        term = request.POST.get('term', '')
+        school_y = request.POST.get('school_y', '')
+        adviser = request.POST.get('adviser', '')
+        co_advisor = request.POST.get('co_advisor', '')
+        strategic = request.POST.get('strategic', '')
+        plan = request.POST.get('plan', '')
+        key_result = request.POST.get('key_result', '')
+        bg_and_sig_para1 = request.POST.get('bg_and_sig_para1', '')
+        bg_and_sig_para2 = request.POST.get('bg_and_sig_para2', '')
+        bg_and_sig_para3 = request.POST.get('bg_and_sig_para3', '')
+        purpose_1 = request.POST.get('purpose_1', '')
+        purpose_2 = request.POST.get('purpose_2', '')
+        purpose_3 = request.POST.get('purpose_3', '')
+        # Authors (รองรับสูงสุด 2 คน)
+        authors = [
+            request.POST.get(f'name_author_th_{i}', '')
+            for i in range(1, 3)
+            if request.POST.get(f'name_author_th_{i}', '')
+        ]
 
-                authors = list(
+        # บันทึกหรืออัปเดต
+        project, created = SpProject.objects.update_or_create(
+            user=user,
+            defaults={
+                'name_pro_th': name_pro_th,
+                'name_pro_en': name_pro_en,
+                'case_stu': case_stu,
+                'term': term,
+                'school_y': school_y,
+                'adviser': adviser,
+                'co_advisor': co_advisor,
+                'strategic': strategic,
+                'plan': plan,
+                'key_result': key_result,
+                'bg_and_sig_para1': bg_and_sig_para1,
+                'bg_and_sig_para2': bg_and_sig_para2,
+                'bg_and_sig_para3': bg_and_sig_para3,
+                'purpose_1': purpose_1,
+                'purpose_2': purpose_2,
+                'purpose_3': purpose_3,
+            }
+        )
+
+        # บันทึก/อัปเดต authors
+        SpProjectAuthor.objects.filter(userid=user.user_id, project=project).delete()
+        for name in authors:
+            SpProjectAuthor.objects.create(userid=user.user_id, name=name, project=project)
+
+        # เตรียม initial คืน (ดึงจาก project ที่เพิ่งบันทึก)
+        initial = {
+            'name_pro_th': name_pro_th,
+            'name_pro_en': name_pro_en,
+            'case_stu': case_stu,
+            'term': term,
+            'school_y': school_y,
+            'adviser': adviser,
+            'co_advisor': co_advisor,
+            'strategic': strategic,
+            'plan': plan,
+            'key_result': key_result,
+            'bg_and_sig_para1': bg_and_sig_para1,
+            'bg_and_sig_para2': bg_and_sig_para2,
+            'bg_and_sig_para3': bg_and_sig_para3,
+            'purpose_1': purpose_1,
+            'purpose_2': purpose_2,
+            'purpose_3': purpose_3,
+            'authors': authors,
+        }
+
+        # กรณี generate เอกสาร
+        if action == 'generate':
+            doc = doc_sp_01(
+                name_pro_th, name_pro_en, authors,
+                case_stu, term, school_y,
+                adviser, co_advisor,
+                strategic, plan, key_result,
+                bg_and_sig_para1, bg_and_sig_para2, bg_and_sig_para3,
+                purpose_1, purpose_2, purpose_3
+            )
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            response['Content-Disposition'] = 'attachment; filename=sp_project_form.docx'
+            doc.save(response)
+            return response
+
+        # ดัก path ว่าอยู่หน้าไหน (สำคัญ)
+        if request.path.endswith('/sp_project_form_2/'):
+            return render(request, 'sp_project_form_2.html', {'initial': initial})
+        else:
+            return render(request, 'sp_project_form.html', {'initial': initial})
+
+    # GET method (โหลดข้อมูลมาโชว์)
+    else:
+        try:
+            project = SpProject.objects.get(user=user)
+            initial = {
+                'name_pro_th': project.name_pro_th,
+                'name_pro_en': project.name_pro_en,
+                'case_stu': project.case_stu,
+                'term': project.term,
+                'school_y': project.school_y,
+                'adviser': project.adviser,
+                'co_advisor': project.co_advisor,
+                'strategic': project.strategic,
+                'plan': project.plan,
+                'key_result': project.key_result,
+                'bg_and_sig_para1': project.bg_and_sig_para1,
+                'bg_and_sig_para2': project.bg_and_sig_para2,
+                'bg_and_sig_para3': project.bg_and_sig_para3,
+                'purpose_1': project.purpose_1,
+                'purpose_2': project.purpose_2,
+                'purpose_3': project.purpose_3,
+                'authors': list(
                     SpProjectAuthor.objects.filter(userid=user.user_id, project=project)
                     .values_list('name', flat=True)
-                )
-                initial['authors'] = authors
-            except SpProject.DoesNotExist:
-                initial = {}
+                ),
+            }
+        except SpProject.DoesNotExist:
+            initial = {}
 
-        elif action in ['save', 'generate']:
-            name_pro_th = request.POST.get('name_pro_th', '')
-            name_pro_en = request.POST.get('name_pro_en', '')
-            case_stu = request.POST.get('case_stu', '')
-            term = request.POST.get('term', '')
-            school_y = request.POST.get('school_y', '')
-            adviser = request.POST.get('adviser', '')
-            co_advisor = request.POST.get('co_advisor', '')
-            strategic = request.POST.get('strategic', '')
-            plan = request.POST.get('plan', '')
-            key_result = request.POST.get('key_result', '')
+        if request.path.endswith('/sp_project_form_2/'):
+            return render(request, 'sp_project_form_2.html', {'initial': initial})
+        else:
+            return render(request, 'sp_project_form.html', {'initial': initial})
 
-            authors = [
-                request.POST.get(f'name_author_th_{i}', '')
-                for i in range(1, 4)
-                if request.POST.get(f'name_author_th_{i}', '')
-            ]
-
-            # บันทึกลงฐานข้อมูล
-            project, created = SpProject.objects.update_or_create(
-                user=user,
-                defaults={
-                    'name_pro_th': name_pro_th,
-                    'name_pro_en': name_pro_en,
-                    'case_stu': case_stu,
-                    'term': term,
-                    'school_y': school_y,
-                    'adviser': adviser,
-                    'co_advisor': co_advisor,
-                    'strategic': strategic,
-                    'plan': plan,
-                    'key_result': key_result
-                }
-            )
-
-            # ลบแล้วบันทึกชื่อผู้จัดทำใหม่
-            SpProjectAuthor.objects.filter(userid=user.user_id, project=project).delete()
-            for name in authors:
-                SpProjectAuthor.objects.create(userid=user.user_id, name=name, project=project)
-
-            # สร้างเอกสาร docx
-            if action == 'generate':
-                doc = doc_sp_01(
-                    name_pro_th, name_pro_en, authors,
-                    case_stu, term, school_y,
-                    adviser, co_advisor,
-                    strategic, plan, key_result
-                )
-                response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-                response['Content-Disposition'] = 'attachment; filename=sp_project_form.docx'
-                doc.save(response)
-                return response
-
-    return render(request, 'sp_project_form.html', {'initial': initial})

@@ -42,7 +42,7 @@ def logout_view(request):
 
 # Static Pages
 
-def index_view(request):
+def index(request):
     return render(request, 'index.html')
 
 def manage_doc(request):

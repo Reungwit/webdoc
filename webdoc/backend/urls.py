@@ -2,7 +2,10 @@ from django.urls import path
 from . import views
 from .views import doc_cover_view
 
+<<<<<<< Updated upstream
 app_name = 'webdoc'
+=======
+>>>>>>> Stashed changes
 
 urlpatterns = [
     path('', views.login_view, name='login'),

@@ -238,38 +238,41 @@
     </div>
 
     <script>
-        // แก้ไขโค้ด JavaScript ที่นี่
         document.addEventListener('DOMContentLoaded', function() {
-            const myForm = document.getElementById("myForm");
-            if (myForm) {
-                myForm.addEventListener("submit", function (e) {
-                    console.log("Submit event triggered on form."); // Debugging message
+    const myForm = document.getElementById("myForm");
+    if (myForm) {
+        myForm.addEventListener("submit", function (e) {
+            // ตรวจสอบว่า event มาจากปุ่มดาวน์โหลดหรือไม่
+            const generateButton = document.querySelector('button[name="action"][value="generate_intro"]');
+            if (e.target !== generateButton) return; // หากไม่ใช่ปุ่มดาวน์โหลดให้ข้ามไป
 
-                    // หยุดการส่งฟอร์มตามปกติ
-                    e.preventDefault();
+            console.log("Submit event triggered on form."); // Debugging message
 
-                    const textareas = document.querySelectorAll(".clean-textarea");
-                    if (textareas.length > 0) {
-                        console.log("Found " + textareas.length + " textareas to clean."); // Debugging message
-                        textareas.forEach(textarea => {
-                            const rawText = textarea.value;
-                            const cleanedText = rawText
-                                .replace(/\r?\n/g, " ")
-                                .replace(/\s+/g, " ")
-                                .trim();
-                            textarea.value = cleanedText;
-                        });
-                    } else {
-                        console.log("No textareas with class 'clean-textarea' found."); // Debugging message
-                    }
+            // หยุดการส่งฟอร์มตามปกติ
+            e.preventDefault();
 
-                    // สั่งให้ฟอร์มส่งข้อมูลอีกครั้งหลังจากแก้ไขเสร็จแล้ว
-                    e.target.submit();
+            const textareas = document.querySelectorAll(".clean-textarea");
+            if (textareas.length > 0) {
+                console.log("Found " + textareas.length + " textareas to clean."); // Debugging message
+                textareas.forEach(textarea => {
+                    const rawText = textarea.value;
+                    const cleanedText = rawText
+                        .replace(/\r?\n/g, " ")
+                        .replace(/\s+/g, " ")
+                        .trim();
+                    textarea.value = cleanedText;
                 });
             } else {
-                console.log("Form with id 'myForm' not found."); // Debugging message
+                console.log("No textareas with class 'clean-textarea' found."); // Debugging message
             }
+            // สั่งให้ฟอร์มส่งข้อมูลอีกครั้งหลังจากแก้ไขเสร็จแล้ว
+            e.target.submit();
         });
+    } else {
+        console.log("Form with id 'myForm' not found."); // Debugging message
+    }
+});
+
 
 
         // JavaScript สำหรับผู้จัดทำ

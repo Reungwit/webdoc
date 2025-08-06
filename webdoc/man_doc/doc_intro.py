@@ -298,16 +298,16 @@ def doc_intro(data):
     document.add_section(WD_SECTION.NEW_PAGE)
     add_center_paragraph(document, "กิตติกรรมประกาศ", bold=True)
     p_acknow1 = add_wrapped_paragraph(document, data.get('acknow_para1', ''), n=93, disth=True, tap=True)
-    p_acknow2 = add_wrapped_paragraph(document, data.get('acknow_para2', ''), n=93, disth=True, tap=True)
+    p_acknow2 = add_wrapped_paragraph(document, data.get('acknow_para2', ''), n=97, disth=True, tap=True)
 
     
     # ชื่อผู้จัดทำ
     if data.get('acknow_name1', ''):
-        p_author1 = add_right_paragraph(document, f"({data.get('acknow_name1', '')})")
+        p_author1 = add_right_paragraph(document, f"{data.get('acknow_name1', '')}")
         p_author1.paragraph_format.space_before = Pt(36)
 
     if data.get('acknow_name2', ''):
-        p_author2 = add_right_paragraph(document, f"({data.get('acknow_name2', '')})")
+        p_author2 = add_right_paragraph(document, f"{data.get('acknow_name2', '')}")
         p_author2.paragraph_format.space_before = Pt(12)
 
     return document

@@ -45,7 +45,7 @@
 
         <h1 class="mb-4">จัดการบทคัดย่อและกิตติกรรมประกาศ</h1>
 
-        <form method="post" action="{% url 'intro_view' %}">
+        <form id="myForm" method="post" action="{% url 'intro_view' %}">
             {% csrf_token %}
 
             <div class="card mb-4">
@@ -96,11 +96,19 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label for="id_abstract_th_para1" class="form-label">บทคัดย่อ (ย่อหน้าแรก ภาษาไทย)</label>
-                        <textarea class="form-control" id="id_abstract_th_para1" name="abstract_th_para1" rows="5">{{ initial.abstract_th_para1|default:'' }}</textarea>
+                        <textarea class="form-control clean-textarea" id="id_abstract_th_para1" name="abstract_th_para1" rows="5">{{ initial.abstract_th_para1|default:'' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_abstract_th_para2" class="form-label">บทคัดย่อ (ย่อหน้าที่สอง ภาษาไทย)</label>
+                        <textarea class="form-control clean-textarea" id="id_abstract_th_para2" name="abstract_th_para2" rows="5">{{ initial.abstract_th_para2|default:'' }}</textarea>
                     </div>
                     <div class="mb-3">
                         <label for="id_abstract_en_para1" class="form-label">บทคัดย่อ (ย่อหน้าแรก ภาษาอังกฤษ)</label>
-                        <textarea class="form-control" id="id_abstract_en_para1" name="abstract_en_para1" rows="5">{{ initial.abstract_en_para1|default:'' }}</textarea>
+                        <textarea class="form-control clean-textarea" id="id_abstract_en_para1" name="abstract_en_para1" rows="5">{{ initial.abstract_en_para1|default:'' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_abstract_en_para2" class="form-label">บทคัดย่อ (ย่อหน้าที่สอง ภาษาอังกฤษ)</label>
+                        <textarea class="form-control clean-textarea" id="id_abstract_en_para2" name="abstract_en_para2" rows="5">{{ initial.abstract_en_para2|default:'' }}</textarea>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -192,11 +200,11 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label for="id_acknow_para1" class="form-label">ย่อหน้าแรกของกิตติกรรมประกาศ</label>
-                        <textarea class="form-control" id="id_acknow_para1" name="acknow_para1" rows="5">{{ initial.acknow_para1|default:'' }}</textarea>
+                        <textarea class="form-control clean-textarea" id="id_acknow_para1" name="acknow_para1" rows="5">{{ initial.acknow_para1|default:'' }}</textarea>
                     </div>
                     <div class="mb-3">
                         <label for="id_acknow_para2" class="form-label">ย่อหน้าที่สองของกิตติกรรมประกาศ</label>
-                        <textarea class="form-control" id="id_acknow_para2" name="acknow_para2" rows="5">{{ initial.acknow_para2|default:'' }}</textarea>
+                        <textarea class="form-control clean-textarea" id="id_acknow_para2" name="acknow_para2" rows="5">{{ initial.acknow_para2|default:'' }}</textarea>
                     </div>
                     <div id="acknow_names_block">
                         <div class="row mb-3">
@@ -230,6 +238,40 @@
     </div>
 
     <script>
+        // แก้ไขโค้ด JavaScript ที่นี่
+        document.addEventListener('DOMContentLoaded', function() {
+            const myForm = document.getElementById("myForm");
+            if (myForm) {
+                myForm.addEventListener("submit", function (e) {
+                    console.log("Submit event triggered on form."); // Debugging message
+
+                    // หยุดการส่งฟอร์มตามปกติ
+                    e.preventDefault();
+
+                    const textareas = document.querySelectorAll(".clean-textarea");
+                    if (textareas.length > 0) {
+                        console.log("Found " + textareas.length + " textareas to clean."); // Debugging message
+                        textareas.forEach(textarea => {
+                            const rawText = textarea.value;
+                            const cleanedText = rawText
+                                .replace(/\r?\n/g, " ")
+                                .replace(/\s+/g, " ")
+                                .trim();
+                            textarea.value = cleanedText;
+                        });
+                    } else {
+                        console.log("No textareas with class 'clean-textarea' found."); // Debugging message
+                    }
+
+                    // สั่งให้ฟอร์มส่งข้อมูลอีกครั้งหลังจากแก้ไขเสร็จแล้ว
+                    e.target.submit();
+                });
+            } else {
+                console.log("Form with id 'myForm' not found."); // Debugging message
+            }
+        });
+
+
         // JavaScript สำหรับผู้จัดทำ
         document.getElementById('toggleAuthor2Btn').addEventListener('click', function() {
             var author2Block = document.getElementById('author2_block');

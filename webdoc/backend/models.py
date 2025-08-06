@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import JSONField
+
 class CustomUser(AbstractUser):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True)
@@ -82,3 +83,49 @@ class DocCover(models.Model):
         db_table = 'doc_cover'
         managed = False  # เพราะคุณสร้างตารางเองใน phpMyAdmin
 
+
+
+#แก้ไขเพิ่มมา
+# สร้างโมเดลใหม่สำหรับบทคัดย่อและกิตติกรรมประกาศ
+
+class Abstract(models.Model):
+    abstract_id = models.AutoField(primary_key=True) # <--- แก้ไขตรงนี้
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_column='user_id',
+        to_field='user_id'
+    )
+    # ข้อมูลเอกสาร
+    project_name_th = models.TextField(null=True, blank=True)
+    project_name_en = models.TextField(null=True, blank=True)
+    major_th = models.TextField(null=True, blank=True)
+    major_en = models.TextField(null=True, blank=True)
+    advisor_th = models.CharField(max_length=255, null=True, blank=True)
+    advisor_en = models.CharField(max_length=255, null=True, blank=True)
+    coadvisor_th = models.CharField(max_length=255, null=True, blank=True)
+    coadvisor_en = models.CharField(max_length=255, null=True, blank=True)
+    academic_year_th = models.IntegerField(null=True, blank=True)
+    academic_year_en = models.IntegerField(null=True, blank=True)
+    
+    # บทคัดย่อ
+    abstract_th_para1 = models.TextField(null=True, blank=True)
+    abstract_en_para1 = models.TextField(null=True, blank=True)
+    keyword_th = models.TextField(null=True, blank=True)
+    keyword_en = models.TextField(null=True, blank=True)
+    
+    # ผู้จัดทำ
+    author1_th = models.CharField(max_length=255, null=True, blank=True)
+    author1_en = models.CharField(max_length=255, null=True, blank=True)
+    author2_th = models.CharField(max_length=255, null=True, blank=True)
+    author2_en = models.CharField(max_length=255, null=True, blank=True)
+    
+    # กิตติกรรมประกาศ
+    acknow_para1 = models.TextField(null=True, blank=True)
+    acknow_para2 = models.TextField(null=True, blank=True)
+    acknow_name1 = models.CharField(max_length=255, null=True, blank=True)
+    acknow_name2 = models.CharField(max_length=255, null=True, blank=True)
+    
+    class Meta:
+        managed = False
+        db_table = 'abstract'

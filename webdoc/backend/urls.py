@@ -10,8 +10,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('index/', views.index_view, name='index'),
     path('manage/', views.manage_doc, name='manage_doc'),
-    path('about/', views.about, name='about'),
-    path('template/<str:slug>/', views.section_detail, name='section_detail'),
+    #path('section_detail', views.section_detail, name='section_detail'),
 
     path('logout/', views.logout_view, name='logout'),
     path('cover/', views.doc_cover_view, name='cover'),

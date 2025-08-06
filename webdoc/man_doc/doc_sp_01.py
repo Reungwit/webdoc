@@ -206,8 +206,6 @@ def add_paragraph_indent(doc, text, bold=False):
     else : p.runs[0].bold = False
     return p
 
-
-
 def add_wrapped_paragraph(p_or_doc, text: str, n: int, disth: bool = False ,extap: bool = False,tap: bool = False):
     """
     สร้างหรือเพิ่มข้อความที่ถูกตัดคำลงใน paragraph หรือ document/cell

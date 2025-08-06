@@ -41,13 +41,12 @@
   </form>
 
   <!-- โหลด JS -->
-  <script src="{% static 'js/cover.js' %}"></script>
+
+ <script src="{% static 'js/cover.js' %}"></script> 
   <script>
-    <script>
+    
   const authors_th = {{ initial.authors_th|default:"[]"|safe }};
   const authors_en = {{ initial.authors_en|default:"[]"|safe }};
-</script>
-
   </script>
 </body>
 </html>

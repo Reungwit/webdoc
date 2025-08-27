@@ -1,0 +1,249 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บรรณานุกรม</title>
+    <link rel="stylesheet" href="{% static 'css/refer.css' %}">
+</head>
+
+<body>
+    <h2>เลือกประเภทบรรณานุกรม</h2>
+    <form id="referForm" method="POST" action="{% url 'refer_form' %}">
+        {% csrf_token %}
+
+        <input type="hidden" id="ref_count" name="ref_count" value="0">
+
+        <div id="referItems">
+            </div>
+
+        <button type="button" onclick="addReference()">เพิ่มการอ้างอิง</button>
+        <br><br>
+    <button type="submit" name="action" value="save_refer">บันทึกข้อมูล</button>
+    <button type="submit" name="action" value="get_data_refer">ดึงข้อมูล</button>
+    <button type="submit" name="action" value="generate_refer">สร้างบรรณานุกรม</button>
+    </form>
+
+    <script>
+        // ไม่ต้องใช้ let refCount = 0; อีกต่อไป
+        // แต่ใช้ฟังก์ชันเพื่ออัปเดตค่าใน input แบบซ่อนแทน
+        function updateRefCount() {
+            const count = document.getElementById('referItems').children.length;
+            document.getElementById('ref_count').value = count;
+        }
+
+        function generateFields(index) {
+            const refTypes = [
+                '', 'อ้างอิงจากเว็บไซต์', 'อ้างอิงจากหนังสือ', 'การอ้างอิงบทความในหนังสือ', 'การอ้างอิงจากสื่อมัลติมีเดีย',
+                'การอ้างอิงบทความจากหนังสือพิมพ์', 'การอ้างอิงจากบทความในฐานข้อมูล', 'การอ้างอิงเอกสารประเภทรายงานการประชุม',
+                'การอ้างอิงจากการนำเสนอผลงานในการประชุมทางวิชาการ', 'การอ้างอิงจากบทความในวารสาร'
+            ];
+
+            let fieldsHTML = `
+                <div id="ref_${index}">
+                    <label for="ref_type_${index}">เลือกประเภทบรรณานุกรม:</label>
+                    <select id="ref_type_${index}" name="ref_type_${index}" onchange="generateTextFields(${index})">
+                        ${refTypes.map((type, i) =>
+                            `<option value="${i}" ${i === 0 ? 'selected' : ''}>${type}</option>`
+                        ).join('')}
+                    </select><br><br>
+                    <div id="textFields_${index}"></div><br>
+                    <button type="button" onclick="removeReference(${index})">ลบการอ้างอิง</button>
+                </div>
+            `;
+
+            return fieldsHTML;
+        }
+
+        function generateTextFields(index) {
+            const refType = document.getElementById(`ref_type_${index}`).value;
+            let textFieldsHTML = '';
+            
+            let refCount = index;
+
+            if (refType == 1) { // อ้างอิงจากเว็บไซต์
+                textFieldsHTML = `
+                <label for="ref_num_${index}">หมายเลขอ้างอิง[${refCount}]</label><br>
+                <label for="author_${index}">ผู้แต่ง:</label><br>
+                <input type="text" id="author_${index}" name="author_${index}"><br><br>
+                <label for="title_${index}">ชื่อเรื่อง:</label><br>
+                <input type="text" id="title_${index}" name="title_${index}"><br><br>
+                <label for="url_${index}">URL:</label><br>
+                <input type="url" id="url_${index}" name="url_${index}"><br><br>
+                <label for="access_date_${index}">วันเดือนปีที่ค้นข้อมูล:</label><br>
+                <input type="date" id="access_date_${index}" name="access_date_${index}">
+            `;
+            } else if (refType == 2) { //อ้างอิงจากหนังสือ
+                textFieldsHTML = `
+                <label for="ref_num_${index}">หมายเลขอ้างอิง[${refCount}]</label><br>
+                <label for="author_${index}">ชื่อผู้แต่ง:</label><br>
+                <input type="text" id="author_${index}" name="author_${index}"><br><br>
+                <label for="title_${index}">ชื่อเรื่อง:</label><br>
+                <input type="text" id="title_${index}" name="title_${index}"><br><br>
+                <label for="print_count_${index}">ครั้งที่พิมพ์:</label><br>
+                <input type="text" id="print_count_${index}" name="print_count_${index}"><br><br>
+                <label for="city_print_${index}">เมืองที่พิมพ์:</label><br>
+                <input type="text" id="city_print_${index}" name="city_print_${index}"><br><br>
+                <label for="publisher_${index}">สำนักพิมพ์:</label><br>
+                <input type="text" id="publisher_${index}" name="publisher_${index}"><br><br>
+                <label for="y_print_${index}">ปีที่พิมพ์:</label><br>
+                <input type="text" id="y_print_${index}" name="y_print_${index}" placeholder="YYYY">
+                 `;
+            } else if (refType == 3) { // 3. การอ้างอิงบทความในหนังสือ
+                textFieldsHTML = `
+                <label for="ref_num_${index}">หมายเลขอ้างอิง[${refCount}]</label><br>
+                <label for="article_author_${index}">ชื่อผู้เขียนบทความ:</label><br>
+                <input type="text" id="article_author_${index}" name="article_author_${index}"><br><br>
+                <label for="article_title_${index}">ชื่อบทความ:</label><br>
+                <input type="text" id="article_title_${index}" name="article_title_${index}"><br><br>
+                <label for="editor_${index}">ชื่อบรรณาธิการ:</label><br>
+                <input type="text" id="editor_${index}" name="editor_${index}"><br><br>
+                <label for="book_title_${index}">ชื่อหนังสือ:</label><br>
+                <input type="text" id="book_title_${index}" name="book_title_${index}"><br><br>
+                <label for="city_print_${index}">เมืองที่พิมพ์:</label><br>
+                <input type="text" id="city_print_${index}" name="city_print_${index}"><br><br>
+                <label for="publisher_${index}">สำนักพิมพ์:</label><br>
+                <input type="text" id="publisher_${index}" name="publisher_${index}"><br><br>
+                <label for="y_print_${index}">ปีที่พิมพ์:</label><br>
+                <input type="text" id="y_print_${index}" name="y_print_${index}" placeholder="YYYY"><br><br>
+                <label for="pages_${index}">หน้าที่ปรากฏบทความ:</label><br>
+                <input type="text" id="pages_${index}" name="pages_${index}" placeholder="e.g., 457-72">
+            `;
+            } else if (refType == 4) { // 4. การอ้างอิงจากสื่อมัลติมีเดีย
+                textFieldsHTML = `
+                <label for="ref_num_${index}">หมายเลขอ้างอิง[${refCount}]</label><br>
+                <label for="author_${index}">ผู้แต่ง (ถ้ามี):</label><br>
+                <input type="text" id="author_${index}" name="author_${index}"><br><br>
+                <label for="title_${index}">ชื่อเรื่อง:</label><br>
+                <input type="text" id="title_${index}" name="title_${index}"><br><br>
+                <label for="format_${index}">รูปแบบของข้อมูล:</label><br>
+                <input type="text" id="format_${index}" name="format_${index}" placeholder="e.g., [Videorecording]"><br><br>
+                <label for="city_prod_${index}">เมืองที่ผลิต:</label><br>
+                <input type="text" id="city_prod_${index}" name="city_prod_${index}"><br><br>
+                <label for="publisher_${index}">สำนักพิมพ์/ผู้ผลิต:</label><br>
+                <input type="text" id="publisher_${index}" name="publisher_${index}"><br><br>
+                <label for="y_prod_${index}">ปีที่ผลิต:</label><br>
+                <input type="text" id="y_prod_${index}" name="y_prod_${index}" placeholder="YYYY">
+            `;
+            } else if (refType == 5) { // 5. การอ้างอิงบทความจากหนังสือพิมพ์
+                textFieldsHTML = `
+                <label for="ref_num_${index}">หมายเลขอ้างอิง[${refCount}]</label><br>
+                <label for="author_${index}">ชื่อผู้แต่ง:</label><br>
+                <input type="text" id="author_${index}" name="author_${index}"><br><br>
+                <label for="article_title_${index}">ชื่อบทความ:</label><br>
+                <input type="text" id="article_title_${index}" name="article_title_${index}"><br><br>
+                <label for="newspaper_name_${index}">ชื่อหนังสือพิมพ์:</label><br>
+                <input type="text" id="newspaper_name_${index}" name="newspaper_name_${index}"><br><br>
+                <label for="pub_date_${index}">วัน เดือน ปี:</label><br>
+                <input type="date" id="pub_date_${index}" name="pub_date_${index}"><br><br>
+                <label for="section_${index}">ภาคตอน:</label><br>
+                <input type="text" id="section_${index}" name="section_${index}"><br><br>
+                <label for="page_${index}">เลขหน้า:</label><br>
+                <input type="text" id="page_${index}" name="page_${index}" placeholder="e.g., C:1-2">
+            `;
+            } else if (refType == 6) { // 6. การอ้างอิงจากบทความในฐานข้อมูล
+                textFieldsHTML = `
+                <label for="ref_num_${index}">หมายเลขอ้างอิง[${refCount}]</label><br>
+                <label for="author_${index}">ผู้แต่ง:</label><br>
+                <input type="text" id="author_${index}" name="author_${index}"><br><br>
+                <label for="article_title_${index}">ชื่อบทความ:</label><br>
+                <input type="text" id="article_title_${index}" name="article_title_${index}"><br><br>
+                <label for="journal_name_${index}">ชื่อวารสาร:</label><br>
+                <input type="text" id="journal_name_${index}" name="journal_name_${index}"><br><br>
+                <label for="resource_type_${index}">ชนิดของรายการทรัพยากร:</label><br>
+                <input type="text" id="resource_type_${index}" name="resource_type_${index}" placeholder="e.g., [serial online]"><br><br>
+                <label for="db_update_date_${index}">เดือนปีที่ฐานข้อมูลปรับปรุง:</label><br>
+                <input type="text" id="db_update_date_${index}" name="db_update_date_${index}" placeholder="e.g., 2003 Jan"><br><br>
+                <label for="access_date_${index}">วันเดือนปีที่อ้างอิง:</label><br>
+                <input type="date" id="access_date_${index}" name="access_date_${index}"><br><br>
+                <label for="pages_${index}">เลขหน้าของบทความ:</label><br>
+                <input type="text" id="pages_${index}" name="pages_${index}" placeholder="e.g., 25[1]:1-9"><br><br>
+                <label for="url_${index}">Available from (URL):</label><br>
+                <input type="url" id="url_${index}" name="url_${index}">
+            `;
+            } else if (refType == 7) { // 7. การอ้างอิงเอกสารประเภทรายงานการประชุม
+                textFieldsHTML = `
+                <label for="ref_num_${index}">หมายเลขอ้างอิง[${refCount}]</label><br>
+                <label for="editor_${index}">ชื่อบรรณาธิการ:</label><br>
+                <input type="text" id="editor_${index}" name="editor_${index}"><br><br>
+                <label for="title_${index}">ชื่อเรื่อง:</label><br>
+                <input type="text" id="title_${index}" name="title_${index}"><br><br>
+                <label for="conference_name_${index}">ชื่อการประชุม:</label><br>
+                <input type="text" id="conference_name_${index}" name="conference_name_${index}"><br><br>
+                <label for="conference_date_${index}">วัน เดือน ปี ที่ประชุม:</label><br>
+                <input type="text" id="conference_date_${index}" name="conference_date_${index}" placeholder="e.g., 1995 Oct 15-19"><br><br>
+                <label for="conference_location_${index}">สถานที่จัดประชุม:</label><br>
+                <input type="text" id="conference_location_${index}" name="conference_location_${index}"><br><br>
+                <label for="city_print_${index}">เมืองที่พิมพ์:</label><br>
+                <input type="text" id="city_print_${index}" name="city_print_${index}"><br><br>
+                <label for="publisher_${index}">สำนักพิมพ์:</label><br>
+                <input type="text" id="publisher_${index}" name="publisher_${index}"><br><br>
+                <label for="y_print_${index}">ปีที่พิมพ์:</label><br>
+                <input type="text" id="y_print_${index}" name="y_print_${index}" placeholder="YYYY">
+            `;
+            } else if (refType == 8) { // 8. การนำเสนอผลงานในการประชุม
+                textFieldsHTML = `
+                <label for="ref_num_${index}">หมายเลขอ้างอิง[${refCount}]</label><br>
+                <label for="presenter_${index}">ชื่อผู้นำเสนอผลงาน:</label><br>
+                <input type="text" id="presenter_${index}" name="presenter_${index}"><br><br>
+                <label for="presentation_title_${index}">ชื่อเรื่องที่นำเสนอ:</label><br>
+                <input type="text" id="presentation_title_${index}" name="presentation_title_${index}"><br><br>
+                <label for="editor_${index}">ชื่อผู้ดำเนินการประชุม/บรรณาธิการ:</label><br>
+                <input type="text" id="editor_${index}" name="editor_${index}"><br><br>
+                <label for="conference_name_${index}">ชื่อการประชุม:</label><br>
+                <input type="text" id="conference_name_${index}" name="conference_name_${index}"><br><br>
+                <label for="conference_date_${index}">วัน เดือน ปี ที่ประชุม:</label><br>
+                <input type="text" id="conference_date_${index}" name="conference_date_${index}" placeholder="e.g., 1992 Sep 6-10"><br><br>
+                <label for="conference_location_${index}">สถานที่จัดประชุม:</label><br>
+                <input type="text" id="conference_location_${index}" name="conference_location_${index}"><br><br>
+                <label for="city_print_${index}">เมืองที่พิมพ์:</label><br>
+                <input type="text" id="city_print_${index}" name="city_print_${index}"><br><br>
+                <label for="publisher_${index}">สำนักพิมพ์:</label><br>
+                <input type="text" id="publisher_${index}" name="publisher_${index}"><br><br>
+                <label for="y_print_${index}">ปีที่พิมพ์:</label><br>
+                <input type="text" id="y_print_${index}" name="y_print_${index}" placeholder="YYYY"><br><br>
+                <label for="page_${index}">หน้า:</label><br>
+                <input type="text" id="page_${index}" name="page_${index}" placeholder="e.g., p. 1561-5">
+            `;
+            } else if (refType == 9) { // 9. บทความในวารสาร
+                textFieldsHTML = `
+                <label for="ref_num_${index}">หมายเลขอ้างอิง[${refCount}]</label><br>
+                <label for="author_${index}">ผู้แต่ง:</label><br>
+                <input type="text" id="author_${index}" name="author_${index}"><br><br>
+                <label for="article_title_${index}">ชื่อบทความ:</label><br>
+                <input type="text" id="article_title_${index}" name="article_title_${index}"><br><br>
+                <label for="journal_name_${index}">ชื่อวารสาร:</label><br>
+                <input type="text" id="journal_name_${index}" name="journal_name_${index}"><br><br>
+                <label for="pub_date_${index}">ปี เดือน ที่พิมพ์:</label><br>
+                <input type="text" id="pub_date_${index}" name="pub_date_${index}" placeholder="e.g., 1996 Jun 1"><br><br>
+                <label for="volume_issue_${index}">ปีที่(ฉบับที่):</label><br>
+                <input type="text" id="volume_issue_${index}" name="volume_issue_${index}" placeholder="e.g., 124(11)"><br><br>
+                <label for="pages_${index}">เลขหน้า:</label><br>
+                <input type="text" id="pages_${index}" name="pages_${index}" placeholder="e.g., 980-3">
+            `;
+            }
+
+            document.getElementById(`textFields_${index}`).innerHTML = textFieldsHTML;
+        }
+
+        let refCount = 0;  // ตัวแปรสำหรับเก็บลำดับหมายเลขอ้างอิง
+
+        function addReference() {
+            refCount++;
+            const referenceFields = generateFields(refCount);
+            const refItemsContainer = document.getElementById('referItems');
+            refItemsContainer.insertAdjacentHTML('beforeend', referenceFields);
+            updateRefCount(); // เพิ่มบรรทัดนี้เพื่ออัปเดตค่า
+        }
+
+        function removeReference(index) {
+            const refDiv = document.getElementById(`ref_${index}`);
+            refDiv.remove();
+            updateRefCount(); // เพิ่มบรรทัดนี้เพื่ออัปเดตค่า
+        }
+    </script>
+</body>
+
+</html>

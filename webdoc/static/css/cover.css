@@ -1,0 +1,90 @@
+/* ตั้งค่า font และพื้นหลัง */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #fcf9f2; /* สีพื้นหลังอ่อน ๆ */
+  margin: 0;
+  padding: 20px;
+}
+
+/* ปรับขนาดและจัดการตำแหน่งของฟอร์ม */
+form {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* จัดการกับ label */
+label {
+  font-weight: bold;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* ปรับขนาดของ input */
+input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+/* สำหรับกรอกข้อมูลที่สั้นลงให้ลดขนาด */
+input.short {
+  width: 45%;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+/* จัดตำแหน่งปุ่ม */
+button {
+  background-color: #ff7f32; /* สีส้ม */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin: 10px 5px;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #e75b21;
+}
+
+/* สำหรับปุ่มที่เป็นลบ */
+button[type="button"] {
+  background-color: #ff4d4d; /* สีแดงสำหรับลบ */
+}
+
+button[type="button"]:hover {
+  background-color: #e03e3e;
+}
+
+/* จัดการตำแหน่ง author container */
+#author-container {
+  margin-bottom: 15px;
+}
+
+/* จัดตำแหน่งของปุ่มเพิ่ม-ลบให้เรียงแนวนอน */
+button#add-button, button#remove-button {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+/* ปรับให้ input กรอกข้อมูลได้มากขึ้นเมื่อจำเป็น */
+input[type="text"]:focus {
+  outline: none;
+  border-color: #ff7f32;
+}
+
+/* ปรับให้ปุ่มต่าง ๆ อยู่ในแถวเดียวกัน */
+form button[type="submit"] {
+  display: inline-block;
+  width: auto;
+}

@@ -14,7 +14,7 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 def doc_cover_th( project_name_th, project_name_en,
                 author1_th, author2_th,
                 author1_en, author2_en,
-                school_y):
+                academic_year):
 
     doc = Document()
     style = doc.styles["Normal"]
@@ -31,12 +31,16 @@ def doc_cover_th( project_name_th, project_name_en,
     section.bottom_margin = Inches(1)
     section.left_margin = Inches(1.5)
     section.right_margin = Inches(1)
+    
+    width_in_inches = 5 / 2.54  # 5 cm to inches
+    height_in_inches = 5 / 2.54  # 5 cm to inches
 
     # ดึง path รูปภาพ (สมมุติแหม่มวางไว้ในโฟลเดอร์ static/images/)
     logo_path = os.path.join('static', 'img', 'kmutnb_logo_cover.png')
 
 # แทรกรูปภาพ
-    doc.add_picture(logo_path, width=Inches(1.7))
+    doc.add_picture(logo_path, width=Inches(width_in_inches), height=Inches(height_in_inches))
+    # แปลง 5cm เป็นนิ้ว
 
 # จัดรูปให้อยู่ตรงกลาง
     last_paragraph = doc.paragraphs[-1]            
@@ -52,7 +56,7 @@ def doc_cover_th( project_name_th, project_name_en,
     doc.add_paragraph("\n\n\n\n\n\n")
     doc.add_paragraph(f" {author1_th}").alignment = 1
     doc.add_paragraph(f" {author2_th}").alignment = 1
-    doc.add_paragraph("\n\n\n\n")
+    doc.add_paragraph("\n\n\n")
     doc.add_paragraph("ปริญญานิพนธ์นี้เป็นส่วนหนึ่งของการศึกษาตามหลักสูตรอุตสาหกรรมศาสตรบัณฑิต").alignment = 1
     doc.add_paragraph("สาขาวิชาเทคโนโลยีสารสนเทศ ภาควิชาเทคโนโลยีสารสนเทศ").alignment = 1
     doc.add_paragraph("คณะเทคโนโลยีและการจัดการอุตสาหกรรม").alignment = 1

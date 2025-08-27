@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 01, 2025 at 06:19 AM
+-- Generation Time: Aug 27, 2025 at 05:56 AM
 -- Server version: 8.0.42
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,46 @@ SET time_zone = "+00:00";
 --
 -- Database: `doc_db`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `abstract`
+--
+
+CREATE TABLE `abstract` (
+  `abstract_id` int NOT NULL,
+  `author1_th` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `author1_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `author2_th` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `author2_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `project_name_th` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `project_name_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `major_th` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `major_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `advisor_th` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `advisor_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `coadvisor_th` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `coadvisor_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `academic_year_th` int DEFAULT NULL,
+  `academic_year_en` int DEFAULT NULL,
+  `abstract_th_para1` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `abstract_en_para1` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `keyword_th` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `keyword_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `acknow_para1` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT 'ย่อหน้าแรกของกิตติกรรมประกาศ',
+  `acknow_para2` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT 'ย่อหน้า2กิตติกรรมประกาศ',
+  `acknow_name1` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'ชื่อผู้จัดทำกิตติกรรมคนที่1',
+  `acknow_name2` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'ชื่อผู้จัดทำกิตติกรรมคนที่2',
+  `user_id` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `abstract`
+--
+
+INSERT INTO `abstract` (`abstract_id`, `author1_th`, `author1_en`, `author2_th`, `author2_en`, `project_name_th`, `project_name_en`, `major_th`, `major_en`, `advisor_th`, `advisor_en`, `coadvisor_th`, `coadvisor_en`, `academic_year_th`, `academic_year_en`, `abstract_th_para1`, `abstract_en_para1`, `keyword_th`, `keyword_en`, `acknow_para1`, `acknow_para2`, `acknow_name1`, `acknow_name2`, `user_id`) VALUES
+(1, 'นายเศรษฐพงศ์ จังเลิศคณาพงศ์', 'Mr. Settapong Junglerdkanapong', '', '', 'การพัฒนาเว็บแอป โรคประสาท', 'Developing an web application to screen and assess dementia risk with the MoCA Check assessment.', 'เทคโนโลยีสารสนเทศ มหาวิทยาลัยเทคโน', 'Information Technology King Mongkut’s University of Technology North Bangkok', 'รองศาสตราจารย์ ดร.ยุพิน สรรพคุณ', 'Associate Professor Dr.Yupins Suppakhun', '', '', 2567, 2024, 'งานวิจัยนี้นำเสนอการพัฒนาเว็บแอปพลิเคชันเพื่อคัดกรองและประเมินความเสี่ยงของโรคสมองเสื่อมโดยใช้แบบประเมิน MoCA Check ซึ่งมีวัตถุประสงค์หลักเพื่อให้ผู้สูงอายุสามารถประเมินสมรรถภาพทางสติปัญญาของตนเอง ผ่านการทดสอบความจำ ภาษา และการประมวลผลข้อมูลต่างๆผ่านแพลตฟอร์มดิจิทัล โดยแอปพลิเคชันนี้ใช้เครื่องมือ MoCA ซึ่งได้รับการยอมรับในวงการการแพทย์ในการคัดกรองผู้ที่มีความเสี่ยงต่อโรคสมองเสื่อมในระยะเริ่มต้น', 'This research presents the development of a web application for screeningand assessing dementia risk using the MoCA Check assessment. The primary objectiveof the application is to enable elderly users to assess their cognitive functions,including memory, language, and information processing abilities, through a digitalplatform. The app utilizes the MoCA tool, which is widely accepted in the medicalfield for screening individuals at risk of dementia in its early stages.', 'โรคสมองเสื่อม เว็บแอปพลิเคชัน แบบประเมิน', 'Dementia, Web Application, Assessment', 'การทำปริญญานิพนธ์นี้สำเร็จลุล่วงไปได้ด้วยดีเนื่องจากได้รับความอนุเคราะห์และความช่วยเหลือจากบุคคลหลายท่าน ทางคณะผู้จัดทำขอขอบพระคุณ รองศาสตราจารย์ ดร.ยุพิน สรรพคุณอาจารย์ที่ปรึกษาที่ได้ให้คำปรึกษาต่าง ๆ ในการทำโครงงานพิเศษ ตลอดจนคณะอาจารย์ประจำภาควิชา เทคโนโลยีสารสนเทศทุกท่านที่ได้อบรมสั่งสอนและมอบความรู้ความสามารถในการจัดทำโครงงานพิเศษ ที่ได้ช่วยชี้แนะและแนวทาง ตลอดจนให้คำปรึกษาเกี่ยวกับเรื่องของการจัดทำโครงงานพิเศษนี้', 'สุดท้ายนี้ขอกราบขอบพระคุณผู้จัดทำขอขอบพระคุณผู้มีส่วนเกี่ยวข้องทุกท่านที่ได้ให้การปรึกษา ทำให้โครงงานพิเศษนี้สำเร็จลุล่วงไปด้วยดี และขอขอบพระคุณบิดา มารดา และครอบครัวที่ให้ความอนุเคราะห์ด้านต่าง ๆ ไม่ว่าจะเป็นค่าเบี้ยเลี้ยง และค่าใช้จ่าย รวมทั้งเป็นขวัญและกำลังใจในการทำให้โครงงานพิเศษนี้สำเร็จลุล่วงไปได้ด้วยดี', 'เศรษฐพงศ์ จังเลิศคณาพงศ์', 'สุรเกียรติ สุนทราวิรัตน์', 1);
 
 -- --------------------------------------------------------
 
@@ -121,8 +161,8 @@ CREATE TABLE `backend_customuser` (
 --
 
 INSERT INTO `backend_customuser` (`user_id`, `password`, `last_login`, `is_superuser`, `is_active`, `username`, `first_name`, `last_name`, `is_staff`, `date_joined`, `email`, `full_name`) VALUES
-(1, 'pbkdf2_sha256$870000$kBh9QE2VrV9CBGBTobhxHz$Lkd2/zbMenIpTPk9QV32loYJQmUZWLn/RaDDPokd4XY=', '2025-07-26 13:12:23.697885', 1, 1, 'admin', '', '', 1, '2025-07-13 05:06:37.253416', 'admin@gmail.com', ''),
-(2, 'pbkdf2_sha256$870000$O10Of0E6RmlMPPsYBCOSol$p+bus7K12Z4+qHFcduQpsvtGaFYducHVJsTNjyEWST4=', '2025-07-30 06:59:45.203766', 0, 1, 'BossReungwit', '', '', 0, '2025-07-13 05:28:03.461600', 'singlaboss@gmail.com', 'ZA'),
+(1, 'pbkdf2_sha256$870000$kBh9QE2VrV9CBGBTobhxHz$Lkd2/zbMenIpTPk9QV32loYJQmUZWLn/RaDDPokd4XY=', '2025-08-06 08:04:59.773340', 1, 1, 'admin', '', '', 1, '2025-07-13 05:06:37.253416', 'admin@gmail.com', ''),
+(2, 'pbkdf2_sha256$870000$O10Of0E6RmlMPPsYBCOSol$p+bus7K12Z4+qHFcduQpsvtGaFYducHVJsTNjyEWST4=', '2025-08-27 02:34:33.346403', 0, 1, 'BossReungwit', '', '', 0, '2025-07-13 05:28:03.461600', 'singlaboss@gmail.com', 'ZA'),
 (4, 'pbkdf2_sha256$870000$RdkraQ3A6nbkI9mJgK5OnM$rbDGJ77Uo0TpfQC8PS+2uWfHFy1Ovdlh78Maq2Xmd74=', NULL, 0, 1, 'test', '', '', 0, '2025-07-18 03:35:54.750817', 'test@gmail.com', 'test'),
 (6, 'pbkdf2_sha256$870000$DYOn2AU52ffoHSvsp5FJbz$iHtyKDdSMUgjFgEVv8iAJsro8UPJY7Bedy/fsY/ssoI=', '2025-07-25 14:41:40.237073', 0, 1, 'test1', '', '', 0, '2025-07-25 14:41:39.728345', 'test1@gmail.com', 'ZA');
 
@@ -250,12 +290,13 @@ CREATE TABLE `django_session` (
 
 INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALUES
 ('49qrs07dynexh8hpdymi3v1i579fbso8', '.eJxVizsOAyEMRO9CHa3AJoudMlLOgYwBscqnCLtVlLvnI4qkm5k372GibGuLWy_3uGRzMGB2v1sSPZfbB4w0fdkofTpdZbkcx-nPbNLbW_Oca_ahirfZpoAlw8zkiWbHwBAIS90jIKIrmqx6ZmEgq6rOWSbzfAEbHjRU:1ufeZV:SY1SdF0G4mNQXioqpef2W2y68MFtEVERYkxGOewcDVI', '2025-08-09 13:04:17.518052'),
-('5z45m03x890ef1mdebby15eb2i70gd4b', '.eJxVizsOAyEMRO9CHa3AJoudMlLOgYwBscqnCLtVlLvnI4qkm5k372GibGuLWy_3uGRzMGB2v1sSPZfbB4w0fdkofTpdZbkcx-nPbNLbW_Oca_ahirfZpoAlw8zkiWbHwBAIS90jIKIrmqx6ZmEgq6rOWSbzfAEbHjRU:1uh0mv:WfaaYFPxOmU6foc_vw6RbEQqLXx9d5NpCB5S6s6MZRw', '2025-08-13 06:59:45.208762'),
 ('9i0yn5ufbr0r73dwaypc5bbfwcou5exu', 'e30:1uaovv:8lutfgnT3_ORdoaPfHiEye8y_3n798y41el-NahXeAs', '2025-07-27 05:07:27.713320'),
 ('jbwpe3nxqallot4k533hfkwwolhpkd71', '.eJxVizsOAyEMRO9CHa3AJoudMlLOgYwBscqnCLtVlLvnI4qkm5k372GibGuLWy_3uGRzMGB2v1sSPZfbB4w0fdkofTpdZbkcx-nPbNLbW_Oca_ahirfZpoAlw8zkiWbHwBAIS90jIKIrmqx6ZmEgq6rOWSbzfAEbHjRU:1ufeg7:QCCqJkebRKoSPi6SBeCIWMQiENlnsva-Ot9O71ab5EU', '2025-08-09 13:11:07.840171'),
 ('orwc9gs7h2423gbt3hrul23nz6x5fztd', 'e30:1ufJZn:V0C31YNWlrZgBlrbJ7uGjjT8zlizqV8Q4ss152Ilk9s', '2025-08-08 14:39:11.966251'),
+('u9dze1aoy51z4ks0545dshbvas6f1oe0', '.eJxVjL0OwjAMhN8lM6qaxNQOIxLPETm2USp-BkInxLtXrTLAdnff3X1c5uVd89LslWd1J-fd4TcrLDd7bqCrYWfdtOHy4Pl-7qW_ZeVWtz8UNpowXQ18ID-qSpCiRILgcRoLcEygUMAXtKBGcpRkbMwxIrnvCjlQNcQ:1ujZ8t:oSW64YALFnAmW3EoOWafUF2uVjzENSkF2OkBsVZJeaE', '2025-08-20 08:04:59.776339'),
 ('vq3w1ecq34694ot5ig7qnqur7pzdszr1', 'e30:1ucbn2:7faVuZa-IAuaqSyPQuoUxbb0NvyDi0m5gxPNGZcGybU', '2025-08-01 03:29:40.543057'),
-('wpjhggmnryvlh8dwjkfotcdpkdwjlm7x', 'e30:1uaowt:xDpWe91KBstbfQPRahJFExy_LQpTsovMWMqDFwWneGs', '2025-07-27 05:08:27.607318');
+('wpjhggmnryvlh8dwjkfotcdpkdwjlm7x', 'e30:1uaowt:xDpWe91KBstbfQPRahJFExy_LQpTsovMWMqDFwWneGs', '2025-07-27 05:08:27.607318'),
+('yoafkwocgfgyqk3ey76qtik10n8tzh2p', '.eJxVizsOAyEMRO9CHa3AJoudMlLOgYwBscqnCLtVlLvnI4qkm5k372GibGuLWy_3uGRzMGB2v1sSPZfbB4w0fdkofTpdZbkcx-nPbNLbW_Oca_ahirfZpoAlw8zkiWbHwBAIS90jIKIrmqx6ZmEgq6rOWSbzfAEbHjRU:1ur5zd:_qhYiEJUYacBDgypmRiNeTix1NDmN0TDwQjPDojS-zA', '2025-09-10 02:34:33.353406');
 
 -- --------------------------------------------------------
 
@@ -280,9 +321,7 @@ CREATE TABLE `doc_cover` (
 --
 
 INSERT INTO `doc_cover` (`cover_id`, `project_name_th`, `project_name_en`, `author1_name_th`, `author2_name_th`, `author1_name_en`, `author2_name_en`, `academic_year`, `user_id`) VALUES
-(6, 'ัระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'นายเรืองวิชญ์  สิงห์หล้า', '', 'Reungwit Singla', '', '2568', 2);
-
-
+(6, '', '', '', '', '', '', '', 2);
 
 -- --------------------------------------------------------
 
@@ -308,17 +347,17 @@ CREATE TABLE `sp_project` (
   `purpose_1` varchar(255) NOT NULL,
   `purpose_2` varchar(255) NOT NULL,
   `purpose_3` varchar(255) NOT NULL,
+  `scope_json` json NOT NULL,
   `user_id` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 --
 -- Dumping data for table `sp_project`
 --
 
-INSERT INTO `sp_project` (`id`, `name_pro_th`, `name_pro_en`, `case_stu`, `term`, `school_y`, `adviser`, `co_advisor`, `strategic`, `plan`, `key_result`, `bg_and_sig_para1`, `bg_and_sig_para2`, `bg_and_sig_para3`, `purpose_1`, `purpose_2`, `purpose_3`, `user_id`) VALUES
-(11, 'ัระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'ไม่มี', '2', '2567', 'ผศ.จสต.นพเก้า ทองใบ', 'ไม่มี', '', '', '', '', '', '', '', '', '', 1),
-(17, 'ระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'ไม่มี', '2', '2567', 'ผศ.จสต.นพเก้า ทองใบ', 'ไม่มี', '', '', '', '', '', '', 'เพื่อพัฒนาระบบสนับสนุนการจัดทำเล่ม ทก. และ โครงงานพิเศษ', '', '', 2);
+INSERT INTO `sp_project` (`id`, `name_pro_th`, `name_pro_en`, `case_stu`, `term`, `school_y`, `adviser`, `co_advisor`, `strategic`, `plan`, `key_result`, `bg_and_sig_para1`, `bg_and_sig_para2`, `bg_and_sig_para3`, `purpose_1`, `purpose_2`, `purpose_3`, `scope_json`, `user_id`) VALUES
+(11, 'ัระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'ไม่มี', '2', '2567', 'ผศ.จสต.นพเก้า ทองใบ', 'ไม่มี', '', '', '', '', '', '', '', '', '', 'null', 1),
+(17, 'ระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'ไม่มี', '2', '2567', 'ผศ.จสต.นพเก้า ทองใบ', '', 'การพัฒนาวิทยาศาสตร์ เทคโนโลยี การวิจัย และ นวัตกรรมระดับขั้นแนวหน้าที่ก้าวหน้าล้ำยุค เพื่อสร้างโอกาสใหม่ และความพร้อมของประเทศในอนาคต', '20 พัฒนาโครงสร้างพื้นฐาน ด้านวิทยาศาสตร์ วิจัย และนวัตกรรมและโครงสร้าง พื้นฐานทางคุณภาพของประเทศที่รองรับการวิจัยขั้นแนวหน้า และการพัฒนาเทคโนโลยีและนวัตกรรมสู่อนาคต', 'ประเทศไทยมีโครงสร้างพื้นฐานด้านวิทยาศาสตร์ วิจัย นวัตกรรมที่สำคัญ\r\nเทคโนโลยีพื้นฐาน และโครงสร้างพื้นฐานทางคุณภาพสำหรับการวิจัยขั้นแนวหน้าที่ทัดเทียมมาตรฐานสากลและสามารถรองรับการพัฒนาอย่างก้าวกระโดดสู่อนาคต\r\n', 'การจัดทำเล่มปริญญานิพนธ์เป็นขั้นตอนที่สำคัญสำหรับนักศึกษาในการแสดงศักยภาพและความรู้ที่ได้สั่งสมมาตลอดระยะเวลาการศึกษา กระบวนการนี้เกี่ยวข้องกับการนำเสนอเนื้อหาการวิจัย การรวบรวมข้อมูล และการทำเล่มปริญญานิพนธ์ให้ตรงตามรูปแบบที่กำหนด ซึ่งถือเป็นมาตรฐานที่ช่วยยกระดับคุณภาพของผลงานวิจัย อีกทั้งการจัดรูปเล่มที่ถูกต้องยังสะท้อนถึงความเป็นมืออาชีพและความเอาใจใส่ในรายละเอียดของนักศึกษา', 'ในปัจจุบัน นักศึกษามักพบอุปสรรคในการจัดรูปเล่มปริญญานิพนธ์ เนื่องจากมีเวลาที่จำกัด ซึ่งต้องจัดทำงานวิจัยและเตรียมตัวสอบในหลายวิชา การตรวจสอบความถูกต้องของรูปแบบจึงมีโอกาสเกิดข้อผิดพลาด เช่น การจัดหน้า การเว้นวรรค หรือการละเลยรายละเอียดที่สำคัญ ปัญหาเหล่านี้ทำให้งานวิจัยที่ควรแสดงถึงคุณภาพอาจไม่สมบูรณ์ตามที่คาดหวังไว้', 'เพื่อแก้ไขปัญหาเหล่านี้ ทางคณะผู้จัดทำจึงได้พัฒนาระบบช่วยจัดทำเล่มปริญญานิพนธ์ที่สามารถสร้างรูปแบบมาตรฐานได้โดยอัตโนมัติผ่านเว็บเบราว์เซอร์ ระบบจะช่วยจัดทำรูปแบบเล่ม การจัดหน้า การตัดคำ ผู้ใช้งานสามารถใส่ข้อมูลที่เตรียมไว้ลงในระบบเพื่อให้ระบบประมวลผลและสร้างเล่มปริญญานิพนธ์ที่สมบูรณ์ตรงตามมาตรฐานที่กำหนด ช่วยลดข้อผิดพลาดและเพิ่มความสะดวกสบายในการทำงานได้อย่างมีประสิทธิภาพ', 'เพื่อพัฒนาระบบสนับสนุนการจัดทำเล่ม ทก. และ โครงงานพิเศษ', '', '', '\"[{\\\"main\\\": \\\"สามารถจัดรูปแบบเล่มปริญญานิพนธ์ผ่านเว็บบราวเซอร์\\\", \\\"subs\\\": [\\\"การจัดทำระบบบนเว็บแอปพลิเคชัน\\\"]}]\"', 2);
 
 -- --------------------------------------------------------
 
@@ -340,11 +379,19 @@ CREATE TABLE `sp_project_author` (
 INSERT INTO `sp_project_author` (`id`, `name`, `userid`, `sp_id`) VALUES
 (40, 'นายเรืองวิชญ์  สิงห์หล้า', 1, 11),
 (41, 'นางสาวสุกฤตา  กาหาวงศ์', 1, 11),
-(318, 'นายเรืองวิชญ์  สิงห์หล้า', 2, 17);
+(395, 'นายเรืองวิชญ์  สิงห์หล้า', 2, 17),
+(396, 'นางสาวสุกฤตา  กาหาวงศ์', 2, 17);
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `abstract`
+--
+ALTER TABLE `abstract`
+  ADD PRIMARY KEY (`abstract_id`),
+  ADD KEY `fk_user_id` (`user_id`);
 
 --
 -- Indexes for table `auth_group`
@@ -447,6 +494,12 @@ ALTER TABLE `sp_project_author`
 --
 
 --
+-- AUTO_INCREMENT for table `abstract`
+--
+ALTER TABLE `abstract`
+  MODIFY `abstract_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `auth_group`
 --
 ALTER TABLE `auth_group`
@@ -516,11 +569,17 @@ ALTER TABLE `sp_project`
 -- AUTO_INCREMENT for table `sp_project_author`
 --
 ALTER TABLE `sp_project_author`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=319;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=397;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `abstract`
+--
+ALTER TABLE `abstract`
+  ADD CONSTRAINT `fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `auth_group_permissions`

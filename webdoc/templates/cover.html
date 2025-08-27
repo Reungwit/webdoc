@@ -5,9 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>หน้าปก</title>
-    <link rel="stylesheet" href="{% static 'css/sp_project_form.css' %}">
+    <link rel="stylesheet" href="{% static 'css/cover.css' %}">
 </head>
 <body>
+  <center><h1>หน้าปก</h1></center>
   <form method="POST" action="{% url 'cover' %}">
     {% csrf_token %}
 
@@ -44,7 +45,6 @@
 
  <script src="{% static 'js/cover.js' %}"></script> 
   <script>
-    
   const authors_th = {{ initial.authors_th|default:"[]"|safe }};
   const authors_en = {{ initial.authors_en|default:"[]"|safe }};
   </script>

@@ -8,7 +8,7 @@
 <body>
   <form method="post">
     {% csrf_token %}
-    <img class ="img_logo" src="{% static 'img/kmutnb_logo.png' %}" alt="logo" width ="200" >
+    <img class ="img_logo" src="{% static 'img/kmutnb_logo_cover.png' %}" alt="logo" width ="200" >
     {{ form.as_p }}
     <button type="submit">เข้าสู่ระบบ</button>
     ยังไม่มีบัญชี <a href="{% url 'register' %}">สมัครสมาชิก</a>

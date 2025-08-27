@@ -254,7 +254,7 @@ def sp_project_form_view(request):
         #     return render(request, 'sp_project_form_2.html', {'initial': initial})
         # else:
         #     return render(request, 'sp_project_form.html', {'initial': initial})
-
+        status_message = {'message': '✅ ดึงข้อมูลสำเร็จแล้ว!', 'type': 'success'}
         if action == 'save':
         # 2. กรณีบันทึกข้อมูล (save) 
             # ------- Save/update DB -------
@@ -304,7 +304,7 @@ def sp_project_form_view(request):
                 'authors': authors,
                 'scope_data': scope_data,
             }
-
+            status_message = {'message': '✅ บันทึกข้อมูลสำเร็จแล้ว!', 'type': 'success'}
         # ----- กรณี generate -----
         elif action == 'generate':
                 print("=== GENERATE ACTION ===")
@@ -319,7 +319,7 @@ def sp_project_form_view(request):
                 response['Content-Disposition'] = 'attachment; filename=sp_project_form.docx'
                 doc.save(response)
                 return response
-        
+                
     if request.path.endswith('/sp_project_form_2/'):
         return render(request, 'sp_project_form_2.html', {'initial': initial})
     else:

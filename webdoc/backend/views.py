@@ -331,24 +331,15 @@ def sp_project_form_view(request):
 #ส่วนที่ทำเพิ่ม
 @login_required
 def intro_view(request):
-    """
-    หน้าสำหรับจัดการข้อมูลบทคัดย่อและกิตติกรรมประกาศ
-    - GET: แสดงหน้าฟอร์มเปล่า
-    - POST: จัดการการบันทึก, ดึงข้อมูล หรือสร้างไฟล์ Word
-    """
     user = request.user
     initial = {}
     action = request.POST.get('action')
 
     if request.method == 'POST':
-        # จัดการตาม Action ที่ผู้ใช้กด
-        
         # Action: ดึงข้อมูล
         if action == 'get_data_intro':
             try:
-                # ดึงข้อมูลจากฐานข้อมูลสำหรับผู้ใช้ปัจจุบัน
                 abstract_data = Abstract.objects.get(user=user)
-                # สร้าง dictionary สำหรับส่งไปที่ template เพื่อเติมในช่อง form
                 initial = {
                     'project_name_th': abstract_data.project_name_th,
                     'project_name_en': abstract_data.project_name_en,
@@ -361,7 +352,9 @@ def intro_view(request):
                     'academic_year_th': abstract_data.academic_year_th,
                     'academic_year_en': abstract_data.academic_year_en,
                     'abstract_th_para1': abstract_data.abstract_th_para1,
+                    'abstract_th_para2': abstract_data.abstract_th_para2,
                     'abstract_en_para1': abstract_data.abstract_en_para1,
+                    'abstract_en_para2': abstract_data.abstract_en_para2,
                     'keyword_th': abstract_data.keyword_th,
                     'keyword_en': abstract_data.keyword_en,
                     'acknow_para1': abstract_data.acknow_para1,
@@ -372,18 +365,16 @@ def intro_view(request):
                     'author1_en': abstract_data.author1_en,
                     'author2_th': abstract_data.author2_th,
                     'author2_en': abstract_data.author2_en,
+                    'total_pages': abstract_data.total_pages,   # ✅ เพิ่มจำนวนหน้า
                 }
                 messages.success(request, 'ดึงข้อมูลเก่าสำเร็จแล้ว')
-                # ส่งข้อมูลที่ดึงมากลับไปแสดงในหน้าเดิม
                 return render(request, 'intro.html', {'initial': initial})
             except Abstract.DoesNotExist:
-                messages.info(request, 'ไม่พบข้อมูลเก่าสำหรับบทคัดย่อและกิตติกรรมประกาศ')
-                # ถ้าไม่พบข้อมูล ให้กลับไปหน้าฟอร์มเปล่า
+                messages.info(request, 'ไม่พบข้อมูลเก่า')
                 return render(request, 'intro.html', {'initial': {}})
-        
+
         # Action: บันทึกข้อมูล
         elif action == 'save_intro':
-            # ดึงข้อมูลจากฟอร์ม
             form_data = {
                 'project_name_th': request.POST.get('project_name_th', ''),
                 'project_name_en': request.POST.get('project_name_en', ''),
@@ -396,7 +387,9 @@ def intro_view(request):
                 'academic_year_th': request.POST.get('academic_year_th', ''),
                 'academic_year_en': request.POST.get('academic_year_en', ''),
                 'abstract_th_para1': request.POST.get('abstract_th_para1', ''),
+                'abstract_th_para2': request.POST.get('abstract_th_para2', ''),
                 'abstract_en_para1': request.POST.get('abstract_en_para1', ''),
+                'abstract_en_para2': request.POST.get('abstract_en_para2', ''),
                 'keyword_th': request.POST.get('keyword_th', ''),
                 'keyword_en': request.POST.get('keyword_en', ''),
                 'acknow_para1': request.POST.get('acknow_para1', ''),
@@ -407,19 +400,14 @@ def intro_view(request):
                 'author1_en': request.POST.get('author1_en', ''),
                 'author2_th': request.POST.get('author2_th', ''),
                 'author2_en': request.POST.get('author2_en', ''),
+                'total_pages': request.POST.get('total_pages', None),   # ✅ เก็บจำนวนหน้า
             }
-
-            # บันทึกหรืออัปเดตข้อมูลในฐานข้อมูล
-            Abstract.objects.update_or_create(
-                user=user,
-                defaults=form_data
-            )
+            Abstract.objects.update_or_create(user=user, defaults=form_data)
             messages.success(request, 'บันทึกข้อมูลเรียบร้อยแล้ว')
             return redirect('intro_view')
-            
+
         # Action: สร้างไฟล์ Word
         elif action == 'generate_intro':
-            # ดึงข้อมูลจากฟอร์มเพื่อสร้างไฟล์
             form_data = {
                 'project_name_th': request.POST.get('project_name_th', ''),
                 'project_name_en': request.POST.get('project_name_en', ''),
@@ -432,7 +420,9 @@ def intro_view(request):
                 'academic_year_th': request.POST.get('academic_year_th', ''),
                 'academic_year_en': request.POST.get('academic_year_en', ''),
                 'abstract_th_para1': request.POST.get('abstract_th_para1', ''),
+                'abstract_th_para2': request.POST.get('abstract_th_para2', ''),
                 'abstract_en_para1': request.POST.get('abstract_en_para1', ''),
+                'abstract_en_para2': request.POST.get('abstract_en_para2', ''),
                 'keyword_th': request.POST.get('keyword_th', ''),
                 'keyword_en': request.POST.get('keyword_en', ''),
                 'acknow_para1': request.POST.get('acknow_para1', ''),
@@ -443,17 +433,12 @@ def intro_view(request):
                 'author1_en': request.POST.get('author1_en', ''),
                 'author2_th': request.POST.get('author2_th', ''),
                 'author2_en': request.POST.get('author2_en', ''),
+                'total_pages': request.POST.get('total_pages', None),   # ✅ ส่งไป doc_intro.py
             }
-            
-            # เรียกใช้ฟังก์ชันสร้างเอกสารจาก doc_intro.py
             doc = doc_intro(form_data)
-            
-            # สร้าง HttpResponse สำหรับดาวน์โหลดไฟล์
             response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
             response['Content-Disposition'] = 'attachment; filename=abstract_and_acknow.docx'
             doc.save(response)
             return response
-            
-    # ถ้าเป็น GET request (เข้าหน้าครั้งแรก)
-    # เราจะส่ง initial เป็น dict ว่างเปล่าเสมอ เพื่อให้ฟอร์มขึ้นมาแบบไม่มีข้อมูล
+
     return render(request, 'intro.html', {'initial': initial})

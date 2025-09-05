@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 06, 2025 at 09:59 AM
+-- Generation Time: Aug 27, 2025 at 10:26 AM
 -- Server version: 8.0.42
--- PHP Version: 8.0.28
+-- PHP Version: 8.1.25
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -44,22 +44,25 @@ CREATE TABLE `abstract` (
   `academic_year_th` int DEFAULT NULL,
   `academic_year_en` int DEFAULT NULL,
   `abstract_th_para1` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `abstract_th_para2` text COLLATE utf8mb4_general_ci,
   `abstract_en_para1` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `abstract_en_para2` text COLLATE utf8mb4_general_ci,
   `keyword_th` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `keyword_en` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `acknow_para1` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT 'ย่อหน้าแรกของกิตติกรรมประกาศ',
   `acknow_para2` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT 'ย่อหน้า2กิตติกรรมประกาศ',
   `acknow_name1` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'ชื่อผู้จัดทำกิตติกรรมคนที่1',
   `acknow_name2` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'ชื่อผู้จัดทำกิตติกรรมคนที่2',
-  `user_id` bigint DEFAULT NULL
+  `user_id` bigint DEFAULT NULL,
+  `total_pages` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `abstract`
 --
 
-INSERT INTO `abstract` (`abstract_id`, `author1_th`, `author1_en`, `author2_th`, `author2_en`, `project_name_th`, `project_name_en`, `major_th`, `major_en`, `advisor_th`, `advisor_en`, `coadvisor_th`, `coadvisor_en`, `academic_year_th`, `academic_year_en`, `abstract_th_para1`, `abstract_en_para1`, `keyword_th`, `keyword_en`, `acknow_para1`, `acknow_para2`, `acknow_name1`, `acknow_name2`, `user_id`) VALUES
-(1, 'นายเศรษฐพงศ์ จังเลิศคณาพงศ์', 'Mr. Settapong Junglerdkanapong', '', '', 'การพัฒนาเว็บแอป โรคประสาท', 'Developing an web application to screen and assess dementia risk with the MoCA Check assessment.', 'เทคโนโลยีสารสนเทศ มหาวิทยาลัยเทคโน', 'Information Technology King Mongkut’s University of Technology North Bangkok', 'รองศาสตราจารย์ ดร.ยุพิน สรรพคุณ', 'Associate Professor Dr.Yupins Suppakhun', '', '', 2567, 2024, 'งานวิจัยนี้นำเสนอการพัฒนาเว็บแอปพลิเคชันเพื่อคัดกรองและประเมินความเสี่ยงของโรค\r\nสมองเสื่อมโดยใช้แบบประเมิน MoCA Check ซึ่งมีวัตถุประสงค์หลักเพื่อให้ผู้สูงอายุสามารถประเมิน\r\nสมรรถภาพทางสติปัญญาของตนเอง ผ่านการทดสอบความจำ ภาษา และการประมวลผลข้อมูลต่างๆ\r\nผ่านแพลตฟอร์มดิจิทัล โดยแอปพลิเคชันนี้ใช้เครื่องมือ MoCA ซึ่งได้รับการยอมรับในวงการ\r\nการแพทย์ในการคัดกรองผู้ที่มีความเสี่ยงต่อโรคสมองเสื่อมในระยะเริ่มต้น', 'This research presents the development of a web application for screening\r\nand assessing dementia risk using the MoCA Check assessment. The primary objective\r\nof the application is to enable elderly users to assess their cognitive functions,\r\nincluding memory, language, and information processing abilities, through a digital\r\nplatform. The app utilizes the MoCA tool, which is widely accepted in the medical\r\nfield for screening individuals at risk of dementia in its early stages.', 'โรคสมองเสื่อม เว็บแอปพลิเคชัน แบบประเมิน', 'Dementia, Web Application, Assessment', 'การทำปริญญานิพนธ์นี้สำเร็จลุล่วงไปได้ด้วยดีเนื่องจากได้รับความอนุเคราะห์และความ\r\nช่วยเหลือจากบุคคลหลายท่าน ทางคณะผู้จัดทำขอขอบพระคุณ รองศาสตราจารย์ ดร.ยุพิน สรรพคุณ\r\nอาจารย์ที่ปรึกษาที่ได้ให้คำปรึกษาต่าง ๆ ในการทำโครงงานพิเศษ ตลอดจนคณะอาจารย์ประจำ\r\nภาควิชา เทคโนโลยีสารสนเทศทุกท่านที่ได้อบรมสั่งสอนและมอบความรู้ความสามารถในการจัดทำ\r\nโครงงานพิเศษ ที่ได้ช่วยชี้แนะและแนวทาง ตลอดจนให้คำปรึกษาเกี่ยวกับเรื่องของการจัดทำโครงงาน\r\nพิเศษนี้', 'สุดท้ายนี้ขอกราบขอบพระคุณผู้จัดทำขอขอบพระคุณผู้มีส่วนเกี่ยวข้องทุกท่านที่ได้ให้การ\r\nปรึกษา ทำให้โครงงานพิเศษนี้สำเร็จลุล่วงไปด้วยดี และขอขอบพระคุณบิดา มารดา และครอบครัวที่\r\nให้ความอนุเคราะห์ด้านต่าง ๆ ไม่ว่าจะเป็นค่าเบี้ยเลี้ยง และค่าใช้จ่าย รวมทั้งเป็นขวัญและกำลังใจใน\r\nการทำให้โครงงานพิเศษนี้สำเร็จลุล่วงไปได้ด้วยดี', 'เศรษฐพงศ์ จังเลิศคณาพงศ์', 'สุรเกียรติ สุนทราวิรัตน์', 1);
+INSERT INTO `abstract` (`abstract_id`, `author1_th`, `author1_en`, `author2_th`, `author2_en`, `project_name_th`, `project_name_en`, `major_th`, `major_en`, `advisor_th`, `advisor_en`, `coadvisor_th`, `coadvisor_en`, `academic_year_th`, `academic_year_en`, `abstract_th_para1`, `abstract_th_para2`, `abstract_en_para1`, `abstract_en_para2`, `keyword_th`, `keyword_en`, `acknow_para1`, `acknow_para2`, `acknow_name1`, `acknow_name2`, `user_id`, `total_pages`) VALUES
+(1, 'นายเศรษฐพงศ์ จังเลิศคณาพงศ์', 'Mr. Settapong Junglerdkanapong', 'นายสุรเกียรติ สุนทราวิรัตน์', 'Mr. Surakiat Suntrawirat', 'การพัฒนาเว็บแอปพลิเคชันคัดกรองและประเมินความเสี่ยง โรคสมองเสื่อมด้วยแบบประเมิน MoCA Check', 'Developing an web application to screen and assess dementia risk with the MoCA Check assessment.', 'เทคโนโลยีสารสนเทศ', 'Information Technology', 'รองศาสตราจารย์ ดร.ยุพิน สรรพคุณ', 'Associate Professor Dr.Yupins Suppakhun', '', '', 2567, 2024, 'งานวิจัยนี้นำเสนอการพัฒนาเว็บแอปพลิเคชันเพื่อคัดกรองและประเมินความเสี่ยงของโรคสมองเสื่อมโดยใช้แบบประเมิน MoCA Check ซึ่งมีวัตถุประสงค์หลักเพื่อให้ผู้สูงอายุสามารถประเมินสมรรถภาพทางสติปัญญาของตนเอง ผ่านการทดสอบความจำ ภาษา และการประมวลผลข้อมูลต่างๆผ่านแพลตฟอร์มดิจิทัล โดยแอปพลิเคชันนี้ใช้เครื่องมือ MoCA ซึ่งได้รับการยอมรับในวงการการแพทย์ในการคัดกรองผู้ที่มีความเสี่ยงต่อโรคสมองเสื่อมในระยะเริ่มต้น', 'นอกจากนี้ยังมีฟังก์ชันการฝึกสมอง เช่น การฝึกความจำ เพื่อเสริมสร้างและรักษาสมรรถภาพ ทางสติปัญญา แอปพลิเคชันนี้จึงมีเป้าหมายในการป้องกันโรคสมองเสื่อม โดยการเพิ่มความตระหนักรู้ ในการดูแลสุขภาพสมองและการส่งเสริมพฤติกรรมสุขภาพที่ดีในผู้สูงอายุ', 'This research presents the development of a web application for screeningand assessing dementia risk using the MoCA Check assessment. The primary objectiveof the application is to enable elderly users to assess their cognitive functions,including memory, language, and information processing abilities, through a digitalplatform. The app utilizes the MoCA tool, which is widely accepted in the medicalfield for screening individuals at risk of dementia in its early stages.', 'In addition, the application includes cognitive exercises, such as memory training, to enhance and maintain cognitive abilities. This application aims to serve as a preventive tool for dementia and to raise awareness about brain health management, encouraging elderly users to adopt healthy habits and take proactive steps in maintaining their brain health.', 'โรคสมองเสื่อม เว็บแอปพลิเคชัน แบบประเมิน', 'Dementia, Web Application, Assessment', 'การทำปริญญานิพนธ์นี้สำเร็จลุล่วงไปได้ด้วยดีเนื่องจากได้รับความอนุเคราะห์และความช่วยเหลือจากบุคคลหลายท่าน ทางคณะผู้จัดทำขอขอบพระคุณ รองศาสตราจารย์ ดร.ยุพิน สรรพคุณอาจารย์ที่ปรึกษาที่ได้ให้คำปรึกษาต่าง ๆ ในการทำโครงงานพิเศษ ตลอดจนคณะอาจารย์ประจำภาควิชา เทคโนโลยีสารสนเทศทุกท่านที่ได้อบรมสั่งสอนและมอบความรู้ความสามารถในการจัดทำโครงงานพิเศษ ที่ได้ช่วยชี้แนะและแนวทาง ตลอดจนให้คำปรึกษาเกี่ยวกับเรื่องของการจัดทำโครงงานพิเศษนี้', 'สุดท้ายนี้ขอกราบขอบพระคุณผู้จัดทำขอขอบพระคุณผู้มีส่วนเกี่ยวข้องทุกท่านที่ได้ให้การปรึกษา ทำให้โครงงานพิเศษนี้สำเร็จลุล่วงไปด้วยดี และขอขอบพระคุณบิดา มารดา และครอบครัวที่ให้ความอนุเคราะห์ด้านต่าง ๆ ไม่ว่าจะเป็นค่าเบี้ยเลี้ยง และค่าใช้จ่าย รวมทั้งเป็นขวัญและกำลังใจในการทำให้โครงงานพิเศษนี้สำเร็จลุล่วงไปได้ด้วยดี', 'เศรษฐพงศ์ จังเลิศคณาพงศ์', 'สุรเกียรติ สุนทราวิรัตน์', 1, 172);
 
 --
 -- Indexes for dumped tables

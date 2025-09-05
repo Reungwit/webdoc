@@ -34,13 +34,14 @@
     <input type="text" id="academic_year" name="academic_year" size="50" value="{{ initial.academic_year|default:'' }}"><br><br>
 
     <!-- ปุ่ม action -->
+     <a href="{% url 'index' %}">กลับหน้าหลัก</a>
     <button type="submit" name="action" value="save_cover">บันทึกข้อมูล</button>
     <button type="submit" name="action" value="get_data_cover">ดึงข้อมูล</button>
     <button type="submit" name="action" value="generate_cover_th">สร้างหน้าปกไทย</button>
     <button type="submit" name="action" value="generate_cover_sec">สร้างหน้าปกรอง</button>
     <button type="submit" name="action" value="generate_cover_en">สร้างหน้าปกอังกฤษ</button>
   </form>
-
+  
   <!-- โหลด JS -->
 
  <script src="{% static 'js/cover.js' %}"></script> 

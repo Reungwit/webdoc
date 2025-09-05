@@ -2,14 +2,18 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from .forms import RegisterForm, LoginForm
-from .models import SpProject, SpProjectAuthor, DocCover, Abstract
-from man_doc.doc_sp_01 import doc_sp_01
-from man_doc.doc_cover import doc_cover_th, doc_cover_en, doc_cover_sec  # <-- ถ้ามี doc_cover_en ต้อง import ด้วย
-import json
-from man_doc.doc_intro import doc_intro  # <-- import doc_intro ที่เราสร้าง
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
-from man_doc.doc_refer import doc_refer  # สมมติว่าไฟล์ doc_refer.py อยู่ในโฟลเดอร์ man_doc
+import json
+from .forms import RegisterForm, LoginForm
+from .models import SpProject, SpProjectAuthor, DocCover, Abstract,Chapter1
+from man_doc.doc_sp_01 import doc_sp_01
+from man_doc.doc_cover import doc_cover_th, doc_cover_en, doc_cover_sec  
+from man_doc.doc_intro import doc_intro  
+from man_doc.doc_refer import doc_refer  
+from django.template.loader import render_to_string
+from man_doc.doc_chapter1 import doc_chapter1
+
 
 # Register / Login / Logout
 def register_view(request):
@@ -46,7 +50,6 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
-
 
 # Static Pages
 @login_required
@@ -167,11 +170,7 @@ def doc_cover_view(request):
     return render(request, 'cover.html')
 
 
-
 # แบบฟอร์ม ทก.01
-
-
-
 @login_required
 def sp_project_form_view(request):
     user = request.user
@@ -439,119 +438,251 @@ def intro_view(request):
     # เราจะส่ง initial เป็น dict ว่างเปล่าเสมอ เพื่อให้ฟอร์มขึ้นมาแบบไม่มีข้อมูล
     return render(request, 'intro.html', {'initial': initial})
 
+@login_required
+@csrf_exempt
+def refer_view(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'get_data':
+            references = []
+            try:
+                ref_count = int(request.POST.get('ref_count', 0))
+            except (ValueError, TypeError):
+                ref_count = 0
+
+            for i in range(1, ref_count + 1):
+                ref_type = request.POST.get(f'ref_type_{i}', '')
+                lang = request.POST.get(f'lang_{i}', '')
+                if ref_type:
+                    ref_data = {
+                        'ref_count': i,
+                        'ref_type': ref_type,
+                        'language': lang,
+                    }
+                    
+                    # ดึงข้อมูลตามประเภทแหล่งอ้างอิง
+                    if ref_type == '1': # เว็บไซต์
+                        ref_data['authors'] = [request.POST.get(f'author_{i}_{j}', '') for j in range(1, 4) if request.POST.get(f'author_{i}_{j}')]
+                        ref_data['title'] = request.POST.get(f'title_{i}', '')
+                        ref_data['url'] = request.POST.get(f'url_{i}', '')
+                        ref_data['access_date'] = request.POST.get(f'access_date_{i}', '')
+                    
+                    elif ref_type == '2': # หนังสือ
+                        ref_data['authors'] = [request.POST.get(f'author_{i}_{j}', '') for j in range(1, 4) if request.POST.get(f'author_{i}_{j}')]
+                        ref_data['title'] = request.POST.get(f'title_{i}', '')
+                        ref_data['print_count'] = request.POST.get(f'print_count_{i}', '')
+                        ref_data['city_print'] = request.POST.get(f'city_print_{i}', '')
+                        ref_data['publisher'] = request.POST.get(f'publisher_{i}', '')
+                        ref_data['y_print'] = request.POST.get(f'y_print_{i}', '')
+
+                    elif ref_type == '3': # บทความในหนังสือ
+                        ref_data['article_author'] = request.POST.get(f'article_author_{i}', '')
+                        ref_data['article_title'] = request.POST.get(f'article_title_{i}', '')
+                        ref_data['editor'] = request.POST.get(f'editor_{i}', '')
+                        ref_data['book_title'] = request.POST.get(f'book_title_{i}', '')
+                        ref_data['city_print'] = request.POST.get(f'city_print_{i}', '')
+                        ref_data['publisher'] = request.POST.get(f'publisher_{i}', '')
+                        ref_data['y_print'] = request.POST.get(f'y_print_{i}', '')
+                        ref_data['pages'] = request.POST.get(f'pages_{i}', '')
+
+                    elif ref_type == '4': # สื่อมัลติมีเดีย
+                        ref_data['author'] = request.POST.get(f'author_{i}', '')
+                        ref_data['title'] = request.POST.get(f'title_{i}', '')
+                        ref_data['format'] = request.POST.get(f'format_{i}', '')
+                        ref_data['city_prod'] = request.POST.get(f'city_prod_{i}', '')
+                        ref_data['publisher'] = request.POST.get(f'publisher_{i}', '')
+                        ref_data['y_prod'] = request.POST.get(f'y_prod_{i}', '')
+                    
+                    elif ref_type == '5': # บทความจากหนังสือพิมพ์
+                        ref_data['author'] = request.POST.get(f'author_{i}', '')
+                        ref_data['article_title'] = request.POST.get(f'article_title_{i}', '')
+                        ref_data['newspaper_name'] = request.POST.get(f'newspaper_name_{i}', '')
+                        ref_data['pub_date'] = request.POST.get(f'pub_date_{i}', '')
+                        ref_data['section'] = request.POST.get(f'section_{i}', '')
+                        ref_data['page'] = request.POST.get(f'page_{i}', '')
+                    
+                    elif ref_type == '6': # บทความในฐานข้อมูล
+                        ref_data['author'] = request.POST.get(f'author_{i}', '')
+                        ref_data['article_title'] = request.POST.get(f'article_title_{i}', '')
+                        ref_data['journal_name'] = request.POST.get(f'journal_name_{i}', '')
+                        ref_data['resource_type'] = request.POST.get(f'resource_type_{i}', '')
+                        ref_data['db_update_date'] = request.POST.get(f'db_update_date_{i}', '')
+                        ref_data['access_date'] = request.POST.get(f'access_date_{i}', '')
+                        ref_data['url'] = request.POST.get(f'url_{i}', '')
+                    
+                    elif ref_type == '7': # รายงานการประชุม
+                        ref_data['editor'] = request.POST.get(f'editor_{i}', '')
+                        ref_data['title'] = request.POST.get(f'title_{i}', '')
+                        ref_data['conference_name'] = request.POST.get(f'conference_name_{i}', '')
+                        ref_data['conference_date'] = request.POST.get(f'conference_date_{i}', '')
+                        ref_data['conference_location'] = request.POST.get(f'conference_location_{i}', '')
+                        ref_data['city_print'] = request.POST.get(f'city_print_{i}', '')
+                        ref_data['publisher'] = request.POST.get(f'publisher_{i}', '')
+                        ref_data['y_print'] = request.POST.get(f'y_print_{i}', '')
+
+                    elif ref_type == '8': # การนำเสนอผลงานในการประชุม
+                        ref_data['presenter'] = request.POST.get(f'presenter_{i}', '')
+                        ref_data['presentation_title'] = request.POST.get(f'presentation_title_{i}', '')
+                        ref_data['editor'] = request.POST.get(f'editor_{i}', '')
+                        ref_data['conference_name'] = request.POST.get(f'conference_name_{i}', '')
+                        ref_data['conference_date'] = request.POST.get(f'conference_date_{i}', '')
+                        ref_data['conference_location'] = request.POST.get(f'conference_location_{i}', '')
+                        ref_data['city_print'] = request.POST.get(f'city_print_{i}', '')
+                        ref_data['publisher'] = request.POST.get(f'publisher_{i}', '')
+                        ref_data['y_print'] = request.POST.get(f'y_print_{i}', '')
+                        ref_data['page'] = request.POST.get(f'page_{i}', '')
+
+                    elif ref_type == '9': # บทความในวารสาร
+                        ref_data['author'] = request.POST.get(f'author_{i}', '')
+                        ref_data['article_title'] = request.POST.get(f'article_title_{i}', '')
+                        ref_data['journal_name'] = request.POST.get(f'journal_name_{i}', '')
+                        ref_data['pub_date'] = request.POST.get(f'pub_date_{i}', '')
+                        ref_data['volume_issue'] = request.POST.get(f'volume_issue_{i}', '')
+                        ref_data['pages'] = request.POST.get(f'pages_{i}', '')
+
+                    references.append(ref_data)
+        
+        if action == 'generate_refer':
+            doc = doc_refer(references)
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            response['Content-Disposition'] = 'attachment; filename=บรรณานุกรม.docx'
+            doc.save(response)
+            return response
+
+    return render(request, 'refer.html')
 
 
 
 
-def refer_form(request):
+@login_required
+def chapter_1_view(request):
+    user = request.user
+    initial = {}
+    status_message = None
+
     if request.method == 'POST':
         action = request.POST.get('action')
         print(">>> ACTION =", action)
-        
-        references = []
-        # ใช้ get('ref_count', '0') เพื่อความปลอดภัย และแปลงเป็น int
-        ref_count = int(request.POST.get('ref_count', '0'))
-        
-        for i in range(1, ref_count + 1):
-            ref_data = {}
-            ref_type = request.POST.get(f'ref_type_{i}')
+        if action == 'get_data':
+            # 2. ดึงข้อมูลจากฐานข้อมูล
+            try:
+                chapter1_data = Chapter1.objects.get(user=user)
+                initial = {
+                    'sec11_p1': chapter1_data.sec11_p1,
+                    'sec11_p2': chapter1_data.sec11_p2,
+                    'sec11_p3': chapter1_data.sec11_p3,
+                    'purpose_count': chapter1_data.purpose_count,
+                    'purpose_1': chapter1_data.purpose_1,
+                    'purpose_2': chapter1_data.purpose_2,
+                    'purpose_3': chapter1_data.purpose_3,
+                    'hypo_paragraph': chapter1_data.hypo_paragraph,
+                    'hypo_items_json': chapter1_data.hypo_items_json, # <--- แก้ไข
+                    'scope_json': chapter1_data.scope_json,             # <--- แก้ไข
+                    'para_premise': chapter1_data.para_premise,
+                    'premise_json': chapter1_data.premise_json,         # <--- แก้ไข
+                    'def_items_json': chapter1_data.def_items_json,     # <--- แก้ไข
+                    'benefit_items_json': chapter1_data.benefit_items_json, # <--- แก้ไข
+                }
+                status_message = {'message': '✅ ดึงข้อมูลสำเร็จแล้ว!', 'type': 'success'}
+            except Chapter1.DoesNotExist:
+                initial = {}
+                status_message = {'message': 'ไม่มีข้อมูลอยู่ กรุณากรอกข้อมูลแล้วบันทึก!', 'type': 'warning'}
+
+        elif action == 'save' or action == 'generate':
+            # 1. อ่านข้อมูลล่าสุดจากฟอร์ม (ย้ายมาไว้ตรงนี้)
+            sec11_p1 = request.POST.get('sec11_p1', '')
+            sec11_p2 = request.POST.get('sec11_p2', '')
+            sec11_p3 = request.POST.get('sec11_p3', '')
             
-            # เก็บข้อมูลพื้นฐาน
-            ref_data['ref_type'] = ref_type
-            ref_data['ref_count'] = i
+            purpose_count = int(request.POST.get('purpose_count', 0))
+            purpose_1 = request.POST.get('purpose_1', '')
+            purpose_2 = request.POST.get('purpose_2', '')
+            purpose_3 = request.POST.get('purpose_3', '')
 
-            if ref_type == '1': # 1. เว็บไซต์
-                ref_data['author'] = request.POST.get(f'author_{i}', '')
-                ref_data['title'] = request.POST.get(f'title_{i}', '')
-                ref_data['url'] = request.POST.get(f'url_{i}', '')
-                ref_data['access_date'] = request.POST.get(f'access_date_{i}', '')
+            hypo_paragraph = request.POST.get('hypo_paragraph', '')
+            hypo_items = json.loads(request.POST.get('hypo_items_json', '[]'))
+            scope_data = json.loads(request.POST.get('scope_json', '[]'))
+            para_premise_str = request.POST.get('para_premise', '')
+            premise_data = json.loads(request.POST.get('premise_json', '[]'))
+            def_items = json.loads(request.POST.get('def_items_json', '[]'))
+            benefit_items = json.loads(request.POST.get('benefit_items_json', '[]'))
             
-            elif ref_type == '2': # 2. หนังสือ
-                ref_data['author'] = request.POST.get(f'author_{i}', '')
-                ref_data['title'] = request.POST.get(f'title_{i}', '')
-                ref_data['print_count'] = request.POST.get(f'print_count_{i}', '')
-                ref_data['city_print'] = request.POST.get(f'city_print_{i}', '')
-                ref_data['publisher'] = request.POST.get(f'publisher_{i}', '')
-                ref_data['y_print'] = request.POST.get(f'y_print_{i}', '')
+            # --- จัดการ Action ---
+            if action == 'save':
+                # 2. บันทึก/อัปเดตข้อมูลลงฐานข้อมูล (เหมือนเดิม)
+                Chapter1.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        'sec11_p1': sec11_p1,
+                        'sec11_p2': sec11_p2,
+                        'sec11_p3': sec11_p3,
+                        'purpose_count': purpose_count,
+                        'purpose_1': purpose_1,
+                        'purpose_2': purpose_2,
+                        'purpose_3': purpose_3,
+                        'hypo_paragraph': hypo_paragraph,
+                        'hypo_items_json': hypo_items,
+                        'scope_json': scope_data,
+                        'para_premise': para_premise_str,
+                        'premise_json': premise_data,
+                        'def_items_json': def_items,
+                        'benefit_items_json': benefit_items,
+                    }
+                )
+                status_message = {'message': '✅ บันทึกข้อมูลสำเร็จแล้ว!', 'type': 'success'}
 
-            elif ref_type == '3': # 3. บทความในหนังสือ
-                ref_data['article_author'] = request.POST.get(f'article_author_{i}', '')
-                ref_data['article_title'] = request.POST.get(f'article_title_{i}', '')
-                ref_data['editor'] = request.POST.get(f'editor_{i}', '')
-                ref_data['book_title'] = request.POST.get(f'book_title_{i}', '')
-                ref_data['city_print'] = request.POST.get(f'city_print_{i}', '')
-                ref_data['publisher'] = request.POST.get(f'publisher_{i}', '')
-                ref_data['y_print'] = request.POST.get(f'y_print_{i}', '')
-                ref_data['pages'] = request.POST.get(f'pages_{i}', '')
-
-            elif ref_type == '4': # 4. สื่อมัลติมีเดีย
-                ref_data['author'] = request.POST.get(f'author_{i}', '')
-                ref_data['title'] = request.POST.get(f'title_{i}', '')
-                ref_data['format'] = request.POST.get(f'format_{i}', '')
-                ref_data['city_prod'] = request.POST.get(f'city_prod_{i}', '')
-                ref_data['publisher'] = request.POST.get(f'publisher_{i}', '')
-                ref_data['y_prod'] = request.POST.get(f'y_prod_{i}', '')
-
-            elif ref_type == '5': # 5. บทความจากหนังสือพิมพ์
-                ref_data['author'] = request.POST.get(f'author_{i}', '')
-                ref_data['article_title'] = request.POST.get(f'article_title_{i}', '')
-                ref_data['newspaper_name'] = request.POST.get(f'newspaper_name_{i}', '')
-                ref_data['pub_date'] = request.POST.get(f'pub_date_{i}', '')
-                ref_data['section'] = request.POST.get(f'section_{i}', '')
-                ref_data['page'] = request.POST.get(f'page_{i}', '')
-
-            elif ref_type == '6': # 6. บทความในฐานข้อมูล
-                ref_data['author'] = request.POST.get(f'author_{i}', '')
-                ref_data['article_title'] = request.POST.get(f'article_title_{i}', '')
-                ref_data['journal_name'] = request.POST.get(f'journal_name_{i}', '')
-                ref_data['resource_type'] = request.POST.get(f'resource_type_{i}', '')
-                ref_data['db_update_date'] = request.POST.get(f'db_update_date_{i}', '')
-                ref_data['access_date'] = request.POST.get(f'access_date_{i}', '')
-                ref_data['pages'] = request.POST.get(f'pages_{i}', '')
-                ref_data['url'] = request.POST.get(f'url_{i}', '')
-
-            elif ref_type == '7': # 7. รายงานการประชุม
-                ref_data['editor'] = request.POST.get(f'editor_{i}', '')
-                ref_data['title'] = request.POST.get(f'title_{i}', '')
-                ref_data['conference_name'] = request.POST.get(f'conference_name_{i}', '')
-                ref_data['conference_date'] = request.POST.get(f'conference_date_{i}', '')
-                ref_data['conference_location'] = request.POST.get(f'conference_location_{i}', '')
-                ref_data['city_print'] = request.POST.get(f'city_print_{i}', '')
-                ref_data['publisher'] = request.POST.get(f'publisher_{i}', '')
-                ref_data['y_print'] = request.POST.get(f'y_print_{i}', '')
-
-            elif ref_type == '8': # 8. การนำเสนอผลงานในการประชุม
-                ref_data['presenter'] = request.POST.get(f'presenter_{i}', '')
-                ref_data['presentation_title'] = request.POST.get(f'presentation_title_{i}', '')
-                ref_data['editor'] = request.POST.get(f'editor_{i}', '')
-                ref_data['conference_name'] = request.POST.get(f'conference_name_{i}', '')
-                ref_data['conference_date'] = request.POST.get(f'conference_date_{i}', '')
-                ref_data['conference_location'] = request.POST.get(f'conference_location_{i}', '')
-                ref_data['city_print'] = request.POST.get(f'city_print_{i}', '')
-                ref_data['publisher'] = request.POST.get(f'publisher_{i}', '')
-                ref_data['y_print'] = request.POST.get(f'y_print_{i}', '')
-                ref_data['page'] = request.POST.get(f'page_{i}', '')
-
-            elif ref_type == '9': # 9. บทความในวารสาร
-                ref_data['author'] = request.POST.get(f'author_{i}', '')
-                ref_data['article_title'] = request.POST.get(f'article_title_{i}', '')
-                ref_data['journal_name'] = request.POST.get(f'journal_name_{i}', '')
-                ref_data['pub_date'] = request.POST.get(f'pub_date_{i}', '')
-                ref_data['volume_issue'] = request.POST.get(f'volume_issue_{i}', '')
-                ref_data['pages'] = request.POST.get(f'pages_{i}', '')
-
-            references.append(ref_data)
+            elif action == 'generate':
+                # 3. สร้างเอกสาร DOCX จากข้อมูลล่าสุดบนฟอร์ม
+                
+                    doc = doc_chapter1(
+                        sec11_p1=sec11_p1,
+                        sec11_p2=sec11_p2,
+                        sec11_p3=sec11_p3,
+                        purpose_count=purpose_count,
+                        purpose_1=purpose_1,
+                        purpose_2=purpose_2,
+                        purpose_3=purpose_3,
+                        hypo_paragraph=hypo_paragraph,
+                        hypo_items_json=hypo_items,
+                        scope_json=scope_data,
+                        para_premise=para_premise_str,
+                        premise_json=premise_data,
+                        def_items_json=def_items,
+                        benefit_items_json=benefit_items
+                    )
+                    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                    response['Content-Disposition'] = 'attachment; filename=chapter1.docx'
+                    doc.save(response)
+                    return response
+                    
+                    
             
-        if action == 'generate_refer':
-            print("=== GENERATE ACTION ===")
-            doc = doc_refer(references)
-            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-            response['Content-Disposition'] = 'attachment; filename=sp_project_form.docx'
-            doc.save(response)
-            return response
+           # Get data โดยไม่กดปุ่ม
+           # อัปเดต initial เพื่อแสดงผลข้อมูลล่าสุด
+            initial = {
+                'sec11_p1': sec11_p1,
+                'sec11_p2': sec11_p2,
+                'sec11_p3': sec11_p3,
+                'purpose_count': purpose_count,
+                'purpose_1': purpose_1,
+                'purpose_2': purpose_2,
+                'purpose_3': purpose_3,
+                'hypo_paragraph': hypo_paragraph,
+                'hypo_items_json': hypo_items,             # <-- แก้ไข
+                'scope_json': scope_data,                 # <-- แก้ไข
+                'para_premise': para_premise_str,
+                'premise_json': premise_data,             # <-- แก้ไข
+                'def_items_json': def_items,              # <-- แก้ไข
+                'benefit_items_json': benefit_items,      # <-- แก้ไข
+            }
+        context = {
+            'initial': initial,
+            'status_message': status_message
+        }
         
-        return render(request, 'refer.html', {'references': references})
+        # 2. สั่ง render พร้อมส่ง context ไปด้วย (มีแค่จุดเดียวท้ายฟังก์ชัน)
+        return render(request, 'chapter_1.html', context)
         
-    return render(request, 'refer.html')
+       
 
-   
+     

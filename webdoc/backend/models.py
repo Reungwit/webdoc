@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import JSONField
 
+
 class CustomUser(AbstractUser):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True)
@@ -133,3 +134,39 @@ class Abstract(models.Model):
     class Meta:
         managed = False
         db_table = 'abstract'
+
+# โมเดลใบรับรองปริญญานิพนธ์ (อิงตาราง certificate เดิม)
+class Certificate(models.Model):
+    # คีย์หลักอัตโนมัติ (ตามตาราง)
+    id = models.AutoField(primary_key=True)  # คอลัมน์ id
+
+    # FK ไปยัง backend_customuser.user_id
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,         # อิง CustomUser
+        on_delete=models.CASCADE,         # ลบผู้ใช้ -> ลบใบรับรองตาม
+        db_column='user_id',              # คอลัมน์ในตาราง certificate
+        to_field='user_id',               # อิงฟิลด์ user_id ของ CustomUser
+        related_name='certificates',      # ชื่อ reverse relation
+    )
+
+    # ข้อมูลหลัก
+    topic = models.CharField(max_length=255)                         # เรื่อง (หัวข้อเล่ม)
+    dean = models.CharField(max_length=255)                          # คณบดี
+    author1 = models.CharField(max_length=255)                       # ผู้จัดทำคนที่ 1
+    author2 = models.CharField(max_length=255, null=True, blank=True) # ผู้จัดทำคนที่ 2 (ไม่บังคับ)
+
+    # คณะกรรมการสอบ
+    chairman = models.CharField(max_length=255)                       # ประธานกรรมการ
+    committee1 = models.CharField(max_length=255)                     # กรรมการคนที่ 1
+    committee2 = models.CharField(max_length=255, null=True, blank=True)  # กรรมการคนที่ 2 (ไม่บังคับ)
+
+    # เวลา (ในตารางตั้ง default อยู่แล้ว ให้ Django ไม่ไปแตะ)
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'certificate'   # ชื่อตารางจริง
+        managed = False            # ตารางมีอยู่แล้ว ไม่ให้ Django migrate
+
+    def __str__(self):
+        return f'Certificate({self.user_id} : {self.topic})'

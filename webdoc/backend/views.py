@@ -9,11 +9,11 @@ from man_doc.doc_cover import doc_cover_th, doc_cover_en, doc_cover_sec  # <-- �
 import json
 
 
-
 #ส่วนที่ทำเพิ่ม
 from man_doc.doc_intro import doc_intro  # <-- import doc_intro ที่เราสร้าง
 from django.contrib import messages
-
+from .models import Certificate
+from man_doc.doc_certificate import doc_certificate
 
 # Register / Login / Logout
 def register_view(request):
@@ -74,6 +74,10 @@ def sp_project_form_2_view(request):
 
 def intro_view(request):
     return render(request, 'intro.html')
+
+def certificate_view(request):
+    initial = {}
+    return render(request, 'certificate.html', {'initial': initial})
 
 def chapter_1_view(request):
     return render(request, 'chapter_1.html')
@@ -442,3 +446,104 @@ def intro_view(request):
             return response
 
     return render(request, 'intro.html', {'initial': initial})
+
+
+# ใบรับรอง
+@login_required
+# ---------- helper: แปลง model -> initial dict ให้ตรงกับ template ----------
+def _initial_from_cert(cert):
+    return {
+        'topic'      : cert.topic or '',
+        'author1'    : cert.author1 or '',
+        'author2'    : cert.author2 or '',
+        'dean'       : cert.dean or '',
+        'chairman'   : cert.chairman or '',
+        'committee1' : cert.committee1 or '',
+        'committee2' : cert.committee2 or '',
+    }
+
+@login_required
+def certificate_view(request):
+    user = request.user
+    initial = {}
+    action = request.POST.get('action', '')
+
+    if request.method == 'POST':
+
+        # ----- 1) ดึงข้อมูลจากฐานข้อมูลมาแสดงในฟอร์ม -----
+        if action == 'get_certificate':
+            try:
+                cert = Certificate.objects.get(user=user)
+                initial = _initial_from_cert(cert)
+                messages.success(request, 'ดึงข้อมูลใบรับรองสำเร็จ')
+            except Certificate.DoesNotExist:
+                messages.info(request, 'ยังไม่มีข้อมูลใบรับรองสำหรับผู้ใช้นี้')
+            return render(request, 'certificate.html', {'initial': initial})
+
+        # ----- 2) บันทึกข้อมูลลงฐานข้อมูล -----
+        elif action == 'save_certificate':
+            form_data = {
+                'topic'     : request.POST.get('topic', '').strip(),
+                'author1'   : request.POST.get('author1', '').strip(),
+                'author2'   : request.POST.get('author2', '').strip(),
+                'dean'      : request.POST.get('dean', '').strip(),
+                'chairman'  : request.POST.get('chairman', '').strip(),
+                'committee1': request.POST.get('committee1', '').strip(),
+                'committee2': request.POST.get('committee2', '').strip(),
+            }
+            Certificate.objects.update_or_create(user=user, defaults=form_data)
+            messages.success(request, 'บันทึกข้อมูลใบรับรองเรียบร้อยแล้ว')
+            # กลับหน้าเดิมให้ฟอร์มว่าง (ผู้ใช้ต้องกด "ดึงข้อมูล" เองหากอยากเห็นข้อมูล)
+            return redirect('certificate')
+
+        # ----- 3) ดาวน์โหลดเอกสาร (.docx) -----
+        elif action == 'generate_certificate':
+            # 3.1 อ่านจากฟอร์ม (ถ้าผู้ใช้พิมพ์ไว้หน้าเดียวกับการดาวน์โหลด)
+            topic       = request.POST.get('topic', '').strip()
+            author1     = request.POST.get('author1', '').strip()
+            author2     = request.POST.get('author2', '').strip()
+            dean        = request.POST.get('dean', '').strip()
+            chairman    = request.POST.get('chairman', '').strip()
+            committee1  = request.POST.get('committee1', '').strip()
+            committee2  = request.POST.get('committee2', '').strip()
+
+            # 3.2 ถ้าฟอร์มว่าง ให้ fallback ไปดึงค่าล่าสุดจากฐานข้อมูล
+            if not any([topic, author1, author2, dean, chairman, committee1, committee2]):
+                try:
+                    cert = Certificate.objects.get(user=user)
+                    topic       = cert.topic or ''
+                    author1     = cert.author1 or ''
+                    author2     = cert.author2 or ''
+                    dean        = cert.dean or ''
+                    chairman    = cert.chairman or ''
+                    committee1  = cert.committee1 or ''
+                    committee2  = cert.committee2 or ''
+                except Certificate.DoesNotExist:
+                    messages.error(request, 'ยังไม่มีข้อมูลสำหรับสร้างเอกสาร โปรดบันทึกหรือกดดึงข้อมูลก่อน')
+                    return redirect('certificate')
+
+            # 3.3 เรียกฟังก์ชันสร้างเอกสาร
+            try:
+                doc = doc_certificate(
+                    topic,
+                    author1,
+                    author2,
+                    dean,
+                    chairman,
+                    committee1,
+                    committee2,
+                )
+            except Exception as e:
+                messages.error(request, f'สร้างเอกสารล้มเหลว: {e}')
+                return redirect('certificate')
+
+            # 3.4 ส่งไฟล์ออกเป็น response ให้ดาวน์โหลด
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            )
+            response['Content-Disposition'] = 'attachment; filename=certificate.docx'
+            doc.save(response)
+            return response
+
+    # --- GET: แสดงฟอร์มว่างเสมอ ---
+    return render(request, 'certificate.html', {'initial': {}})

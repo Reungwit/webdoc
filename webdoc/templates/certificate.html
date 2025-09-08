@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="th">
+{% load static %}
+<head>
+  <meta charset="utf-8">
+  <title>ใบรับรองปริญญานิพนธ์</title>
+  <link rel="stylesheet" href="{% static 'css/certificate.css' %}">
+</head>
+<body>
+  <div class="container">
+
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h1 class="mb-4">ใบรับรองปริญญานิพนธ์</h1>
+
+    <form id="certForm" method="post" action="{% url 'certificate' %}">
+      {% csrf_token %}
+
+      <!-- ===== ข้อมูลใบรับรอง ===== -->
+      <div class="card">
+        <div class="card-header bg-primary">ข้อมูลใบรับรอง</div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-12">
+              <label class="form-label" for="id_topic">เรื่อง</label>
+              <input type="text" id="id_topic" class="form-control" name="topic"
+                     value="{{ initial.topic|default:'' }}"
+                     placeholder="เช่น ระบบจัดรูปเล่มเอกสารอัตโนมัติ">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ข้อมูลผู้จัดทำ ===== -->
+      <div class="card">
+        <div class="card-header bg-info">ข้อมูลผู้จัดทำ</div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="id_author1">ผู้จัดทำคนที่ 1 (ภาษาไทย)</label>
+              <input type="text" id="id_author1" class="form-control" name="author1"
+                     value="{{ initial.author1|default:'' }}">
+            </div>
+          </div>
+
+          <div id="author2_block" style="{% if not initial.author2 %}display:none{% endif %}">
+            <div class="row">
+              <div class="col-12 col-md-6">
+                <label class="form-label" for="id_author2">ผู้จัดทำคนที่ 2 (ภาษาไทย)</label>
+                <input type="text" id="id_author2" class="form-control" name="author2"
+                       value="{{ initial.author2|default:'' }}">
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-outline-info" id="toggleAuthor2Btn">
+            {% if initial.author2 %}ลบผู้จัดทำคนที่ 2{% else %}เพิ่มผู้จัดทำคนที่ 2{% endif %}
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== คณะกรรมการสอบปริญญานิพนธ์ ===== -->
+      <div class="card">
+        <div class="card-header bg-warning">คณะกรรมการสอบปริญญานิพนธ์</div>
+        <div class="card-body">
+
+          <!-- คณบดี -->
+          <div class="row">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="id_dean">คณบดี</label>
+              <input type="text" id="id_dean" class="form-control" name="dean"
+                     value="{{ initial.dean|default:'' }}">
+            </div>
+          </div>
+
+          <!-- ประธานกรรมการ -->
+          <div class="row">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="id_chairman">ประธานกรรมการ</label>
+              <input type="text" id="id_chairman" class="form-control" name="chairman"
+                     value="{{ initial.chairman|default:'' }}">
+            </div>
+          </div>
+
+          <!-- กรรมการคนที่ 1 -->
+          <div class="row">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="id_committee1">กรรมการคนที่ 1</label>
+              <input type="text" id="id_committee1" class="form-control" name="committee1"
+                     value="{{ initial.committee1|default:'' }}">
+            </div>
+          </div>
+
+          <!-- กรรมการคนที่ 2 -->
+          <div class="row">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="id_committee2">กรรมการคนที่ 2</label>
+              <input type="text" id="id_committee2" class="form-control" name="committee2"
+                     value="{{ initial.committee2|default:'' }}">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===== ปุ่ม Action ===== -->
+      <div class="actions text-center">
+        <button type="submit" name="action" value="save_certificate" class="btn btn-primary">บันทึกข้อมูล</button>
+        <button type="submit" name="action" value="get_certificate" class="btn btn-info">ดึงข้อมูล</button>
+        <button type="submit" name="action" value="generate_certificate" class="btn btn-success">ดาวน์โหลด</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Toggle ผู้จัดทำคนที่ 2 (ยังคงไว้ตามที่ต้องการ)
+    (function () {
+      var btn = document.getElementById('toggleAuthor2Btn');
+      var block = document.getElementById('author2_block');
+      var input = document.getElementById('id_author2');
+      btn.addEventListener('click', function () {
+        var showing = block.style.display === 'block';
+        if (showing) {
+          block.style.display = 'none';
+          if (input) input.value = '';
+          btn.textContent = 'เพิ่มผู้จัดทำคนที่ 2';
+        } else {
+          block.style.display = 'block';
+          btn.textContent = 'ลบผู้จัดทำคนที่ 2';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

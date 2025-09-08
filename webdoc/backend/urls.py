@@ -22,9 +22,10 @@ urlpatterns = [
     path('refer/', views.refer_view, name='refer'),
 
 
-
-    
-
+     # เพิ่ม URL pattern สำหรับ intro_view
+    path('intro/', views.intro_view, name='intro_view'),
+    # ใบรับรองปริญญานิพนธ์
+    path('certificate/', views.certificate_view, name='certificate'),
 
     
 ]

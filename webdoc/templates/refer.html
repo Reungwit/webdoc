@@ -20,6 +20,13 @@
             </div>
 
             <div class="button-container">
+                <button type="submit" name="action" value="save_refer" class="btn btn-gray">
+                    บันทึกข้อมูล
+                </button>
+                <button type="submit" name="action" value="get_data" class="btn btn-orange">
+                    ดึงข้อมูลเก่า
+                </button>
+
                 <button type="button" onclick="addReferenceSection()" class="btn btn-blue">
                     + เพิ่มรายการอ้างอิง
                 </button>
@@ -33,6 +40,7 @@
         </form>
     </div>
 
+    
 <script>
     const labels = {
         th: {
@@ -269,6 +277,68 @@
             document.getElementById(`remove_author_btn_${index}`).classList.add('hidden');
         }
     }
+    
+    // =============================== 
+    // ✅ ส่วนที่ "เพิ่มมาใหม่" สำหรับดึงข้อมูลเก่า 
+    // ===============================
+
+    // เติมนักเขียนให้ครบช่อง (ไม่เกิน 3)
+    function fillAuthorsFromArray(index, authors) {
+        if (!authors || !authors.length) return;
+        document.getElementById(`author_${index}_1`).value = authors[0] || '';
+        for (let i = 2; i <= Math.min(authors.length, 3); i++) {
+            addAuthor(index);
+            const v = authors[i-1] || '';
+            const el = document.getElementById(`author_${index}_${i}`);
+            if (el) el.value = v;
+        }
+    }
+
+    // เติมค่าตาม initialRefs ที่ได้จาก backend
+    function hydrateFromInitial(initialRefs) {
+        if (!Array.isArray(initialRefs)) return;
+        const container = document.getElementById('references-container');
+        container.innerHTML = '';
+        window.refCounter = 0;
+        document.getElementById('ref_count').value = 0;
+
+        initialRefs.forEach((r, idx) => {
+            const index = idx + 1;
+            addReferenceSection();
+            document.getElementById(`lang_${index}`).value = r.language || 'th';
+            document.getElementById(`ref_type_${index}`).value = r.ref_type || '';
+            generateTextFields(index);
+
+            if (r.ref_type === '1') { // Website
+                fillAuthorsFromArray(index, r.authors || []);
+                document.getElementById(`title_${index}`).value = r.title || '';
+                document.getElementById(`url_${index}`).value = r.url || '';
+                document.getElementById(`access_date_${index}`).value = r.access_date || '';
+            } else if (r.ref_type === '2') { // Book
+                fillAuthorsFromArray(index, r.authors || []);
+                document.getElementById(`title_${index}`).value = r.title || '';
+                document.getElementById(`print_count_${index}`).value = r.print_count || '';
+                document.getElementById(`city_print_${index}`).value = r.city_print || '';
+                document.getElementById(`publisher_${index}`).value = r.publisher || '';
+                document.getElementById(`y_print_${index}`).value = r.y_print || '';
+            }
+        });
+
+        document.getElementById('ref_count').value = initialRefs.length;
+    }
+
+    // รับ JSON string จาก view แล้ว parse เป็น object
+    const initialRefs = (() => {
+        const raw = '{{ initial_refs_json|default:"null"|escapejs }}';
+        try { return raw === "null" ? null : JSON.parse(raw); }
+        catch (e) { console.warn("Bad JSON", e); return null; }
+    })();
+
+    window.addEventListener("DOMContentLoaded", () => {
+        if (initialRefs) {
+            hydrateFromInitial(initialRefs);
+        }
+    });
 </script>
 </body>
 </html>

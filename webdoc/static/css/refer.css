@@ -338,3 +338,35 @@ body {
         display: none;
     }
 }
+
+/* ปุ่มบันทึกข้อมูล (เทา) */
+.btn-gray {
+    background-color: #ff3ee2;   /* เทาเข้ม */
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.btn-gray:hover {
+    background-color: #5a6268;   /* hover เข้มขึ้น */
+}
+
+/* ปุ่มดึงข้อมูลเก่า (ส้ม) */
+.btn-orange {
+    background-color: #fd7e14;   /* ส้มสด */
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.btn-orange:hover {
+    background-color: #e96b05;   /* hover ส้มเข้ม */
+}

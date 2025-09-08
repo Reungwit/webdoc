@@ -235,3 +235,64 @@ class Chapter1(models.Model):
         managed = False          # ไม่ให้ Django สร้าง/แก้โครงสร้างตาราง
         db_table = 'chapter_1'
         
+#บรรณานุกรมเว็บไซต์
+class RefWebsite(models.Model):
+    id = models.BigAutoField(primary_key=True, help_text="PK: รหัสรายการอ้างอิงเว็บไซต์")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_column='user_id',
+        to_field='user_id',
+        help_text="FK: อ้างอิงผู้ใช้"
+    )
+    number = models.IntegerField(null=True, blank=True, help_text="ลำดับการอ้างอิง")
+    authors_th_json = models.JSONField(help_text="ผู้แต่งภาษาไทย (JSON array)")
+    authors_en_json = models.JSONField(help_text="ผู้แต่งภาษาอังกฤษ (JSON array)")
+    title_th = models.CharField(max_length=500)
+    title_en = models.CharField(max_length=500)
+    site_name_th = models.CharField(max_length=255, null=True, blank=True)
+    site_name_en = models.CharField(max_length=255, null=True, blank=True)
+    year = models.SmallIntegerField(null=True, blank=True)
+    month = models.SmallIntegerField(null=True, blank=True)
+    day = models.SmallIntegerField(null=True, blank=True)
+    url = models.CharField(max_length=1000)
+    accessed_date = models.DateField(null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'ref_website'
+        managed = False
+
+#บรรณานุกรมหนังสือ
+class RefBook(models.Model):
+    id = models.BigAutoField(primary_key=True, help_text="PK: รหัสรายการอ้างอิงหนังสือ")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_column='user_id',
+        to_field='user_id',
+        help_text="FK: อ้างอิงผู้ใช้"
+    )
+    number = models.IntegerField(null=True, blank=True, help_text="ลำดับการอ้างอิง")
+    authors_th_json = models.JSONField(help_text="ผู้แต่งภาษาไทย (JSON array)")
+    authors_en_json = models.JSONField(help_text="ผู้แต่งภาษาอังกฤษ (JSON array)")
+    title_th = models.CharField(max_length=500)
+    title_en = models.CharField(max_length=500)
+    edition_th = models.CharField(max_length=50, null=True, blank=True)
+    edition_en = models.CharField(max_length=50, null=True, blank=True)
+    publisher_place_th = models.CharField(max_length=255, null=True, blank=True)
+    publisher_place_en = models.CharField(max_length=255, null=True, blank=True)
+    publisher_th = models.CharField(max_length=255, null=True, blank=True)
+    publisher_en = models.CharField(max_length=255, null=True, blank=True)
+    year = models.SmallIntegerField(null=True, blank=True)
+    doi = models.CharField(max_length=255, null=True, blank=True)
+    url = models.CharField(max_length=1000, null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'ref_book'
+        managed = False

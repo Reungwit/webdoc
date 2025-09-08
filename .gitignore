@@ -2,3 +2,5 @@ certificate.docx
 /webdoc/backend/__pycache__
 webdoc/backend/__pycache__/urls.cpython-310.pyc
 webdoc/backend/__pycache__/views.cpython-310.pyc
+webdoc/backend/__pycache__/views.cpython-310.pyc
+*.pyc

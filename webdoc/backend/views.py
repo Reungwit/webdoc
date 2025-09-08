@@ -701,14 +701,14 @@ def refer_view(request):
                     'y_print': str(r.year or ''),
                 })
 
-            doc = doc_refer(references)
+    doc = doc_refer(references)
 
-            response = HttpResponse(
+    response = HttpResponse(
                 content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
             )
-            response['Content-Disposition'] = 'attachment; filename=refer.docx'
-            doc.save(response)
-            return response
+    response['Content-Disposition'] = 'attachment; filename=refer.docx'
+    doc.save(response)
+    return response
 
 
 

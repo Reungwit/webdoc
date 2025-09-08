@@ -545,10 +545,9 @@ def refer_view(request):
     user = request.user
 
     if request.method == 'POST':
-        action = request.POST.get('action', '')
-
-        # ---------- A) SAVE ----------
-        if action == 'save_refer':
+        action = request.POST.get('action')
+        if action == 'get_data' or action == 'generate_refer':
+            references = []
             try:
                 ref_count = int(request.POST.get('ref_count', 0))
             except (TypeError, ValueError):
@@ -703,6 +702,7 @@ def refer_view(request):
                 })
 
             doc = doc_refer(references)
+
             response = HttpResponse(
                 content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
             )
@@ -710,7 +710,123 @@ def refer_view(request):
             doc.save(response)
             return response
 
-    # ---------- GET ----------
-    return render(request, 'refer.html', {'initial_refs_json': 'null'})
+
+
+@login_required
+def chapter_1_view(request):
+    user = request.user
+    initial = {}
+    status_message = None
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        print(">>> ACTION =", action)
+        if action == 'get_data':
+            # 2. ดึงข้อมูลจากฐานข้อมูล
+            try:
+                chapter1_data = Chapter1.objects.get(user=user)
+                initial = {
+                    'sec11_p1': chapter1_data.sec11_p1,
+                    'sec11_p2': chapter1_data.sec11_p2,
+                    'sec11_p3': chapter1_data.sec11_p3,
+                    'purpose_count': chapter1_data.purpose_count,
+                    'purpose_1': chapter1_data.purpose_1,
+                    'purpose_2': chapter1_data.purpose_2,
+                    'purpose_3': chapter1_data.purpose_3,
+                    'hypo_paragraph': chapter1_data.hypo_paragraph,
+                    'hypo_items_json': chapter1_data.hypo_items_json, # <--- แก้ไข
+                    'scope_json': chapter1_data.scope_json,             # <--- แก้ไข
+                    'para_premise': chapter1_data.para_premise,
+                    'premise_json': chapter1_data.premise_json,         # <--- แก้ไข
+                    'def_items_json': chapter1_data.def_items_json,     # <--- แก้ไข
+                    'benefit_items_json': chapter1_data.benefit_items_json, # <--- แก้ไข
+                }
+                status_message = {'message': '✅ ดึงข้อมูลสำเร็จแล้ว!', 'type': 'success'}
+            except Chapter1.DoesNotExist:
+                initial = {}
+                status_message = {'message': 'ไม่มีข้อมูลอยู่ กรุณากรอกข้อมูลแล้วบันทึก!', 'type': 'warning'}
+
+        elif action == 'save' or action == 'generate':
+            # 1. อ่านข้อมูลล่าสุดจากฟอร์ม (ย้ายมาไว้ตรงนี้)
+            sec11_p1 = request.POST.get('sec11_p1', '')
+            sec11_p2 = request.POST.get('sec11_p2', '')
+            sec11_p3 = request.POST.get('sec11_p3', '')
+            
+            purpose_count = int(request.POST.get('purpose_count', 0))
+            purpose_1 = request.POST.get('purpose_1', '')
+            purpose_2 = request.POST.get('purpose_2', '')
+            purpose_3 = request.POST.get('purpose_3', '')
+
+            hypo_paragraph = request.POST.get('hypo_paragraph', '')
+            hypo_items = json.loads(request.POST.get('hypo_items_json', '[]'))
+            scope_data = json.loads(request.POST.get('scope_json', '[]'))
+            para_premise_str = request.POST.get('para_premise', '')
+            premise_data = json.loads(request.POST.get('premise_json', '[]'))
+            def_items = json.loads(request.POST.get('def_items_json', '[]'))
+            benefit_items = json.loads(request.POST.get('benefit_items_json', '[]'))
+            
+            # --- จัดการ Action ---
+            if action == 'save':
+                # 2. บันทึก/อัปเดตข้อมูลลงฐานข้อมูล (เหมือนเดิม)
+                Chapter1.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        'sec11_p1': sec11_p1,
+                        'sec11_p2': sec11_p2,
+                        'sec11_p3': sec11_p3,
+                        'purpose_count': purpose_count,
+                        'purpose_1': purpose_1,
+                        'purpose_2': purpose_2,
+                        'purpose_3': purpose_3,
+                        'hypo_paragraph': hypo_paragraph,
+                        'hypo_items_json': hypo_items,
+                        'scope_json': scope_data,
+                        'para_premise': para_premise_str,
+                        'premise_json': premise_data,
+                        'def_items_json': def_items,
+                        'benefit_items_json': benefit_items,
+                    }
+                )
+                status_message = {'message': '✅ บันทึกข้อมูลสำเร็จแล้ว!', 'type': 'success'}
+
+            elif action == 'generate':
+                # 3. สร้างเอกสาร DOCX จากข้อมูลล่าสุดบนฟอร์ม
+                    doc = doc_chapter1(sec11_p1,sec11_p2,sec11_p3,purpose_count,purpose_1,purpose_2,purpose_3,hypo_paragraph,
+                hypo_items,scope_data,para_premise_str,premise_data,def_items,benefit_items)
+                    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                    response['Content-Disposition'] = 'attachment; filename=chapter1.docx'
+                    doc.save(response)
+                    return response
+                    
+                    
+            
+           # Get data โดยไม่กดปุ่ม
+        #    # อัปเดต initial เพื่อแสดงผลข้อมูลล่าสุด
+            initial = {
+                'sec11_p1': sec11_p1,
+                'sec11_p2': sec11_p2,
+                'sec11_p3': sec11_p3,
+                'purpose_count': purpose_count,
+                'purpose_1': purpose_1,
+                'purpose_2': purpose_2,
+                'purpose_3': purpose_3,
+                'hypo_paragraph': hypo_paragraph,
+                'hypo_items_json': hypo_items,             # <-- แก้ไข
+                'scope_json': scope_data,                 # <-- แก้ไข
+                'para_premise': para_premise_str,
+                'premise_json': premise_data,             # <-- แก้ไข
+                'def_items_json': def_items,              # <-- แก้ไข
+                'benefit_items_json': benefit_items,      # <-- แก้ไข
+            }
+    context = {
+        'initial': initial,
+        'status_message': status_message
+    }
+        
+        # 2. สั่ง render พร้อมส่ง context ไปด้วย (มีแค่จุดเดียวท้ายฟังก์ชัน)
+    return render(request, 'chapter_1.html', context)
         
        
+
+     
+

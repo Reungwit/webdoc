@@ -825,8 +825,3 @@ def chapter_1_view(request):
         
         # 2. สั่ง render พร้อมส่ง context ไปด้วย (มีแค่จุดเดียวท้ายฟังก์ชัน)
     return render(request, 'chapter_1.html', context)
-        
-       
-
-     
-

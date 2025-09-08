@@ -1,12 +1,11 @@
 # man_doc/doc_certificate.py
-# -*- coding: utf-8 -*-
-
 from docx import Document
 from docx.shared import Pt, Cm, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 import os
+
 
 # -------------------- Page Border --------------------
 def _add_page_border(doc, line_size_halfpt=12, space_pt=8, color="000000"):

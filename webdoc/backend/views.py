@@ -443,7 +443,7 @@ def intro_view(request):
 def refer_view(request):
     if request.method == 'POST':
         action = request.POST.get('action')
-        if action == 'get_data':
+        if action == 'get_data' or action == 'generate_refer':
             references = []
             try:
                 ref_count = int(request.POST.get('ref_count', 0))
@@ -545,7 +545,7 @@ def refer_view(request):
         if action == 'generate_refer':
             doc = doc_refer(references)
             response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-            response['Content-Disposition'] = 'attachment; filename=บรรณานุกรม.docx'
+            response['Content-Disposition'] = 'attachment; filename=references.docx'
             doc.save(response)
             return response
 
@@ -633,23 +633,8 @@ def chapter_1_view(request):
 
             elif action == 'generate':
                 # 3. สร้างเอกสาร DOCX จากข้อมูลล่าสุดบนฟอร์ม
-                
-                    doc = doc_chapter1(
-                        sec11_p1=sec11_p1,
-                        sec11_p2=sec11_p2,
-                        sec11_p3=sec11_p3,
-                        purpose_count=purpose_count,
-                        purpose_1=purpose_1,
-                        purpose_2=purpose_2,
-                        purpose_3=purpose_3,
-                        hypo_paragraph=hypo_paragraph,
-                        hypo_items_json=hypo_items,
-                        scope_json=scope_data,
-                        para_premise=para_premise_str,
-                        premise_json=premise_data,
-                        def_items_json=def_items,
-                        benefit_items_json=benefit_items
-                    )
+                    doc = doc_chapter1(sec11_p1,sec11_p2,sec11_p3,purpose_count,purpose_1,purpose_2,purpose_3,hypo_paragraph,
+                hypo_items,scope_data,para_premise_str,premise_data,def_items,benefit_items)
                     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                     response['Content-Disposition'] = 'attachment; filename=chapter1.docx'
                     doc.save(response)
@@ -658,7 +643,7 @@ def chapter_1_view(request):
                     
             
            # Get data โดยไม่กดปุ่ม
-           # อัปเดต initial เพื่อแสดงผลข้อมูลล่าสุด
+        #    # อัปเดต initial เพื่อแสดงผลข้อมูลล่าสุด
             initial = {
                 'sec11_p1': sec11_p1,
                 'sec11_p2': sec11_p2,
@@ -675,13 +660,13 @@ def chapter_1_view(request):
                 'def_items_json': def_items,              # <-- แก้ไข
                 'benefit_items_json': benefit_items,      # <-- แก้ไข
             }
-        context = {
-            'initial': initial,
-            'status_message': status_message
-        }
+    context = {
+        'initial': initial,
+        'status_message': status_message
+    }
         
         # 2. สั่ง render พร้อมส่ง context ไปด้วย (มีแค่จุดเดียวท้ายฟังก์ชัน)
-        return render(request, 'chapter_1.html', context)
+    return render(request, 'chapter_1.html', context)
         
        
 

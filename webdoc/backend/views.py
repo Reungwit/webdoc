@@ -959,3 +959,292 @@ def chapter_1_view(request):
         
         # 2. สั่ง render พร้อมส่ง context ไปด้วย (มีแค่จุดเดียวท้ายฟังก์ชัน)
     return render(request, 'chapter_1.html', context)
+        
+#บท5
+DEFAULT_TITLES = ['สรุปผลการดำเนินงาน', 'อภิปรายผล', 'ข้อเสนอแนะ']
+DEFAULT_SECTIONS = [
+    {"title": DEFAULT_TITLES[0], "body": "", "mains": []},
+    {"title": DEFAULT_TITLES[1], "body": "", "mains": []},
+    {"title": DEFAULT_TITLES[2], "body": "", "mains": []},
+]
+
+def _norm(s: str) -> str:
+    return re.sub(r'\s+', ' ', (s or '')).strip()
+
+def _get_title(d: dict) -> str:
+    if not isinstance(d, dict): return ''
+    for k in ('title', 'name', 'header'):
+        v = (d.get(k) or '').strip()
+        if v: return v
+    return ''
+
+def _get_body(d: dict) -> str:
+    if not isinstance(d, dict): return ''
+    for k in ('body', 'intro', 'content', 'paragraph', 'desc', 'text'):
+        v = d.get(k)
+        if isinstance(v, str) and v.strip():
+            return v
+    return ''
+
+def _to_mains_list(d: dict):
+    if not isinstance(d, dict): return []
+    candidates = d.get('mains')
+    if candidates is None: candidates = d.get('items')
+    if candidates is None: candidates = d.get('children')
+    if not isinstance(candidates, list): return []
+    out = []
+    for m in candidates:
+        if isinstance(m, dict):
+            text = _get_title(m) or (m.get('text') or '').strip()
+            subs = m.get('subs')
+            if subs is None: subs = m.get('children')
+            if subs is None: subs = m.get('items')
+            if not isinstance(subs, list): subs = []
+            norm_subs = []
+            for s in subs:
+                if isinstance(s, dict):
+                    sv = (s.get('text') or s.get('title') or s.get('name') or '').strip()
+                    if sv: norm_subs.append(sv)
+                elif isinstance(s, str):
+                    sv = s.strip()
+                    if sv: norm_subs.append(sv)
+            out.append({"text": text, "subs": norm_subs})
+        elif isinstance(m, str):
+            out.append({"text": m.strip(), "subs": []})
+    return out
+
+def _normalize_and_order(sections, intro_body, prev=None):
+    """
+    ทำ schema กลาง + ใส่ลำดับ order:
+      section: {title:str, body:str, mains:[{text:str, subs:[str], main_order:int}], section_order:int}
+    """
+    prev = prev or []
+    norm_list = []
+
+    if not isinstance(sections, list) or not sections:
+        sections = copy.deepcopy(DEFAULT_SECTIONS)
+
+    for i, raw in enumerate(sections):
+        sec = raw if isinstance(raw, dict) else {}
+        title = _get_title(sec) or ''
+        if not title and i < len(prev) and isinstance(prev[i], dict):
+            title = _get_title(prev[i]) or ''
+        if not title and i < len(DEFAULT_TITLES):
+            title = DEFAULT_TITLES[i]
+
+        body = _get_body(sec)
+        mains = _to_mains_list(sec)
+
+        for j, m in enumerate(mains):
+            m['main_order'] = j + 1
+
+        norm_list.append({
+            "title": title or "",
+            "body": body or "",
+            "mains": mains,
+            "section_order": i + 1,
+        })
+    return norm_list
+
+def _sorted_with_numbers(sections):
+    """
+    เรียงตาม order + เติมหมายเลขสำหรับ UI:
+      section['no'] = 5.i
+      main['no']    = 5.i.j
+      sub -> {"text": "...", "no": "5.i.j.k"}
+    *เลขนี้เพื่อ UI เท่านั้น ไม่จำเป็นต้องเก็บลง DB*
+    """
+    if not isinstance(sections, list): return []
+    sections = sorted(sections, key=lambda s: int(s.get('section_order') or 0))
+
+    for i, sec in enumerate(sections, start=1):
+        sec['no'] = f'5.{i}'
+        title = _get_title(sec)
+        sec.setdefault('title', title or '')
+        sec.setdefault('name',  title or sec['title'])
+        sec.setdefault('header',title or sec['title'])
+
+        mains = sec.get('mains') if isinstance(sec.get('mains'), list) else []
+        mains = sorted(mains, key=lambda m: int(m.get('main_order') or 0))
+        for j, m in enumerate(mains, start=1):
+            m['no'] = f'5.{i}.{j}'
+            new_subs = []
+            subs = m.get('subs') if isinstance(m.get('subs'), list) else []
+            for k, s in enumerate(subs, start=1):
+                text = (s or '').strip() if isinstance(s, str) else ''
+                if text:
+                    new_subs.append({"text": text, "no": f'5.{i}.{j}.{k}'})
+            m['subs'] = new_subs
+        sec['mains'] = mains
+    return sections
+
+def _render_docx(intro_body: str, sections_sorted: list) -> Document:
+    """
+    สร้างไฟล์ .docx ตามโครงสร้างที่เรียงและมีเลขแล้ว (สำหรับ export)
+    """
+    doc = Document()
+    style = doc.styles['Normal']
+    style.font.name = 'TH SarabunPSK'
+    style.font.size = Pt(16)
+
+    # หัวเรื่องบทที่ 5
+    h = doc.add_heading('บทที่ 5', level=1)
+    h.style.font.name = 'TH SarabunPSK'
+    h.style.font.size = Pt(20)
+
+    # บทนำ (ถ้ามี)
+    if intro_body:
+        doc.add_heading('บทนำ', level=2)
+        doc.add_paragraph(intro_body)
+
+    # เนื้อหา 5.1 … 5.n
+    for sec in sections_sorted:
+        title = _get_title(sec)
+        no = sec.get('no') or ''
+        head = f'{no} {title}'.strip()
+        if head:
+            doc.add_heading(head, level=2)
+
+        body = _get_body(sec)
+        if body:
+            doc.add_paragraph(body)
+
+        for m in sec.get('mains', []):
+            main_text = (m.get('text') or '').strip()
+            main_no = m.get('no') or ''
+            if main_text or main_no:
+                doc.add_paragraph(f'{main_no} {main_text}'.strip())
+
+            for sub in m.get('subs', []):
+                sub_no = sub.get('no') or ''
+                sub_text = (sub.get('text') or '').strip()
+                if sub_text or sub_no:
+                    p = doc.add_paragraph(f'{sub_no} {sub_text}'.strip())
+                    p.paragraph_format.left_indent = Cm(1)
+
+    return doc
+
+# ---------- helper: แปลง JSON จาก UI → schema สำหรับเอนจินเอกสาร ----------
+def _sections_from_ui_json(raw_json: str, fallback_list):
+    """
+    รับ JSON จากฟอร์ม chapter_5.html (title/body/points[{main,subs[]}])
+    คืนค่าสำหรับ _render_docx(): [{title, body, mains:[{text, subs:[]}]}, ...]
+    """
+    try:
+        data = json.loads(raw_json) if raw_json else []
+    except json.JSONDecodeError:
+        data = []
+    if not isinstance(data, list) or not data:
+        data = fallback_list or []
+
+    out = []
+    for s in data:
+        if not isinstance(s, dict):
+            continue
+        title = (s.get('title') or s.get('header') or s.get('name') or '').strip()
+        body  = (s.get('body')  or s.get('content') or s.get('desc')  or '').strip()
+
+        points = s.get('points') or s.get('mains') or s.get('items') or []
+        mains = []
+        if isinstance(points, list):
+            for p in points:
+                if isinstance(p, dict):
+                    text = (p.get('main') or p.get('text') or p.get('title') or '').strip()
+                    subs_src = p.get('subs') or p.get('children') or p.get('items') or []
+                    subs = []
+                    if isinstance(subs_src, list):
+                        for sub in subs_src:
+                            if isinstance(sub, str):
+                                st = sub.strip()
+                                if st: subs.append(st)
+                            elif isinstance(sub, dict):
+                                st = (sub.get('text') or sub.get('title') or sub.get('name') or '').strip()
+                                if st: subs.append(st)
+                    mains.append({'text': text, 'subs': subs})
+                elif isinstance(p, str):
+                    t = p.strip()
+                    if t: mains.append({'text': t, 'subs': []})
+
+        out.append({'title': title, 'body': body, 'mains': mains})
+    return out
+
+@login_required
+def chapter_5_view(request):
+    user = request.user
+
+    # ดึงข้อมูลล่าสุดจาก DB (ใช้ได้ทั้ง GET/POST)
+    row = Chapter5.objects.filter(user=user).order_by('-updated_at').first()
+    db_intro = (row.intro_th if row else '') or ''
+    db_sections = row.sections_json if (row and isinstance(row.sections_json, list)) else []
+
+    def safe_parse_list(raw: str, default: list):
+        """พาร์ส JSON จากฟอร์มให้ปลอดภัย; ถ้าเพี้ยน/ไม่ใช่ list ให้คืน default"""
+        try:
+            data = json.loads(raw or '[]')
+            return data if isinstance(data, list) else (default or [])
+        except json.JSONDecodeError:
+            return default or []
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+        intro_body = (request.POST.get('intro_body') or '').strip()
+        raw_json = request.POST.get('chapter5_json', '')
+
+        # ---------- SAVE ----------
+        if action == 'save':
+            sections_in = safe_parse_list(raw_json, [])
+            Chapter5.objects.update_or_create(
+                user=user,
+                defaults={
+                    'intro_th': intro_body,
+                    'sections_json': sections_in,
+                    'updated_at': timezone.now(),
+                }
+            )
+            messages.success(request, '💾 บันทึกข้อมูลบทที่ 5 เรียบร้อยแล้ว (ฟอร์มถูกเคลียร์)')
+            # เคลียร์ฟอร์มตามดีไซน์
+            return render(request, 'chapter_5.html', {
+                'initial': {'intro_body': '', 'chapter5_json': []}
+            })
+
+        # ---------- GET DATA ----------
+        elif action == 'get_data':
+            messages.info(request, '🔄 ดึงข้อมูลล่าสุดเรียบร้อยแล้ว')
+            return render(request, 'chapter_5.html', {
+                'initial': {'intro_body': db_intro, 'chapter5_json': db_sections}
+            })
+
+        # ---------- GENERATE DOCX ----------
+        elif action == 'generate_docx':
+            # ใช้ค่าจากฟอร์ม ถ้าไม่มีก็ fallback DB
+            sections_for_doc = safe_parse_list(raw_json, db_sections)
+            if not intro_body:
+                intro_body = db_intro
+
+            # สร้างเอกสารตามคู่มือ
+            doc = doc_chapter5(intro_body, sections_for_doc)
+
+            # ส่งไฟล์กลับแล้วจบการทำงานในสาขานี้
+            buf = BytesIO()
+            doc.save(buf)
+            buf.seek(0)
+            return FileResponse(
+                buf,
+                as_attachment=True,
+                filename='chapter5.docx',
+                content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            )
+
+        # ---------- action อื่น ๆ ----------
+        messages.info(request, 'ยังไม่รองรับการทำงานนี้')
+        return render(request, 'chapter_5.html', {
+            'initial': {'intro_body': '', 'chapter5_json': []}
+        })
+
+    # ---------- GET: preload ถ้ามีใน DB ----------
+    return render(request, 'chapter_5.html', {
+        'initial': {
+            'intro_body': (db_intro if (db_intro or db_sections) else ''),
+            'chapter5_json': (db_sections if isinstance(db_sections, list) else []),
+        }
+    })

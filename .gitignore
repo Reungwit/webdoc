@@ -8,3 +8,7 @@ webdoc/backend/__pycache__/views.cpython-310.pyc
 *.pyc
 webdoc/man_doc/__pycache__/doc_refer.cpython-310.pyc
 webdoc/man_doc/__pycache__/doc_refer.cpython-310.pyc
+db/certificate.sql
+*.pyc
+*.pyc
+webdoc/backend/__pycache__/admin.cpython-310.pyc

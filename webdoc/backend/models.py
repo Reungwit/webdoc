@@ -6,6 +6,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import JSONField
 
 
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.conf import settings
+
+
 class CustomUser(AbstractUser):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True)
@@ -296,3 +301,41 @@ class RefBook(models.Model):
     class Meta:
         db_table = 'ref_book'
         managed = False
+
+
+
+#     Chapter 5 
+# backend/models.py
+class Chapter5(models.Model):
+    """
+    แมปตารางที่มีอยู่แล้ว (managed=False) ตาม DDL:
+    CREATE TABLE chapter5 (
+        doc_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        user_id BIGINT NOT NULL,
+        intro_th LONGTEXT NULL,
+        sections_json JSON NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES backend_customuser(id) ON DELETE CASCADE
+    );
+    """
+    doc_id = models.BigAutoField(primary_key=True)
+    # อ้างตารางผู้ใช้ที่ระบบ auth ใช้อยู่จริง ผ่าน AUTH_USER_MODEL
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_column='user_id',
+        related_name='chapter5_docs',
+    )
+    intro_th = models.TextField(null=True, blank=True)
+    sections_json = models.JSONField(default=list)  # เก็บ list[{title, body, mains:[{text, subs[]}], section_order, main_order}]
+    created_at = models.DateTimeField(auto_now_add=False, null=True, blank=True)   # ใช้ค่าจาก DB
+    updated_at = models.DateTimeField(auto_now=True)                                # สำหรับ Django ให้ sync เวลาใน obj
+
+    class Meta:
+        managed = False              # สำคัญ: ไม่ให้ Django สร้าง/แก้ตาราง
+        db_table = 'chapter5'
+
+    def __str__(self):
+        return f'Chapter5(doc_id={self.doc_id}, user_id={self.user_id})'
+

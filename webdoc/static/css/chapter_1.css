@@ -1,463 +1,76 @@
-/* chapter_1.css - Based on intro.css styling */
-
-/* Reset and Base Styles */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: 'Sarabun', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  color: #333;
-  background: #f8f9fa;
-  min-height: 100vh;
-  padding: 20px;
-}
-
-/* Form Container - Following intro.css container style */
-#myForm {
+.container {
   max-width: 1200px;
   margin: 50px auto;
   padding: 0 20px;
 }
 
-/* Fieldset as Card Style */
-fieldset {
+.card {
   border: 1px solid #ddd;
   border-radius: 8px;
   margin-bottom: 30px;
   background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  padding: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
-
-/* Legend as Card Header - Multiple Colors */
-legend {
-  width: 100%;
+.card-header {
   padding: 15px 20px;
   font-size: 18px;
   font-weight: bold;
-  color: white;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  margin-bottom: 0;
-  border: none;
-}
-
-/* Different colors for each section */
-fieldset:nth-child(1) legend { background: #0d6efd; } /* Primary Blue - ความเป็นมา */
-fieldset:nth-child(2) legend { background: #198754; } /* Success Green - วัตถุประสงค์ */
-fieldset:nth-child(3) legend { background: #0dcaf0; } /* Info Cyan - สมมติฐาน */
-fieldset:nth-child(4) legend { background: #ffc107; color: black; } /* Warning Yellow - ขอบเขต */
-fieldset:nth-child(5) legend { background: #6c757d; } /* Secondary Gray - ข้อตกลง */
-fieldset:nth-child(6) legend { background: #fd7e14; } /* Orange - นิยามศัพท์ */
-fieldset:nth-child(7) legend { background: #6f42c1; } /* Purple - ประโยชน์ */
-fieldset:nth-child(8) legend { background: #d63384; } /* Pink - Additional sections */
-
-/* Fieldset content area - like card-body */
-fieldset > *:not(legend) {
-  margin-left: 20px;
-  margin-right: 20px;
-}
-
-fieldset > label:first-of-type {
-  margin-top: 20px;
-}
-
-fieldset > .controls:last-of-type,
-fieldset > .button-group:last-of-type {
-  margin-bottom: 20px;
-}
-
-/* Form Labels - Following intro.css form-label */
-label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #333;
-}
-
-/* Form Controls - No transitions */
-.form-control {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-bottom: 15px;
-  box-sizing: border-box;
-  resize: vertical;
-  font-family: inherit;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
-}
-
-.form-control:hover {
-  border-color: #86b7fe;
-}
-
-/* Dynamic Input Fields - No transitions */
-#purpose_container input,
-#hypo_items_container input,
-#def_items_container input,
-#benefit_items_container input,
-#scope_container input,
-#premise_container input {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-bottom: 15px;
-  box-sizing: border-box;
-  font-family: inherit;
-}
-
-#purpose_container input:focus,
-#hypo_items_container input:focus,
-#def_items_container input:focus,
-#benefit_items_container input:focus,
-#scope_container input:focus,
-#premise_container input:focus {
-  outline: none;
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
-}
-
-#purpose_container input:hover,
-#hypo_items_container input:hover,
-#def_items_container input:hover,
-#benefit_items_container input:hover,
-#scope_container input:hover,
-#premise_container input:hover {
-  border-color: #86b7fe;
-}
-
-/* Sub-blocks - No animations */
-.subblock {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  padding: 20px;
-  margin: 15px 0;
-}
-
-.subblock h4 {
-  color: #0d6efd;
-  margin-bottom: 15px;
-  font-size: 16px;
-  font-weight: bold;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #dee2e6;
-}
-
-/* Controls Section */
-.controls {
   display: flex;
   gap: 10px;
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #dee2e6;
-  flex-wrap: wrap;
+  align-items: center;
 }
+.bg-success { background: #198754; color: #fff; }
+.bg-info    { background: #0dcaf0; color: #fff; }
+.bg-warning { background: #ffc107; color: #000; }
+.bg-secondary { background: #6c757d; color: #fff; }
+.card-body { padding: 20px; }
 
-/* Buttons - No animations */
+.form-label { display: block; font-weight: bold; margin-bottom: 8px; }
+.form-control {
+  width: 100%; padding: 10px 12px; font-size: 16px;
+  border: 1px solid #ccc; border-radius: 5px; margin-bottom: 15px; box-sizing: border-box;
+}
+textarea.form-control { resize: vertical; }
+
+.row { display: flex; flex-wrap: wrap; gap: 20px; }
 .btn {
-  display: inline-block;
-  padding: 10px 18px;
-  font-size: 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: inherit;
-  text-decoration: none;
-  font-weight: normal;
+  display: inline-block; padding: 10px 18px; font-size: 16px;
+  border: none; border-radius: 6px; cursor: pointer; transition: .2s ease;
 }
+.btn-primary { background: #0d6efd; color: #fff; }
+.btn-info    { background: #0dcaf0; color: #fff; }
+.btn-success { background: #198754; color: #fff; }
+.btn-outline-secondary { background: transparent; border: 2px solid #6c757d; color: #6c757d; }
+.btn-outline-secondary:hover { background: #6c757d; color: #fff; }
+.btn-outline-warning { background: transparent; border: 2px solid #ffc107; color: #ffc107; }
+.btn-outline-warning:hover { background: #ffc107; color: #000; }
 
-/* Button variants */
-.btn-primary {
-  background: #0d6efd;
-  color: white;
+.text-center { text-align: center; }
+.me-2 { margin-right: 10px; }
+
+.number {
+  font-weight: 700; background: #eef2ff; color: #3730a3;
+  border: 1px solid #c7d2fe; padding: 2px 10px; border-radius: 999px;
+  font-variant-numeric: tabular-nums;
 }
-
-.btn-primary:hover {
-  background: #0b5ed7;
+.title-input {
+  flex: 1; min-width: 200px; border: 1px solid #ccc; border-radius: 6px; padding: 8px 10px; font-size: 16px;
 }
+.title-input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13,110,253,.1); }
 
-.btn-info {
-  background: #0dcaf0;
-  color: white;
-}
+.controls { margin-top: 10px; padding-top: 10px; border-top: 1px solid #dee2e6; flex-wrap: wrap; }
 
-.btn-info:hover {
-  background: #31d2f2;
-}
+.section[data-collapsed="true"] .card-body > .form-label,
+.section[data-collapsed="true"] .card-body > .body-input,
+.section[data-collapsed="true"] .card-body > .controls { display: none; }
 
-.btn-success {
-  background: #198754;
-  color: white;
-}
+.button-group { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; }
 
-.btn-success:hover {
-  background: #157347;
-}
+.note { color:#555; margin-top:10px; font-size:14px; }
 
-/* Default button (for add/remove controls) */
-.btn:not(.btn-primary):not(.btn-info):not(.btn-success) {
-  background: #6c757d;
-  color: white;
-}
-
-.btn:not(.btn-primary):not(.btn-info):not(.btn-success):hover {
-  background: #5c636a;
-}
-
-/* Large buttons */
-.btn-lg {
-  font-size: 18px;
-  padding: 12px 24px;
-}
-
-/* Button states - No animations */
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-
-
-/* Button Group */
-.button-group {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid #dee2e6;
-  flex-wrap: wrap;
-}
-
-/* Dynamic Content Containers */
-#purpose_container,
-#scope_container,
-#premise_container,
-#hypo_items_container,
-#def_items_container,
-#benefit_items_container {
-  min-height: 50px;
-}
-
-/* Sub-wrapper styles for nested content */
-[id^="scope_subs_wrap_"],
-[id^="premise_subs_wrap_"] {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 5px;
-  padding: 15px;
-  margin-top: 15px;
-  border-left: 4px solid #0d6efd;
-}
-
-/* Nested sub-item labels */
-[id^="scope_subs_wrap_"] label,
-[id^="premise_subs_wrap_"] label {
-  color: #0d6efd;
-  font-size: 15px;
-  margin-left: 10px;
-}
-
-/* Nested sub-item inputs */
-[id^="scope_subs_wrap_"] input,
-[id^="premise_subs_wrap_"] input {
-  margin-left: 10px;
-  width: calc(100% - 10px);
-}
-
-/* Hidden Inputs */
-input[type="hidden"] {
-  display: none;
-}
-
-/* Grid Layout Support */
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.col-md-6 {
-  flex: 1;
-  min-width: 250px;
-}
-
-/* Text Alignment */
-.text-center {
-  text-align: center;
-}
-
-/* Spacing utilities */
-.me-2 {
-  margin-right: 10px;
-}
-
-/* Messages */
-.messages {
-  margin-bottom: 20px;
-  list-style: none;
-  padding: 0;
-}
-
-.messages li {
-  padding: 10px;
-  border-radius: 5px;
-  margin-bottom: 8px;
-  font-weight: bold;
-}
-
-.messages .success {
-  background: #d1e7dd;
-  color: #0f5132;
-}
-
-.messages .info {
-  background: #cff4fc;
-  color: #055160;
-}
-
-.messages .error {
-  background: #f8d7da;
-  color: #842029;
-}
-
-/* Error states */
-.form-control.error,
-input.error {
-  border-color: #dc3545;
-  background-color: #f8d7da;
-}
-
-.form-control.error:focus,
-input.error:focus {
-  border-color: #dc3545;
-  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
-}
-
-/* Success states */
-.form-control.success,
-input.success {
-  border-color: #198754;
-  background-color: #d1e7dd;
-}
-
-.form-control.success:focus,
-input.success:focus {
-  border-color: #198754;
-  box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
-}
-
-/* Responsive Design */
 @media (max-width: 768px) {
-  body {
-    padding: 10px;
-  }
-  
-  #myForm {
-    margin: 20px auto;
-    padding: 0 10px;
-  }
-  
-  fieldset > *:not(legend) {
-    margin-left: 15px;
-    margin-right: 15px;
-  }
-  
-  .subblock {
-    padding: 15px;
-  }
-  
-  .controls {
-    flex-direction: column;
-  }
-  
-  .btn {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .button-group {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .button-group .btn {
-    margin-bottom: 10px;
-  }
-}
-
-@media (max-width: 480px) {
-  legend {
-    font-size: 16px;
-    padding: 12px 15px;
-  }
-  
-  .form-control,
-  #purpose_container input,
-  #hypo_items_container input,
-  #def_items_container input,
-  #benefit_items_container input,
-  #scope_container input,
-  #premise_container input {
-    font-size: 14px;
-    padding: 8px 10px;
-  }
-  
-  .subblock {
-    padding: 12px;
-  }
-  
-  .btn {
-    font-size: 14px;
-    padding: 8px 16px;
-  }
-}
-
-/* Print Styles */
-@media print {
-  body {
-    background: white;
-    padding: 0;
-  }
-  
-  #myForm {
-    box-shadow: none;
-    margin: 0;
-  }
-  
-  fieldset {
-    box-shadow: none;
-    border: 1px solid #000;
-  }
-  
-  .controls,
-  .button-group {
-    display: none;
-  }
-  
-  fieldset {
-    break-inside: avoid;
-  }
-}
-
-/* Focus Styles for Accessibility */
-.btn:focus,
-.form-control:focus {
-  outline: 3px solid rgba(13, 110, 253, 0.25);
-  outline-offset: 2px;
+  .row { flex-direction: column; }
+  .btn { width: 100%; }
 }

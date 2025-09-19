@@ -49,7 +49,13 @@ class SpProject(models.Model):
 class SpProjectAuthor(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
-    userid = models.IntegerField()  # FK ไป backend_customuser.user_id (คุณอาจ map เพิ่มภายหลัง)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_column='userid',
+        to_field='user_id',
+        related_name='sp_project_authors'
+    )
     
     # ✅ FK ไป sp_project.id
     project = models.ForeignKey(
@@ -235,64 +241,98 @@ class Chapter1(models.Model):
         managed = False          # ไม่ให้ Django สร้าง/แก้โครงสร้างตาราง
         db_table = 'chapter_1'
         
-#บรรณานุกรมเว็บไซต์
 class RefWebsite(models.Model):
-    id = models.BigAutoField(primary_key=True, help_text="PK: รหัสรายการอ้างอิงเว็บไซต์")
+    ref_web_id = models.AutoField(primary_key=True)   # PK
+    ref_no = models.CharField(max_length=10)          # ลำดับรายการ (1,2,3,...)
+
+    # ผู้แต่ง (เก็บเป็น list[str]) แยกไทย/อังกฤษ
+    ref_web_authors_th = models.JSONField()
+    ref_web_authors_en = models.JSONField()
+
+    # ชื่อเรื่องหน้าเว็บ แยกไทย/อังกฤษ
+    ref_web_title_th = models.CharField(max_length=255)
+    ref_web_title_en = models.CharField(max_length=255)
+
+    # URL และวันที่เข้าถึง
+    ref_url = models.CharField(max_length=255)
+    ref_date_access = models.DateField()
+
+    # FK ไปยัง backend_customuser.user_id
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         db_column='user_id',
         to_field='user_id',
-        help_text="FK: อ้างอิงผู้ใช้"
+        related_name='ref_websites',
     )
-    number = models.IntegerField(null=True, blank=True, help_text="ลำดับการอ้างอิง")
-    authors_th_json = models.JSONField(help_text="ผู้แต่งภาษาไทย (JSON array)")
-    authors_en_json = models.JSONField(help_text="ผู้แต่งภาษาอังกฤษ (JSON array)")
-    title_th = models.CharField(max_length=500)
-    title_en = models.CharField(max_length=500)
-    site_name_th = models.CharField(max_length=255, null=True, blank=True)
-    site_name_en = models.CharField(max_length=255, null=True, blank=True)
-    year = models.SmallIntegerField(null=True, blank=True)
-    month = models.SmallIntegerField(null=True, blank=True)
-    day = models.SmallIntegerField(null=True, blank=True)
-    url = models.CharField(max_length=1000)
-    accessed_date = models.DateField(null=True, blank=True)
-    notes = models.TextField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'ref_website'
+        db_table = 'doc_ref_web'   
         managed = False
 
-#บรรณานุกรมหนังสือ
+    def __str__(self):
+        return f'{self.user_id} #{self.ref_no}'
+    
+
 class RefBook(models.Model):
-    id = models.BigAutoField(primary_key=True, help_text="PK: รหัสรายการอ้างอิงหนังสือ")
+    
+    ref_book_id = models.AutoField(primary_key=True)
+    # JSON ผู้แต่ง
+    book_authors_en = models.JSONField(blank=True, null=True)
+    # คอลัมน์ TH เป็น NOT NULL ใน DB → ตั้ง default=list เพื่อไม่ส่ง NULL ตอน insert
+    book_authors_th = models.JSONField(default=list, blank=True)
+    # ชื่อเรื่อง
+    book_title_en = models.CharField(max_length=255, blank=True, null=True)
+    # TH เป็น NOT NULL → ให้ default='' เพื่อกัน NULL
+    book_title_th = models.CharField(max_length=255, default='', blank=True)
+
+    # ครั้งที่พิมพ์
+    book_print_count_en = models.IntegerField(blank=True, null=True)
+    # TH เป็น NOT NULL → ให้ default=0 (แก้ภายหลังได้ถ้าต้องการบังคับกรอก)
+    book_print_count_th = models.IntegerField(default=0, blank=True)
+
+    # เมืองที่พิมพ์
+    book_city_print_en = models.CharField(max_length=255, blank=True, null=True)
+    book_city_print_th = models.CharField(max_length=255, default='', blank=True)
+
+    # สำนักพิมพ์
+    book_publisher_en = models.CharField(max_length=255, blank=True, null=True)
+    book_publisher_th = models.CharField(max_length=255, default='', blank=True)
+
+    # ปีที่พิมพ์
+    book_y_print_en = models.IntegerField(blank=True, null=True)
+    book_y_print_th = models.IntegerField(default=0, blank=True)
+
+    # FK → backend_customuser.user_id
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        db_column='user_id',
         to_field='user_id',
-        help_text="FK: อ้างอิงผู้ใช้"
+        db_column='user_id',
+        on_delete=models.DO_NOTHING,
+        related_name='ref_books',
     )
-    number = models.IntegerField(null=True, blank=True, help_text="ลำดับการอ้างอิง")
-    authors_th_json = models.JSONField(help_text="ผู้แต่งภาษาไทย (JSON array)")
-    authors_en_json = models.JSONField(help_text="ผู้แต่งภาษาอังกฤษ (JSON array)")
-    title_th = models.CharField(max_length=500)
-    title_en = models.CharField(max_length=500)
-    edition_th = models.CharField(max_length=50, null=True, blank=True)
-    edition_en = models.CharField(max_length=50, null=True, blank=True)
-    publisher_place_th = models.CharField(max_length=255, null=True, blank=True)
-    publisher_place_en = models.CharField(max_length=255, null=True, blank=True)
-    publisher_th = models.CharField(max_length=255, null=True, blank=True)
-    publisher_en = models.CharField(max_length=255, null=True, blank=True)
-    year = models.SmallIntegerField(null=True, blank=True)
-    doi = models.CharField(max_length=255, null=True, blank=True)
-    url = models.CharField(max_length=1000, null=True, blank=True)
-    notes = models.TextField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'ref_book'
-        managed = False
+        managed = False                 # ตารางถูกสร้างใน MySQL อยู่แล้ว
+        db_table = 'doc_ref_book'       # ชื่อตารางตามที่แจ้ง
+
+    def __str__(self):
+        # แสดงชื่อเรื่องภาษาไทยก่อน ถ้าไม่มีค่อย fallback อังกฤษ
+        return (self.book_title_th or self.book_title_en or f"Book #{self.ref_book_id}")
+
+
+    # FK -> backend_customuser.user_id (PK)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        to_field='user_id',
+        db_column='user_id',
+        on_delete=models.CASCADE,
+        related_name='userid_refbook',
+    )
+
+    class Meta:
+        managed = False                           
+        db_table = 'doc_ref_book'                 
+    
+    def __str__(self):
+        return self.book_title or f"Book #{self.ref_book_id}"

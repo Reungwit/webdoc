@@ -4,3 +4,6 @@ webdoc/backend/__pycache__/urls.cpython-310.pyc
 webdoc/backend/__pycache__/views.cpython-310.pyc
 webdoc/backend/__pycache__/views.cpython-310.pyc
 *.pyc
+*.pyc
+*.pyc
+webdoc/man_doc/__pycache__/doc_refer.cpython-310.pyc

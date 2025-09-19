@@ -15,9 +15,9 @@ def format_authors(authors_list, lang='th'):
         return authors_list[0]
     
     if lang == 'en':
-        return ', '.join(authors_list[:-1]) + f', & {authors_list[-1]}'
+        return ', '.join(authors_list[:-1]) + f', {authors_list[-1]}'
     else: # lang == 'th'
-        return ', '.join(authors_list[:-1]) + f' และ {authors_list[-1]}'
+        return ', '.join(authors_list[:-1]) + f', {authors_list[-1]}'
 
 def doc_refer(references):
     doc = Document()
@@ -52,22 +52,22 @@ def doc_refer(references):
         
         if ref_type == '1':
             authors_str = format_authors(ref.get('authors', []), lang)
-            title = ref.get('title', 'N.t.' if lang == 'en' else 'ม.ป.เรื่อง.')
+            title = ref.get('title', 'N.t.' if lang == 'en' else 'ม.ป.ร.')
             url = ref.get('url', '')
             access_date = ref.get('access_date', '')
             if lang == 'en':
                 text = f"{authors_str}. {title}. Available at: {url}. Accessed {access_date}."
             else:
-                text = f"{authors_str}. {title}. แหล่งที่มา: {url}. สืบค้นเมื่อ {access_date}."
+                text = f"{authors_str}. [อินเทอร์เน็ต]. {title}. จาก: {url}. [สืบค้นเมื่อวันที่ {access_date}]."
         
         elif ref_type == '2':
             authors_str = format_authors(ref.get('authors', []), lang)
             title = ref.get('title', '')
             print_count = ref.get('print_count', '')
-            city_print = ref.get('city_print', '')
-            publisher = ref.get('publisher', '')
-            y_print = ref.get('y_print', '')
-            edition_text = f'{print_count} ed. ' if print_count else ''
+            city_print = ref.get('city_print', '[place unknown] or [ม.ป.ท.]')
+            publisher = ref.get('publisher', '[publisher unknown] or [ม.ป.พ.]')
+            y_print = ref.get('y_print', '[date unknown] or [ม.ป.ป.]')
+            edition_text = f'{print_count}st/nd/rd/th ed. ' if print_count else ''
             if lang == 'en':
                  text = f'{authors_str}. {title}. {edition_text}{city_print}: {publisher}; {y_print}.'
             else:
@@ -99,17 +99,17 @@ def doc_refer(references):
             else:
                 text = f'{author}. {title} [{format_type}]. {city_prod}: {publisher}; {y_prod}.'
         
-        elif ref_type == '5':
+        elif ref_type == '5':  
             author = ref.get('author', '')
             article_title = ref.get('article_title', '')
-            newspaper_name = ref.get('newspaper_name', '')
+            journal_name = ref.get('journal_name', '')
             pub_date = ref.get('pub_date', '')
-            section = ref.get('section', '')
-            page = ref.get('page', '')
+            vol_issue = ref.get('volume_issue', '')
+            pages = ref.get('pages', '')
             if lang == 'en':
-                text = f'{author}. {article_title}. {newspaper_name} {pub_date};{section}:{page}.'
+                text = f'{author}. {article_title}. {journal_name} {pub_date};{vol_issue}:{pages}.'
             else:
-                text = f'{author}. {article_title}. {newspaper_name} {pub_date};{section}:{page}.'
+                text = f'{author}. {article_title}. {journal_name} {pub_date};{vol_issue}:{pages}.'
         
         elif ref_type == '6':
             author = ref.get('author', '')
@@ -157,17 +157,17 @@ def doc_refer(references):
         elif ref_type == '9':
             author = ref.get('author', '')
             article_title = ref.get('article_title', '')
-            journal_name = ref.get('journal_name', '')
+            newspaper_name = ref.get('newspaper_name', '')
             pub_date = ref.get('pub_date', '')
-            vol_issue = ref.get('volume_issue', '')
-            pages = ref.get('pages', '')
+            section = ref.get('section', '')
+            page = ref.get('page', '')
             if lang == 'en':
-                text = f'{author}. {article_title}. {journal_name} {pub_date};{vol_issue}:{pages}.'
+                text = f'{author}. {article_title}. {newspaper_name} {pub_date};{section}:{page}.'
             else:
-                text = f'{author}. {article_title}. {journal_name} {pub_date};{vol_issue}:{pages}.'
+                text = f'{author}. {article_title}. {newspaper_name} {pub_date};{section}:{page}.'
 
         if text:
-            p.add_run(f'[{ref_count}] ').bold = True
+            p.add_run(f'[{ref_count}] ').bold = False
             p.add_run(text)
     
     return doc

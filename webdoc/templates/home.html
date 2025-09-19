@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="th">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการเอกสาร - Document Management System</title>
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="{% static 'img/kmutnb_logo.png' %}" alt="KMUTNB Logo" class="logo-img">
+                <span class="logo-text">ระบบจัดการเอกสาร</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#home" class="nav-link">หน้าแรก</a>
+                <a href="#features" class="nav-link">ฟีเจอร์</a>
+                <a href="#about" class="nav-link">เกี่ยวกับเรา</a>
+                <a href="{% url 'register' %}" class="nav-link">เริ่มใช้งาน</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="nav-link logout-btn">ออกจากระบบ</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-link login-btn">เข้าสู่ระบบ</a>
+                {% endif %}
+            </div>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    ระบบจัดการเอกสารรูปเล่มปริญญานิพนธ์<br>
+                    <span class="highlight">มจพ.ปราจีนบุรี</span>
+                </h1>
+                <p class="hero-description">
+                    จัดการเอกสารเล่มปริญญานิพนธ์ ด้วยระบบที่ง่าย รวดเร็ว และปลอดภัย
+                </p>
+                <div class="hero-buttons">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'index' %}" class="btn btn-primary">
+                            <i class="fas fa-rocket"></i>
+                            เริ่มใช้งานทันที
+                        </a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-primary">
+                            <i class="fas fa-rocket"></i>
+                            เริ่มใช้งานทันที
+                        </a>
+                    {% endif %}
+                    <a href="#features" class="btn btn-secondary">
+                        <i class="fas fa-info-circle"></i>
+                        เรียนรู้เพิ่มเติม
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="document-illustration">
+                    <div class="doc-icon doc-1">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="doc-icon doc-2">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="doc-icon doc-3">
+                        <i class="fas fa-file-word"></i>
+                    </div>
+                    <div class="floating-elements">
+                        <div class="floating-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="floating-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="floating-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">ฟีเจอร์หลัก</h2>
+                <p class="section-description">
+                    ระบบจัดการเอกสารที่ครบครันและใช้งานง่าย
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3 class="feature-title">จัดการเอกสาร บทที่1-5</h3>
+                    <p class="feature-description">
+                        สร้างและจัดการเอกสาร บทที่1-5 ด้วยระบบที่รองรับการจัดรูปแบบอัตโนมัติ
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="feature-title">จัดการข้อมูลเบื้องต้นของเล่มปริญญานิพนธ์ใน 1 คลิก</h3>
+                    <p class="feature-description">
+                        บันทึกข้อมูลผู้จัดทำและข้อมูลเกี่ยวกับโปรเจค
+                        
+                    </p>
+                </div>
+            
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3 class="feature-title">ดาวน์โหลดเอกสารเล่มปริญญานิพนธ์</h3>
+                    <p class="feature-description">
+                        ดาวน์โหลดเอกสารที่จัดทำในรูปแบบ Docx พร้อมใช้งาน 
+                        ด้วยการจัดรูปแบบที่ถูกต้อง
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-save"></i>
+                    </div>
+                    <h3 class="feature-title">บันทึกข้อมูล</h3>
+                    <p class="feature-description">
+                        บันทึกและดึงข้อมูลกลับมาใช้งานได้ 
+                        ไม่ต้องกังวลเรื่องการสูญหายของข้อมูลผ่านระบบฐานข้อมูลที่ปลอดภัย
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="feature-title">ใช้งานได้ทุกอุปกรณ์</h3>
+                    <p class="feature-description">
+                        รองรับการใช้งานบนคอมพิวเตอร์ แท็บเล็ต และมือถือ 
+                        ด้วยการออกแบบที่ตอบสนองตามอุปกรณ์ที่ใช้งาน
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">เอกสารที่จัดการ</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100+</div>
+                    <div class="stat-label">ผู้ใช้งาน</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">&gt;90%</div>
+                    <div class="stat-label">ความถูกต้องของการจัดรูปแบบเอกสาร</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">พร้อมใช้งาน</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 class="about-title">เกี่ยวกับระบบ</h2>
+                    <p class="about-description">
+                        ระบบจัดการเอกสารนี้ถูกพัฒนาขึ้นเพื่อช่วยให้นักศึกษาและบุคลากร
+                        ของมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ สามารถจัดการเอกสารรูปเล่มปริญญานิพนธ์ได้อย่างมีประสิทธิภาพ
+                    </p>
+                    <div class="about-features">
+                        <div class="about-feature">
+                            <i class="fas fa-check"></i>
+                            <span>ใช้งานง่าย ไม่ซับซ้อน</span>
+                        </div>
+                        <div class="about-feature">
+                            <i class="fas fa-check"></i>
+                            <span>ปลอดภัย ข้อมูลไม่รั่วไหล</span>
+                        </div>
+                        <div class="about-feature">
+                            <i class="fas fa-check"></i>
+                            <span>อัปเดตและปรับปรุงอย่างต่อเนื่อง</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-image">
+                    <div class="university-logo">
+                        <img src="{% static 'img/kmutnb_logo_cover.png' %}" alt="KMUTNB">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">พร้อมเริ่มใช้งานแล้วหรือยัง?</h2>
+                <p class="cta-description">
+                    เข้าร่วมกับผู้ใช้งานหลายร้อยคนที่ไว้วางใจระบบของเรา
+                </p>
+                <div class="cta-buttons">
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-large">
+                        <i class="fas fa-play"></i>
+                        เริ่มต้นใช้งานฟรี
+                    </a>
+                    {% if not user.is_authenticated %}
+                    <a href="{% url 'register' %}" class="btn btn-outline">
+                        <i class="fas fa-user-plus"></i>
+                        สมัครสมาชิก
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="{% static 'img/kmutnb_logo.png' %}" alt="KMUTNB Logo">
+                        <span>ระบบจัดการเอกสาร</span>
+                    </div>
+                    <p class="footer-description">
+                        ระบบจัดการเอกสารสำหรับมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ
+                    </p>
+                </div>
+                <!-- <div class="footer-section">
+                    <h4 class="footer-title">ลิงก์ด่วน</h4>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'intro' %}">จัดการเอกสาร</a></li>
+                        <li><a href="{% url 'cover' %}">หน้าปก</a></li>
+                        <li><a href="{% url 'chapter_1' %}">บทที่ 1</a></li>
+                        <li><a href="{% url 'refer' %}">บรรณานุกรม</a></li>
+                    </ul>
+                </div> -->
+                <div class="footer-section">
+                    <h4 class="footer-title">ติดต่อเรา</h4>
+                    <div class="contact-info">
+                        <p><i class="fas fa-envelope"></i> singlaboss@gmail.com</p>
+                        <p><i class="fas fa-phone"></i> 02-555-2000</p>
+                        <p><i class="fas fa-map-marker-alt"></i> กรุงเทพมหานคร</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ. สงวนลิขสิทธิ์.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll effect to navbar
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Animate stats on scroll
+        const observerOptions = {
+            threshold: 0.5,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const statNumbers = entry.target.querySelectorAll('.stat-number');
+                    statNumbers.forEach(stat => {
+                        const finalNumber = stat.textContent;
+                        const isPercentage = finalNumber.includes('%');
+                        const isTime = finalNumber.includes('/');
+                        const numericValue = parseInt(finalNumber.replace(/[^\d]/g, ''));
+                        
+                        if (!isTime) {
+                            let current = 0;
+                            const increment = numericValue / 50;
+                            const timer = setInterval(() => {
+                                current += increment;
+                                if (current >= numericValue) {
+                                    stat.textContent = finalNumber;
+                                    clearInterval(timer);
+                                } else {
+                                    stat.textContent = Math.floor(current) + (isPercentage ? '%' : '+');
+                                }
+                            }, 30);
+                        }
+                    });
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        const statsSection = document.querySelector('.stats');
+        if (statsSection) {
+            observer.observe(statsSection);
+        }
+    </script>
+</body>
+</html>

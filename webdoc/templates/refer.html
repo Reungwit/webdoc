@@ -117,6 +117,25 @@
         }
     };
 
+    // utils: แปลงวันที่ ISO (YYYY-MM-DD) เป็น format ตามภาษา
+function formatDateForLang(isoDate, lang) {
+    if (!isoDate) return '';
+    const d = new Date(isoDate);
+
+    const months_th = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+    const months_en = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    if (lang === 'en') {
+        // Year Month Day (e.g., 2025 Sep 19)
+        return `${d.getFullYear()} ${months_en[d.getMonth()]} ${d.getDate()}`;
+    } else {
+        // Day Month Year (e.g., 19 ก.ย. 2568)
+        const year_th = d.getFullYear() + 543;  // ปี พ.ศ.
+        return `${d.getDate()} ${months_th[d.getMonth()]} ${year_th}`;
+    }
+}
+
+
     let refCounter = 0;
 
     function createAuthorFields(index, lang) {
@@ -175,7 +194,7 @@
                 textFieldsHTML = createField(`author_${index}`, l.author) + createField(`title_${index}`, l.title) + createField(`format_${index}`, l.format) + createField(`city_prod_${index}`, l.cityProd) + createField(`publisher_${index}`, l.publisher) + createField(`y_prod_${index}`, l.yearProd, 'text', 'YYYY');
                 break;
             case "5": // Newspaper Article
-                textFieldsHTML = createField(`author_${index}`, l.author) + createField(`article_title_${index}`, l.articleTitle) + createField(`newspaper_name_${index}`, l.newspaperName) + createField(`pub_date_${index}`, l.pubDate, 'date') + createField(`section_${index}`, l.section) + createField(`page_${index}`, l.page);
+                textFieldsHTML = createField(`author_${index}`, l.author) + createField(`article_title_${index}`, l.articleTitle) + createField(`journal_name_${index}`, l.journalName) + createField(`pub_date_${index}`, l.pubDate, 'text', 'e.g., 2023 Jun 1') + createField(`volume_issue_${index}`, l.volumeIssue, 'text', 'e.g., 124(11)') + createField(`pages_${index}`, l.pages, 'text', 'e.g., 980-3');
                 break;
             case "6": // Database Article
                 textFieldsHTML = createField(`author_${index}`, l.author) + createField(`article_title_${index}`, l.articleTitle) + createField(`journal_name_${index}`, l.journalName) + createField(`resource_type_${index}`, l.resourceType) + createField(`db_update_date_${index}`, l.dbUpdateDate, 'date') + createField(`access_date_${index}`, l.accessDate, 'date') + createField(`url_${index}`, l.availableFrom, 'url', '', 'span-2');
@@ -187,7 +206,7 @@
                 textFieldsHTML = createField(`presenter_${index}`, l.presenter) + createField(`presentation_title_${index}`, l.presentationTitle, 'text', '', 'span-2') + createField(`editor_${index}`, l.editor) + createField(`conference_name_${index}`, l.conferenceName) + createField(`conference_date_${index}`, l.conferenceDate, 'text', 'e.g., 2023 Sep 6-10') + createField(`conference_location_${index}`, l.conferenceLocation) + createField(`city_print_${index}`, l.cityPrint) + createField(`publisher_${index}`, l.publisher) + createField(`y_print_${index}`, l.yearPrint, 'text', 'YYYY') + createField(`page_${index}`, l.page, 'text', 'e.g., p. 15-20');
                 break;
             case "9": // Journal Article
-                textFieldsHTML = createField(`author_${index}`, l.author) + createField(`article_title_${index}`, l.articleTitle) + createField(`journal_name_${index}`, l.journalName) + createField(`pub_date_${index}`, l.pubDate, 'text', 'e.g., 2023 Jun 1') + createField(`volume_issue_${index}`, l.volumeIssue, 'text', 'e.g., 124(11)') + createField(`pages_${index}`, l.pages, 'text', 'e.g., 980-3');
+                textFieldsHTML = createField(`author_${index}`, l.author) + createField(`article_title_${index}`, l.articleTitle) + createField(`newspaper_name_${index}`, l.newspaperName) + createField(`pub_date_${index}`, l.pubDate, 'date') + createField(`section_${index}`, l.section) + createField(`page_${index}`, l.page);
                 break;
             default:
                 textFieldsHTML = '';
@@ -221,11 +240,11 @@
                         <option value="2">หนังสือ (Book)</option>
                         <option value="3">บทความในหนังสือ (Article in Book)</option>
                         <option value="4">สื่อมัลติมีเดีย (Multimedia)</option>
-                        <option value="5">บทความจากหนังสือพิมพ์ (Newspaper Article)</option>
+                        <option value="5">บทความในวารสาร (Journal Article)</option>
                         <option value="6">บทความในฐานข้อมูล (Database Article)</option>
                         <option value="7">รายงานการประชุม (Conference Proceedings)</option>
                         <option value="8">การนำเสนอผลงานในการประชุม (Conference Presentation)</option>
-                        <option value="9">บทความในวารสาร (Journal Article)</option>
+                        <option value="9">บทความจากหนังสือพิมพ์ (Newspaper Article)</option>
                     </select>
                 </div>
             </div>

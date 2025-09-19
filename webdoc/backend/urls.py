@@ -20,7 +20,7 @@ urlpatterns = [
     path('chapter_4/', views.chapter_4_view, name='chapter_4'),
     path('chapter_5/', views.chapter_5_view, name='chapter_5'),
     path('refer/', views.refer_view, name='refer'),
-
+    path('home/', views.home_view, name='home'),
 
      # เพิ่ม URL pattern สำหรับ intro_view
     path('intro/', views.intro_view, name='intro_view'),

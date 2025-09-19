@@ -6,19 +6,18 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 import json
 from .forms import RegisterForm, LoginForm
-from .models import SpProject, SpProjectAuthor, DocCover, Abstract , Certificate ,Chapter1
+from .models import SpProject, SpProjectAuthor, DocCover, Abstract , Certificate ,Chapter1,RefWebsite ,RefBook
 from man_doc.doc_sp_01 import doc_sp_01
 from man_doc.doc_cover import doc_cover_th, doc_cover_en, doc_cover_sec  
 from man_doc.doc_intro import doc_intro  
 from man_doc.doc_refer import doc_refer  
 from django.template.loader import render_to_string
 from man_doc.doc_chapter1 import doc_chapter1
-from .models import RefWebsite, RefBook
 from django.utils.dateparse import parse_date
 import io
 from django.http import FileResponse
 from man_doc.doc_certificate import doc_certificate
-
+from django.utils.dateparse import parse_date
 
 # Register / Login / Logout
 def register_view(request):
@@ -101,6 +100,8 @@ def chapter_5_view(request):
 def refer_view(request):
     return render(request, 'refer.html')
 
+def home_view(request):
+    return render(request, 'home.html')
 
 @login_required
 def doc_cover_view(request):
@@ -248,7 +249,7 @@ def sp_project_form_view(request):
                     'purpose_2': project.purpose_2,
                     'purpose_3': project.purpose_3,
                     'authors': list(
-                        SpProjectAuthor.objects.filter(userid=user.user_id, project=project)
+                        SpProjectAuthor.objects.filter(user=user, project=project)
                         .values_list('name', flat=True)
                     ),
                     'scope_data': scope_data,
@@ -285,9 +286,9 @@ def sp_project_form_view(request):
                     'scope_json': json.dumps(scope_data, ensure_ascii=False),
                 }
             )
-            SpProjectAuthor.objects.filter(userid=user.user_id, project=project).delete()
+            SpProjectAuthor.objects.filter(user=user, project=project).delete()
             for name in authors:
-                SpProjectAuthor.objects.create(userid=user.user_id, name=name, project=project)
+                SpProjectAuthor.objects.create(user=user, name=name, project=project)
 
             initial = {
                 'name_pro_th': name_pro_th,
@@ -451,7 +452,7 @@ def intro_view(request):
 # ใบรับรอง
 @login_required
 # ---------- helper: แปลง model -> initial dict ให้ตรงกับ template ----------
-def _initial_from_cert(cert):
+def initial_from_cert(cert):
     return {
         'topic'      : cert.topic or '',
         'author1'    : cert.author1 or '',
@@ -474,7 +475,7 @@ def certificate_view(request):
         if action == 'get_certificate':
             try:
                 cert = Certificate.objects.get(user=user)
-                initial = _initial_from_cert(cert)
+                initial = initial_from_cert(cert)
                 messages.success(request, 'ดึงข้อมูลใบรับรองสำเร็จ')
             except Certificate.DoesNotExist:
                 messages.info(request, 'ยังไม่มีข้อมูลใบรับรองสำหรับผู้ใช้นี้')
@@ -537,178 +538,311 @@ def certificate_view(request):
     # --- GET: แสดงฟอร์มว่างเสมอ ---
     return render(request, 'certificate.html', {'initial': {}})
 
-
 # ========== บรรณานุกรม ==========
+
+from django.utils.dateparse import parse_date
+
+
 @login_required
-@csrf_exempt
 def refer_view(request):
-    user = request.user
+    # -------------------- helpers (no leading underscore) --------------------
+    def format_date_lang(date_s: str, lang: str) -> str:
+        """รับ 'YYYY-MM-DD' → คืนสตริงตามภาษา: en=YYYY Mon DD, th=DD Mon YYYY(พ.ศ.)"""
+        if not date_s:
+            return ''
+        d = parse_date(date_s)
+        if not d:
+            return ''
+        months_th = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."]
+        months_en = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+        if lang == 'en':
+            return f"{d.year} {months_en[d.month-1]} {d.day}"
+        year_th = d.year + 543
+        return f"{d.day} {months_th[d.month-1]} {year_th}"
+
+    def format_dates_for_doc(refs):
+        """แปลงเฉพาะฟิลด์วันที่ที่มาจาก <input type='date'> ก่อนส่งเข้า doc_refer()."""
+        out = []
+        for r in refs:
+            rt = r.get('ref_type', '')
+            lang = r.get('language', 'th')
+            r2 = dict(r)
+            if rt == '1':  # Website
+                r2['access_date'] = format_date_lang(r.get('access_date', ''), lang)
+            elif rt == '5':  # Newspaper Article
+                r2['pub_date'] = format_date_lang(r.get('pub_date', ''), lang)
+            elif rt == '6':  # Database Article
+                r2['db_update_date'] = format_date_lang(r.get('db_update_date', ''), lang)
+                r2['access_date']    = format_date_lang(r.get('access_date', ''), lang)
+            out.append(r2)
+        return out
+
+    def collect_references_from_post():
+        """อ่านค่าจากฟอร์มทั้งหมด → list[dict] ตามโครงที่ doc_refer ใช้"""
+        refs = []
+        try:
+            ref_count = int(request.POST.get('ref_count', 0))
+        except (ValueError, TypeError):
+            ref_count = 0
+
+        for i in range(1, ref_count + 1):
+            ref_type = request.POST.get(f'ref_type_{i}', '')
+            lang = request.POST.get(f'lang_{i}', 'th')
+            if not ref_type:
+                continue
+
+            ref = {'ref_count': i, 'ref_type': ref_type, 'language': lang}
+
+            if ref_type == '1':  # Website
+                ref['authors'] = [request.POST.get(f'author_{i}_{j}', '')
+                                  for j in range(1, 4)
+                                  if request.POST.get(f'author_{i}_{j}')]
+                ref['title']       = request.POST.get(f'title_{i}', '')
+                ref['url']         = request.POST.get(f'url_{i}', '')
+                ref['access_date'] = request.POST.get(f'access_date_{i}', '')
+
+            elif ref_type == '2':  # Book
+                ref['authors']    = [request.POST.get(f'author_{i}_{j}', '')
+                                     for j in range(1, 4)
+                                     if request.POST.get(f'author_{i}_{j}')]
+                ref['title']       = request.POST.get(f'title_{i}', '')
+                ref['print_count'] = request.POST.get(f'print_count_{i}', '')
+                ref['city_print']  = request.POST.get(f'city_print_{i}', '')
+                ref['publisher']   = request.POST.get(f'publisher_{i}', '')
+                ref['y_print']     = request.POST.get(f'y_print_{i}', '')
+
+            elif ref_type == '3':  # บทความในหนังสือ
+                ref['article_author'] = request.POST.get(f'article_author_{i}', '')
+                ref['article_title']  = request.POST.get(f'article_title_{i}', '')
+                ref['editor']         = request.POST.get(f'editor_{i}', '')
+                ref['book_title']     = request.POST.get(f'book_title_{i}', '')
+                ref['city_print']     = request.POST.get(f'city_print_{i}', '')
+                ref['publisher']      = request.POST.get(f'publisher_{i}', '')
+                ref['y_print']        = request.POST.get(f'y_print_{i}', '')
+                ref['pages']          = request.POST.get(f'pages_{i}', '')
+
+            elif ref_type == '4':  # สื่อมัลติมีเดีย
+                ref['author']    = request.POST.get(f'author_{i}', '')
+                ref['title']     = request.POST.get(f'title_{i}', '')
+                ref['format']    = request.POST.get(f'format_{i}', '')
+                ref['city_prod'] = request.POST.get(f'city_prod_{i}', '')
+                ref['publisher'] = request.POST.get(f'publisher_{i}', '')
+                ref['y_prod']    = request.POST.get(f'y_prod_{i}', '')
+
+            elif ref_type == '5':  # หนังสือพิมพ์
+                ref['author']         = request.POST.get(f'author_{i}', '')
+                ref['article_title']  = request.POST.get(f'article_title_{i}', '')
+                ref['newspaper_name'] = request.POST.get(f'newspaper_name_{i}', '')
+                ref['pub_date']       = request.POST.get(f'pub_date_{i}', '')
+                ref['section']        = request.POST.get(f'section_{i}', '')
+                ref['page']           = request.POST.get(f'page_{i}', '')
+
+            elif ref_type == '6':  # บทความในฐานข้อมูล
+                ref['author']         = request.POST.get(f'author_{i}', '')
+                ref['article_title']  = request.POST.get(f'article_title_{i}', '')
+                ref['journal_name']   = request.POST.get(f'journal_name_{i}', '')
+                ref['resource_type']  = request.POST.get(f'resource_type_{i}', '')
+                ref['db_update_date'] = request.POST.get(f'db_update_date_{i}', '')
+                ref['access_date']    = request.POST.get(f'access_date_{i}', '')
+                ref['url']            = request.POST.get(f'url_{i}', '')
+
+            elif ref_type == '7':  # Proceedings
+                ref['editor']              = request.POST.get(f'editor_{i}', '')
+                ref['title']               = request.POST.get(f'title_{i}', '')
+                ref['conference_name']     = request.POST.get(f'conference_name_{i}', '')
+                ref['conference_date']     = request.POST.get(f'conference_date_{i}', '')
+                ref['conference_location'] = request.POST.get(f'conference_location_{i}', '')
+                ref['city_print']          = request.POST.get(f'city_print_{i}', '')
+                ref['publisher']           = request.POST.get(f'publisher_{i}', '')
+                ref['y_print']             = request.POST.get(f'y_print_{i}', '')
+
+            elif ref_type == '8':  # Presentation
+                ref['presenter']           = request.POST.get(f'presenter_{i}', '')
+                ref['presentation_title']  = request.POST.get(f'presentation_title_{i}', '')
+                ref['editor']              = request.POST.get(f'editor_{i}', '')
+                ref['conference_name']     = request.POST.get(f'conference_name_{i}', '')
+                ref['conference_date']     = request.POST.get(f'conference_date_{i}', '')
+                ref['conference_location'] = request.POST.get(f'conference_location_{i}', '')
+                ref['city_print']          = request.POST.get(f'city_print_{i}', '')
+                ref['publisher']           = request.POST.get(f'publisher_{i}', '')
+                ref['y_print']             = request.POST.get(f'y_print_{i}', '')
+                ref['page']                = request.POST.get(f'page_{i}', '')
+
+            elif ref_type == '9':  # Journal
+                ref['author']        = request.POST.get(f'author_{i}', '')
+                ref['article_title'] = request.POST.get(f'article_title_{i}', '')
+                ref['journal_name']  = request.POST.get(f'journal_name_{i}', '')
+                ref['pub_date']      = request.POST.get(f'pub_date_{i}', '')
+                ref['volume_issue']  = request.POST.get(f'volume_issue_{i}', '')
+                ref['pages']         = request.POST.get(f'pages_{i}', '')
+
+            refs.append(ref)
+        return refs
+
+    def save_websites_from_refs(user, refs):
+        """อัปเดตเฉพาะ Website (ref_type=1) ลงตารางเว็บไซต์ของคุณ"""
+        for r in refs:
+            if r.get('ref_type') != '1':
+                continue
+            i      = r.get('ref_count')
+            lang   = r.get('language', 'th')
+            title  = r.get('title', '')
+            url    = r.get('url', '')
+            date_s = r.get('access_date', '')
+            date_d = parse_date(date_s) if date_s else None
+            authors = r.get('authors', [])
+
+            defaults = {
+                'ref_web_authors_th': authors if lang == 'th' else [],
+                'ref_web_authors_en': authors if lang == 'en' else [],
+                'ref_web_title_th'  : title   if lang == 'th' else '',
+                'ref_web_title_en'  : title   if lang == 'en' else '',
+                'ref_url'           : url,
+                'ref_date_access'   : date_d,
+            }
+            RefWebsite.objects.update_or_create(
+                user=request.user, ref_no=str(i), defaults=defaults
+            )
+
+    def save_books_from_refs(user, refs):
+        """
+        บันทึก Book (ref_type='2') ลงตาราง doc_ref_book แบบ “ลบของเดิมของ user แล้วสร้างใหม่”
+        1 row ต่อ 1 รายการที่ผู้ใช้กรอก (ถ้าเป็นภาษาไทยก็เติมฝั่ง *_th, ภาษาอังกฤษก็เติมฝั่ง *_en)
+        """
+        # ลบของเก่าก่อน เพื่อให้ข้อมูลใน DB ตรงกับฟอร์มปัจจุบัน 1:1
+        RefBook.objects.filter(user=user).delete()
+        bulk = []
+        for r in refs:
+            if r.get('ref_type') != '2':
+                continue
+            lang = r.get('language', 'th')
+
+            # parse ตัวเลขให้ปลอดภัย
+            def _to_int(val):
+                try:
+                    s = (val or '').strip()
+                    return int(s) if s != '' else None
+                except Exception:
+                    return None
+
+            kwargs = {'user': user}
+
+            if lang == 'en':
+                kwargs.update({
+                    'book_authors_en'    : r.get('authors', []),
+                    'book_title_en'      : r.get('title', '') or None,
+                    'book_print_count_en': _to_int(r.get('print_count')),
+                    'book_city_print_en' : r.get('city_print', '') or None,
+                    'book_publisher_en'  : r.get('publisher', '') or None,
+                    'book_y_print_en'    : _to_int(r.get('y_print')),
+                })
+            else:  # th
+                kwargs.update({
+                    'book_authors_th'    : r.get('authors', []),
+                    'book_title_th'      : r.get('title', '') or None,
+                    'book_print_count_th': _to_int(r.get('print_count')),
+                    'book_city_print_th' : r.get('city_print', '') or None,
+                    'book_publisher_th'  : r.get('publisher', '') or None,
+                    'book_y_print_th'    : _to_int(r.get('y_print')),
+                })
+
+            bulk.append(RefBook(**kwargs))
+
+        if bulk:
+            RefBook.objects.bulk_create(bulk)
+
+    def initial_refs_from_db(user):
+        """ดึง Website ของ user → สร้าง list[dict] สำหรับ hydrate ฟอร์ม"""
+        rows = RefWebsite.objects.filter(user=user).order_by('ref_no', 'ref_web_id')
+        out = []
+        for r in rows:
+            lang = 'en' if (r.ref_web_title_en or r.ref_web_authors_en) else 'th'
+            authors = r.ref_web_authors_en if lang == 'en' else r.ref_web_authors_th
+            title   = r.ref_web_title_en   if lang == 'en' else r.ref_web_title_th
+            out.append({
+                'ref_type'   : '1',
+                'language'   : lang,
+                'authors'    : authors or [],
+                'title'      : title or '',
+                'url'        : r.ref_url or '',
+                'access_date': r.ref_date_access.isoformat() if r.ref_date_access else '',
+            })
+        return out
+
+    def initial_books_from_db(user):
+        """
+        ดึง Book ของ user → คืนเป็นรายการสำหรับ hydrate ฟอร์ม
+        1 row ใน DB อาจให้ 1-2 รายการ (th/en) หากทั้งสองฝั่งมีข้อมูล
+        """
+        out = []
+        for b in RefBook.objects.filter(user=user).order_by('ref_book_id'):
+            # TH
+            if b.book_title_th or b.book_authors_th or b.book_city_print_th or b.book_publisher_th or b.book_y_print_th is not None or b.book_print_count_th is not None:
+                out.append({
+                    'ref_type'   : '2',
+                    'language'   : 'th',
+                    'authors'    : b.book_authors_th or [],
+                    'title'      : b.book_title_th or '',
+                    'print_count': b.book_print_count_th if b.book_print_count_th is not None else '',
+                    'city_print' : b.book_city_print_th or '',
+                    'publisher'  : b.book_publisher_th or '',
+                    'y_print'    : b.book_y_print_th if b.book_y_print_th is not None else '',
+                })
+            # EN
+            if b.book_title_en or b.book_authors_en or b.book_city_print_en or b.book_publisher_en or b.book_y_print_en is not None or b.book_print_count_en is not None:
+                out.append({
+                    'ref_type'   : '2',
+                    'language'   : 'en',
+                    'authors'    : b.book_authors_en or [],
+                    'title'      : b.book_title_en or '',
+                    'print_count': b.book_print_count_en if b.book_print_count_en is not None else '',
+                    'city_print' : b.book_city_print_en or '',
+                    'publisher'  : b.book_publisher_en or '',
+                    'y_print'    : b.book_y_print_en if b.book_y_print_en is not None else '',
+                })
+        return out
+    # -------------------- end helpers --------------------
 
     if request.method == 'POST':
         action = request.POST.get('action')
-        if action == 'get_data' or action == 'generate_refer':
-            references = []
-            try:
-                ref_count = int(request.POST.get('ref_count', 0))
-            except (TypeError, ValueError):
-                ref_count = 0
+        print(">>> ACTION =", action)
 
-            saved = 0
-            for i in range(1, ref_count + 1):
-                ref_type = request.POST.get(f'ref_type_{i}', '')
-                lang = request.POST.get(f'lang_{i}', 'th')
+        # รวมข้อมูลจากฟอร์มทุกครั้ง (ใช้ทั้ง save / generate / get_data)
+        references = collect_references_from_post()
 
-                # รวม author
-                authors = []
-                for j in range(1, 4):
-                    a = (request.POST.get(f'author_{i}_{j}', '') or '').strip()
-                    if a:
-                        authors.append(a)
+        if action == 'save_refer':
+            # เซฟ Website + Book
+            save_websites_from_refs(request.user, references)
+            save_books_from_refs(request.user, references)
 
-                if ref_type == '1':  # Website
-                    title = (request.POST.get(f'title_{i}', '') or '').strip()
-                    url = (request.POST.get(f'url_{i}', '') or '').strip()
-                    acc_raw = (request.POST.get(f'access_date_{i}', '') or '').strip()
-                    acc_date = parse_date(acc_raw) if acc_raw else None
+            # ดึงกลับไป hydrate
+            initial_refs = initial_refs_from_db(request.user) + initial_books_from_db(request.user)
+            ctx = {'initial_refs_json': json.dumps(initial_refs, ensure_ascii=False)}
+            messages.success(request, f'บันทึกข้อมูลสำเร็จ {len(initial_refs)} รายการ')
+            return render(request, 'refer.html', ctx)
 
-                    if title and url:
-                        RefWebsite.objects.create(
-                            user=user,
-                            number=i,  # ✅ เก็บลำดับ
-                            title_th=title if lang == 'th' else '',
-                            title_en=title if lang == 'en' else '',
-                            authors_th_json=authors if lang == 'th' else [],
-                            authors_en_json=authors if lang == 'en' else [],
-                            url=url,
-                            accessed_date=acc_date,
-                        )
-                        saved += 1
+        if action == 'generate_refer':
+            # เซฟก่อน → แปลงวันที่ตามภาษา → ส่งเข้า doc_refer
+            from man_doc.doc_refer import doc_refer
+            save_websites_from_refs(request.user, references)
+            save_books_from_refs(request.user, references)
 
-                elif ref_type == '2':  # Book
-                    title = (request.POST.get(f'title_{i}', '') or '').strip()
-                    print_count = (request.POST.get(f'print_count_{i}', '') or '').strip()
-                    city_print = (request.POST.get(f'city_print_{i}', '') or '').strip()
-                    publisher = (request.POST.get(f'publisher_{i}', '') or '').strip()
-                    y_print = (request.POST.get(f'y_print_{i}', '') or '').strip()
-                    year = int(y_print) if y_print.isdigit() else None
-
-                    if title:
-                        RefBook.objects.create(
-                            user=user,
-                            number=i,  # ✅ เก็บลำดับ
-                            title_th=title if lang == 'th' else '',
-                            title_en=title if lang == 'en' else '',
-                            edition_th=print_count if lang == 'th' else '',
-                            edition_en=print_count if lang == 'en' else '',
-                            publisher_place_th=city_print if lang == 'th' else '',
-                            publisher_place_en=city_print if lang == 'en' else '',
-                            publisher_th=publisher if lang == 'th' else '',
-                            publisher_en=publisher if lang == 'en' else '',
-                            year=year,
-                            authors_th_json=authors if lang == 'th' else [],
-                            authors_en_json=authors if lang == 'en' else [],
-                        )
-                        saved += 1
-
-            messages.success(request, f'✅ บันทึกข้อมูล {saved} รายการ')
-            return redirect('refer')
-
-        # ---------- B) GET DATA ----------
-        elif action == 'get_data':
-            initial_refs = []
-
-            # Website
-            for r in RefWebsite.objects.filter(user=user).order_by('number', 'id'):
-                if r.title_th or (r.authors_th_json or []):
-                    language = 'th'
-                    authors = r.authors_th_json or []
-                    title = r.title_th or ''
-                else:
-                    language = 'en'
-                    authors = r.authors_en_json or []
-                    title = r.title_en or ''
-                initial_refs.append({
-                    'ref_type': '1',
-                    'language': language,
-                    'authors': authors,
-                    'title': title,
-                    'url': r.url or '',
-                    'access_date': r.accessed_date.isoformat() if r.accessed_date else ''
-                })
-
-            # Book
-            for r in RefBook.objects.filter(user=user).order_by('number', 'id'):
-                if r.title_th or (r.authors_th_json or []):
-                    language = 'th'
-                    authors = r.authors_th_json or []
-                    title = r.title_th or ''
-                    print_count = r.edition_th or ''
-                    city_print = r.publisher_place_th or ''
-                    publisher = r.publisher_th or ''
-                else:
-                    language = 'en'
-                    authors = r.authors_en_json or []
-                    title = r.title_en or ''
-                    print_count = r.edition_en or ''
-                    city_print = r.publisher_place_en or ''
-                    publisher = r.publisher_en or ''
-                initial_refs.append({
-                    'ref_type': '2',
-                    'language': language,
-                    'authors': authors,
-                    'title': title,
-                    'print_count': print_count,
-                    'city_print': city_print,
-                    'publisher': publisher,
-                    'y_print': str(r.year or ''),
-                })
-
-            return render(
-                request,
-                'refer.html',
-                {'initial_refs_json': json.dumps(initial_refs, ensure_ascii=False)}
-            )
-
-        # ---------- C) GENERATE DOCX ----------
-        elif action == 'generate_refer':
-            references = []
-
-            # ดึง Website
-            for r in RefWebsite.objects.filter(user=user).order_by('number', 'id'):
-                lang = 'th' if (r.title_th or (r.authors_th_json or [])) else 'en'
-                references.append({
-                    'ref_count': len(references) + 1,
-                    'ref_type': '1',
-                    'language': lang,
-                    'authors': r.authors_th_json if lang == 'th' else (r.authors_en_json or []),
-                    'title': r.title_th if lang == 'th' else r.title_en,
-                    'url': r.url or '',
-                    'access_date': r.accessed_date.isoformat() if r.accessed_date else ''
-                })
-
-            # ดึง Book
-            for r in RefBook.objects.filter(user=user).order_by('number', 'id'):
-                lang = 'th' if (r.title_th or (r.authors_th_json or [])) else 'en'
-                references.append({
-                    'ref_count': len(references) + 1,
-                    'ref_type': '2',
-                    'language': lang,
-                    'authors': r.authors_th_json if lang == 'th' else (r.authors_en_json or []),
-                    'title': r.title_th if lang == 'th' else r.title_en,
-                    'print_count': (r.edition_th if lang == 'th' else r.edition_en) or '',
-                    'city_print': (r.publisher_place_th if lang == 'th' else r.publisher_place_en) or '',
-                    'publisher': (r.publisher_th if lang == 'th' else r.publisher_en) or '',
-                    'y_print': str(r.year or ''),
-                })
-
-    doc = doc_refer(references)
-
-    response = HttpResponse(
+            refs_for_doc = format_dates_for_doc(references)
+            doc = doc_refer(refs_for_doc)
+            response = HttpResponse(
                 content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
             )
-    response['Content-Disposition'] = 'attachment; filename=refer.docx'
-    doc.save(response)
-    return response
+            response['Content-Disposition'] = 'attachment; filename=references.docx'
+            doc.save(response)
+            return response
+
+        if action == 'get_data':
+            initial_refs = initial_refs_from_db(request.user) + initial_books_from_db(request.user)
+            ctx = {'initial_refs_json': json.dumps(initial_refs, ensure_ascii=False)}
+            return render(request, 'refer.html', ctx)
+
+    # GET ครั้งแรก: หน้าเปล่า
+    return render(request, 'refer.html')
 
 
 
@@ -795,13 +929,13 @@ def chapter_1_view(request):
                 hypo_items,scope_data,para_premise_str,premise_data,def_items,benefit_items)
                     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                     response['Content-Disposition'] = 'attachment; filename=chapter1.docx'
-                    doc.save(response)
+                    doc.save(response) 
                     return response
                     
                     
             
            # Get data โดยไม่กดปุ่ม
-        #    # อัปเดต initial เพื่อแสดงผลข้อมูลล่าสุด
+           # อัปเดต initial เพื่อแสดงผลข้อมูลล่าสุด
             initial = {
                 'sec11_p1': sec11_p1,
                 'sec11_p2': sec11_p2,

@@ -1,17 +1,161 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-    <title>เข้าสู่ระบบ</title>
-    <link rel="stylesheet" href="{% static './css/login.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ - ระบบจัดการเอกสาร</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-  <form method="post">
-    {% csrf_token %}
-    <img class ="img_logo" src="{% static 'img/kmutnb_logo_cover.png' %}" alt="logo" width ="200" >
-    {{ form.as_p }}
-    <button type="submit">เข้าสู่ระบบ</button>
-    ยังไม่มีบัญชี <a href="{% url 'register' %}">สมัครสมาชิก</a>
-  </form>
+    <!-- Google Translate -->
+    <div id="google_translate_element"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'th',
+                includedLanguages: 'th,en',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+    </script>
+
+    <!-- Main Login Container -->
+    <div class="login-container fade-in">
+        <!-- Header -->
+        <div class="login-header">
+            <div class="logo-section">
+                <img src="{% static 'img/kmutnb_logo_cover.png' %}" alt="KMUTNB Logo" class="logo-img">
+                <h1 class="login-title">
+                    <i class="fas fa-sign-in-alt"></i>
+                    เข้าสู่ระบบ
+                </h1>
+            </div>
+            <p class="login-subtitle">
+                ยินดีต้อนรับสู่ระบบจัดการเอกสาร
+            </p>
+        </div>
+
+        <!-- Login Form -->
+        <form method="POST" class="login-form" id="loginForm">
+            {% csrf_token %}
+            
+            <!-- Email Field -->
+            <div class="form-group">
+                <label for="id_email" class="form-label">
+                    <i class="fas fa-envelope"></i>
+                    {{ form.email.label }}
+                </label>
+                {{ form.email }}
+                <i class="fas fa-envelope input-icon"></i>
+                {% if form.email.errors %}
+                    <div class="error-message">{{ form.email.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group">
+                <label for="id_password" class="form-label">
+                    <i class="fas fa-lock"></i>
+                    {{ form.password.label }}
+                </label>
+                {{ form.password }}
+                <i class="fas fa-lock input-icon"></i>
+                <button type="button" class="password-toggle" id="passwordToggle">
+                    <i class="fas fa-eye"></i>
+                </button>
+                {% if form.password.errors %}
+                    <div class="error-message">{{ form.password.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Remember Me & Forgot Password -->
+            <div class="form-options">
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" class="checkbox-input">
+                    <label for="remember" class="checkbox-label">จดจำการเข้าสู่ระบบ</label>
+                </div>
+                <a href="#" class="forgot-password">ลืมรหัสผ่าน?</a>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="fas fa-sign-in-alt"></i>
+                เข้าสู่ระบบ
+            </button>
+        </form>
+
+        <!-- Register Link -->
+        <div class="register-link">
+            <p>ยังไม่มีบัญชี?</p>
+            <a href="{% url 'register' %}">
+                <i class="fas fa-user-plus"></i>
+                สมัครสมาชิก
+            </a>
+        </div>
+
+        <!-- Back to Home -->
+        <div class="back-home">
+            <a href="{% url 'home' %}">
+                <i class="fas fa-home"></i>
+                กลับสู่หน้าแรก
+            </a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
+    <script>
+        // Form functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            const passwordInput = document.getElementById('id_password');
+            const passwordToggle = document.getElementById('passwordToggle');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Password toggle functionality
+            passwordToggle.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                const icon = this.querySelector('i');
+                icon.classList.toggle('fa-eye');
+                icon.classList.toggle('fa-eye-slash');
+            });
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                submitBtn.classList.add('loading');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังเข้าสู่ระบบ...';
+            });
+
+            // Add smooth animations to form groups
+            const formGroups = document.querySelectorAll('.form-group');
+            formGroups.forEach((group, index) => {
+                group.style.animationDelay = `${index * 0.1}s`;
+                group.classList.add('slide-in-left');
+            });
+
+            // Auto-focus on email field
+            const emailInput = document.getElementById('id_email');
+            if (emailInput) {
+                emailInput.focus();
+            }
+        });
+
+        // Add loading state management
+        window.addEventListener('beforeunload', function() {
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn.classList.contains('loading')) {
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ';
+            }
+        });
+    </script>
 </body>
 </html>

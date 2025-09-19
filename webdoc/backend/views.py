@@ -707,14 +707,14 @@ def refer_view(request):
                     'y_print': str(r.year or ''),
                 })
 
-            doc = doc_refer(references)
+    doc = doc_refer(references)
 
-            response = HttpResponse(
+    response = HttpResponse(
                 content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
             )
-            response['Content-Disposition'] = 'attachment; filename=refer.docx'
-            doc.save(response)
-            return response
+    response['Content-Disposition'] = 'attachment; filename=refer.docx'
+    doc.save(response)
+    return response
 
 
 
@@ -830,6 +830,7 @@ def chapter_1_view(request):
     }
         
         # 2. สั่ง render พร้อมส่ง context ไปด้วย (มีแค่จุดเดียวท้ายฟังก์ชัน)
+<<<<<<< HEAD
     return render(request, 'chapter_1.html', context)
         
        
@@ -1124,3 +1125,6 @@ def chapter_5_view(request):
             'chapter5_json': (db_sections if isinstance(db_sections, list) else []),
         }
     })
+=======
+    return render(request, 'chapter_1.html', context)
+>>>>>>> 4c618a4829818a7aee54e7f1989c5ba1205ef42a

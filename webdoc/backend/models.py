@@ -351,15 +351,6 @@ class RefBook(models.Model):
 class Chapter5(models.Model):
     """
     แมปตารางที่มีอยู่แล้ว (managed=False) ตาม DDL:
-    CREATE TABLE chapter5 (
-        doc_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-        user_id BIGINT NOT NULL,
-        intro_th LONGTEXT NULL,
-        sections_json JSON NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES backend_customuser(id) ON DELETE CASCADE
-    );
     """
     doc_id = models.BigAutoField(primary_key=True)
     # อ้างตารางผู้ใช้ที่ระบบ auth ใช้อยู่จริง ผ่าน AUTH_USER_MODEL
@@ -367,7 +358,7 @@ class Chapter5(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         db_column='user_id',
-        related_name='chapter5_docs',
+        related_name='fk_user_ct5',
     )
     intro_th = models.TextField(null=True, blank=True)
     sections_json = models.JSONField(default=list)  # เก็บ list[{title, body, mains:[{text, subs[]}], section_order, main_order}]

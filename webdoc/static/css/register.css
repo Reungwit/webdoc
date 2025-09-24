@@ -6,7 +6,8 @@
     box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
     height: 100%;
     font-family: 'Kanit', sans-serif;
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 50%, #f7931e 100%);
@@ -18,8 +19,9 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: px;
+    padding-top: 100vh;
     position: relative;
+    padding-bottom: 100px;
 }
 
 /* Background Animation */
@@ -37,8 +39,15 @@ body::before {
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(5deg); }
+
+    0%,
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(5deg);
+    }
 }
 
 /* Header */
@@ -76,7 +85,7 @@ body::before {
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     padding: 40px;
-    width: 100%;
+    width: 90%;
     max-width: 900px;
     position: relative;
     overflow: hidden;
@@ -89,6 +98,7 @@ body::before {
         opacity: 0;
         transform: translateY(50px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -109,9 +119,17 @@ body::before {
 }
 
 @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 /* Header */
@@ -185,7 +203,7 @@ body::before {
     transform: translateY(-2px);
 }
 
-.form-input:focus + .form-label {
+.form-input:focus+.form-label {
     color: #ff8c42;
 }
 
@@ -205,7 +223,7 @@ body::before {
     transition: color 0.3s ease;
 }
 
-.form-input:focus ~ .input-icon {
+.form-input:focus~.input-icon {
     color: #ff8c42;
 }
 
@@ -221,9 +239,19 @@ body::before {
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
 }
 
 .error-message::before {
@@ -317,7 +345,9 @@ body::before {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Login Link */
@@ -445,21 +475,21 @@ body::before {
         margin: 10px;
         border-radius: 15px;
     }
-    
+
     .register-title {
         font-size: 2rem;
     }
-    
+
     .form-input {
         padding: 12px 15px;
         font-size: 0.95rem;
     }
-    
+
     .submit-btn {
         padding: 15px;
         font-size: 1.1rem;
     }
-    
+
     #google_translate_element {
         top: 10px;
         right: 10px;
@@ -471,15 +501,15 @@ body::before {
     body {
         padding: 10px;
     }
-    
+
     .register-container {
         padding: 25px 15px;
     }
-    
+
     .register-title {
         font-size: 1.8rem;
     }
-    
+
     .register-subtitle {
         font-size: 1rem;
     }
@@ -491,34 +521,34 @@ body::before {
         background: rgba(44, 62, 80, 0.95);
         color: #ecf0f1;
     }
-    
+
     .register-title {
         color: #ecf0f1;
     }
-    
+
     .form-label {
         color: #ecf0f1;
     }
-    
+
     .form-input {
         background: rgba(52, 73, 94, 0.8);
         border-color: #34495e;
         color: #ecf0f1;
     }
-    
+
     .form-input:focus {
         background: #34495e;
         border-color: #3498db;
     }
-    
+
     .form-input::placeholder {
         color: #7f8c8d;
     }
-    
+
     .login-link {
         border-top-color: #34495e;
     }
-    
+
     .login-link p {
         color: #bdc3c7;
     }
@@ -530,8 +560,13 @@ body::before {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .slide-in-left {
@@ -543,6 +578,7 @@ body::before {
         opacity: 0;
         transform: translateX(-30px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -558,6 +594,7 @@ body::before {
         opacity: 0;
         transform: translateX(30px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -577,12 +614,12 @@ body::before {
         background: white;
         border: 2px solid #000;
     }
-    
+
     .form-input {
         border: 2px solid #000;
         background: white;
     }
-    
+
     .submit-btn {
         background: #000;
         color: white;
@@ -597,8 +634,105 @@ body::before {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
-    
+
     body::before {
         animation: none;
+    }
+}
+
+.modal {
+    padding-top: 550px;
+    position: fixed;
+    inset: 0;
+    display: none;
+    z-index: 1000
+}
+
+.modal[aria-hidden="false"] {
+    display: block
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .5)
+}
+
+.modal-dialog {
+    position: relative;
+    margin: 4vh auto;
+    background: #fff;
+    border-radius: 12px;
+    max-width: 960px;
+    width: 92%;
+    display: flex;
+    flex-direction: column;
+    max-height: 92vh;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
+    overflow: hidden
+}
+
+.modal-title {
+    margin: 0;
+    padding: 16px 56px 8px 20px
+}
+
+.modal-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    border: 0;
+    background: transparent;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer
+}
+
+.modal-body {
+    padding: 0 16px 12px
+}
+
+.modal-body iframe {
+    width: 100%;
+    height: 65vh;
+    border: 0
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid #eee
+}
+
+.btn {
+    padding: .6rem 1rem;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background: #f7f7f7;
+    cursor: pointer
+}
+
+.btn:hover {
+    background: #f0f0f0
+}
+
+.checkbox-group {
+    margin: .75rem 0
+}
+
+.checkbox-label a {
+    text-decoration: underline;
+    cursor: pointer
+}
+
+@media (max-width:640px) {
+    .modal-body iframe {
+        height: 70vh
+    }
+
+    .modal-dialog {
+        width: 96%
     }
 }

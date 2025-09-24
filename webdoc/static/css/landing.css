@@ -83,7 +83,7 @@ body {
 }
 
 .nav-link:hover {
-    color: #ff8c42;
+    color: #fe4501;
 }
 
 .nav-link::after {
@@ -93,7 +93,7 @@ body {
     height: 2px;
     bottom: -5px;
     left: 0;
-    background-color: #ff8c42;
+    background-color: #fe4501;
     transition: width 0.3s ease;
 }
 
@@ -102,7 +102,7 @@ body {
 }
 
 .login-btn {
-    background: #ff8c42;
+    background: #fe4501;
     color: white !important;
     padding: 8px 20px;
     border-radius: 25px;
@@ -167,7 +167,7 @@ body {
     min-height: 100vh;
     display: flex;
     align-items: center;
-    background: linear-gradient(135deg, #ffc506 0%, #fc4300 50%, #381e01 100%);
+    background: #1e1b19;
     position: relative;
     overflow: hidden;
 }
@@ -179,7 +179,6 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="100" fill="url(%23a)"/><circle cx="800" cy="300" r="150" fill="url(%23a)"/><circle cx="400" cy="700" r="120" fill="url(%23a)"/></svg>');
     opacity: 0.3;
 }
 
@@ -196,7 +195,7 @@ body {
 }
 
 .hero-content {
-    color: white;
+    color: #fe4501;
 }
 
 .hero-title {
@@ -212,7 +211,7 @@ body {
 }
 
 .highlight {
-    background: linear-gradient(45deg, #ffffff, #f0f0f0);
+    background: linear-gradient(45deg, #fe4501, #fe4501);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -293,12 +292,12 @@ body {
 
 .btn-outline {
     background: transparent;
-    color: #ff8c42;
-    border: 2px solid #ff8c42;
+    color: #fe4501;
+    border: 2px solid #fe4501;
 }
 
 .btn-outline:hover {
-    background: #ff8c42;
+    background: #fe4501;
     color: white;
     transform: translateY(-3px);
 }
@@ -458,7 +457,7 @@ body {
 .feature-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(45deg, #ff8c42, #ff6b35);
+    background: linear-gradient(45deg, #fe4501, #ff6b35);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -507,7 +506,7 @@ body {
 .stat-number {
     font-size: 3rem;
     font-weight: 700;
-    color: #ff8c42;
+    color: #fe4501;
     margin-bottom: 10px;
 }
 
@@ -587,7 +586,8 @@ body {
 /* CTA Section */
 .cta {
     padding: 100px 0;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 50%, #f7931e 100%);
+    background: linear-gradient(135deg, #ff6026 0%, #f0a337 50%, #fff3e0 100%);
+
     color: white;
     text-align: center;
 }
@@ -651,7 +651,7 @@ body {
     font-size: 1.3rem;
     font-weight: 600;
     margin-bottom: 20px;
-    color: #ff8c42;
+    color: #fe4501;
 }
 
 .footer-links {
@@ -669,7 +669,7 @@ body {
 }
 
 .footer-links a:hover {
-    color: #ff8c42;
+    color: #fe4501;
 }
 
 .contact-info p {
@@ -681,7 +681,7 @@ body {
 }
 
 .contact-info i {
-    color: #ff8c42;
+    color: #fe4501;
     width: 20px;
 }
 

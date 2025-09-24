@@ -6,18 +6,22 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 import json
 from .forms import RegisterForm, LoginForm
-from .models import SpProject, SpProjectAuthor, DocCover, Abstract , Certificate ,Chapter1,RefWebsite ,RefBook
+from .models import SpProject, SpProjectAuthor, DocCover, Abstract , Certificate ,Chapter1,RefWebsite ,RefBook ,Chapter5
 from man_doc.doc_sp_01 import doc_sp_01
 from man_doc.doc_cover import doc_cover_th, doc_cover_en, doc_cover_sec  
 from man_doc.doc_intro import doc_intro  
-from man_doc.doc_refer import doc_refer  
+from man_doc.doc_refer import doc_refer 
+from man_doc.doc_chapter5 import doc_chapter5 
 from django.template.loader import render_to_string
 from man_doc.doc_chapter1 import doc_chapter1
 from django.utils.dateparse import parse_date
-import io
+from io import BytesIO
 from django.http import FileResponse
 from man_doc.doc_certificate import doc_certificate
 from django.utils.dateparse import parse_date
+from django.utils import timezone
+from django.views.decorators.clickjacking import xframe_options_exempt
+
 
 # Register / Login / Logout
 def register_view(request):
@@ -94,14 +98,18 @@ def chapter_3_view(request):
 def chapter_4_view(request):
     return render(request, 'chapter_4.html')
 
-def chapter_5_view(request):
-    return render(request, 'chapter_5.html')
 
 def refer_view(request):
     return render(request, 'refer.html')
 
 def home_view(request):
     return render(request, 'home.html')
+
+def terms_view(request):
+    return render(request, "legal/terms_of_use.html")
+
+def privacy_view(request):
+    return render(request, "legal/privacy_policy.html")
 
 @login_required
 def doc_cover_view(request):
@@ -1078,7 +1086,7 @@ def _sorted_with_numbers(sections):
         sec['mains'] = mains
     return sections
 
-def _render_docx(intro_body: str, sections_sorted: list) -> Document:
+def _render_docx(intro_body: str, sections_sorted: list):
     """
     สร้างไฟล์ .docx ตามโครงสร้างที่เรียงและมีเลขแล้ว (สำหรับ export)
     """

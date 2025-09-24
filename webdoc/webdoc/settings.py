@@ -29,6 +29,9 @@ DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 # การเพิ่มตารางลงใน ฐานข้อมูล
 AUTH_USER_MODEL = 'backend.CustomUser'
+# ให้หน้าเดียวกัน (self) ฝัง iframe ได้
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+CSP_FRAME_ANCESTORS = ("'self'",) 
 
 AUTHENTICATION_BACKENDS = [
     'backend.auth_backends.EmailBackend',

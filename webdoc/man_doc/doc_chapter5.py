@@ -1,5 +1,5 @@
 # man_doc/doc_chapter5.py
-# -*- coding: utf-8 -*-
+
 from typing import List, Dict, Any, Iterable, Tuple
 from docx import Document
 from docx.shared import Pt, Cm, Inches
@@ -158,7 +158,7 @@ def add_page_break(doc, top_margin_inch=1.5):
 
 
 # ========================= ตัวช่วยเพิ่มเติม (เฉพาะจัดระยะ) =========================
-def _apply_rest_page_margin(doc, top_inch: float = REST_TOP_INCH):
+def apply_rest_page_margin(doc, top_inch: float = REST_TOP_INCH):
     """
     สร้าง section แบบ CONTINUOUS เพื่อเปลี่ยน top margin สำหรับหน้าถัดไป
     โดยไม่บังคับขึ้นหน้าใหม่
@@ -171,7 +171,7 @@ def _apply_rest_page_margin(doc, top_inch: float = REST_TOP_INCH):
 
 
 # ========================= ตัวช่วยอ่านข้อมูลจาก UI =========================
-def _iter_sections(sections: List[Dict[str, Any]]) -> Iterable[Tuple[str, str, List[Dict[str, Any]]]]:
+def iter_sections(sections: List[Dict[str, Any]]) -> Iterable[Tuple[str, str, List[Dict[str, Any]]]]:
     """
     รองรับ schema จากหน้า chapter_5.html
       [{ title, body, points:[{ main, subs:[str] }] }, ...]
@@ -233,7 +233,7 @@ def doc_chapter5(intro_body: str, sections_json: List[Dict[str, Any]]) -> Docume
     add_center_paragraph(doc, "สรุปผลการวิจัย อภิปรายผล และข้อเสนอแนะ", bold=True, font_size=TITLE_PT)
 
     # เปลี่ยน top margin สำหรับหน้าถัดไปเป็น 1.0" (ไม่ขึ้นหน้าใหม่)
-    _apply_rest_page_margin(doc, top_inch=REST_TOP_INCH)
+    apply_rest_page_margin(doc, top_inch=REST_TOP_INCH)
 
     # ===== 5.1 บทนำ =====
     add_left_paragraph(doc, "5.1  บทนำ", bold=True)
@@ -242,7 +242,7 @@ def doc_chapter5(intro_body: str, sections_json: List[Dict[str, Any]]) -> Docume
         add_wrapped_paragraph(doc, intro_body, n=LINE_LEN, disth=True, tap=True)
 
     # ===== 5.2, 5.3, ... =====
-    for i, (title, body, mains) in enumerate(_iter_sections(sections_json), start=2):
+    for i, (title, body, mains) in enumerate(iter_sections(sections_json), start=2):
         # หัวข้อใหญ่ (ตัวหนา)
         add_left_paragraph(doc, f"5.{i}  {title}".strip(), bold=True)
 

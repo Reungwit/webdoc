@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <!-- Google Translate -->
     <div id="google_translate_element"></div>
@@ -21,197 +23,272 @@
             }, 'google_translate_element');
         }
     </script>
- 
+
     <!-- Main Register Container -->
     <div class="register-container fade-in">
         <!-- Header -->
         <div class="register-header">
             <div class="logo-section">
                 <img src="{% static 'img/kmutnb_logo_cover.png' %}" alt="KMUTNB Logo" class="logo-img">
-            <h1 class="register-title">
-                <i class="fas fa-user-plus"></i>
-                สมัครสมาชิก
-            </h1>
-            <p class="register-subtitle">
-                เข้าร่วมกับระบบจัดการเอกสารของเรา
-            </p>
-        </div>
+                <h1 class="register-title">
+                    สมัครสมาชิก
+                </h1>
+                <p class="register-subtitle">
+                    เข้าร่วมกับระบบจัดการเอกสารของเรา
+                </p>
+            </div>
 
-        <!-- Register Form -->
-        <form method="POST" class="register-form" id="registerForm">
-            {% csrf_token %}
-            
-            <!-- Username Field -->
-            <div class="form-group">
-                <label for="id_username" class="form-label">
-                    <i class="fas fa-user"></i>
-                    {{ form.username.label }}
-                </label>
-                {{ form.username }}
-                <i class="fas fa-user input-icon"></i>
-                {% if form.username.errors %}
+            <!-- Register Form -->
+            <form method="POST" class="register-form" id="registerForm">
+                {% csrf_token %}
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label for="id_username" class="form-label">
+                        <i class="fas fa-user"></i>
+                        {{ form.username.label }}
+                    </label>
+                    {{ form.username }}
+                    <i class="fas fa-user input-icon"></i>
+                    {% if form.username.errors %}
                     <div class="error-message">{{ form.username.errors.0 }}</div>
-                {% endif %}
-            </div>
-
-            <!-- Full Name Field -->
-            <div class="form-group">
-                <label for="id_full_name" class="form-label">
-                    <i class="fas fa-id-card"></i>
-                    {{ form.full_name.label }}
-                </label>
-                {{ form.full_name }}
-                <i class="fas fa-id-card input-icon"></i>
-                {% if form.full_name.errors %}
-                    <div class="error-message">{{ form.full_name.errors.0 }}</div>
-                {% endif %}
-            </div>
-
-            <!-- Email Field -->
-            <div class="form-group">
-                <label for="id_email" class="form-label">
-                    <i class="fas fa-envelope"></i>
-                    {{ form.email.label }}
-                </label>
-                {{ form.email }}
-                <i class="fas fa-envelope input-icon"></i>
-                {% if form.email.errors %}
-                    <div class="error-message">{{ form.email.errors.0 }}</div>
-                {% endif %}
-            </div>
-
-            <!-- Password Field -->
-            <div class="form-group">
-                <label for="id_password1" class="form-label">
-                    <i class="fas fa-lock"></i>
-                    {{ form.password1.label }}
-                </label>
-                {{ form.password1 }}
-                <i class="fas fa-lock input-icon"></i>
-                <div class="password-strength" id="passwordStrength">
-                    <div class="password-strength-bar"></div>
+                    {% endif %}
                 </div>
-                {% if form.password1.errors %}
+
+                <!-- Full Name Field -->
+                <div class="form-group">
+                    <label for="id_full_name" class="form-label">
+                        <i class="fas fa-id-card"></i>
+                        {{ form.full_name.label }}
+                    </label>
+                    {{ form.full_name }}
+                    <i class="fas fa-id-card input-icon"></i>
+                    {% if form.full_name.errors %}
+                    <div class="error-message">{{ form.full_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label for="id_email" class="form-label">
+                        <i class="fas fa-envelope"></i>
+                        {{ form.email.label }}
+                    </label>
+                    {{ form.email }}
+                    <i class="fas fa-envelope input-icon"></i>
+                    {% if form.email.errors %}
+                    <div class="error-message">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="id_password1" class="form-label">
+                        <i class="fas fa-lock"></i>
+                        {{ form.password1.label }}
+                    </label>
+                    {{ form.password1 }}
+                    <i class="fas fa-lock input-icon"></i>
+                    <div class="password-strength" id="passwordStrength">
+                        <div class="password-strength-bar"></div>
+                    </div>
+                    {% if form.password1.errors %}
                     <div class="error-message">{{ form.password1.errors.0 }}</div>
-                {% endif %}
-            </div>
+                    {% endif %}
+                </div>
 
-            <!-- Confirm Password Field -->
-            <div class="form-group">
-                <label for="id_password2" class="form-label">
-                    <i class="fas fa-lock"></i>
-                    {{ form.password2.label }}
-                </label>
-                {{ form.password2 }}
-                <i class="fas fa-lock input-icon"></i>
-                {% if form.password2.errors %}
+                <!-- Confirm Password Field -->
+                <div class="form-group">
+                    <label for="id_password2" class="form-label">
+                        <i class="fas fa-lock"></i>
+                        {{ form.password2.label }}
+                    </label>
+                    {{ form.password2 }}
+                    <i class="fas fa-lock input-icon"></i>
+                    {% if form.password2.errors %}
                     <div class="error-message">{{ form.password2.errors.0 }}</div>
-                {% endif %}
+                    {% endif %}
+                </div>
+
+                <!-- Terms and Conditions -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms" class="checkbox-input" required>
+                    <label for="terms" class="checkbox-label">
+                        ฉันยอมรับ
+                        <a href="{% url 'terms' %}" class="open-modal" data-modal="terms-modal">ข้อกำหนดการใช้งาน</a>
+                        และ
+                        <a href="{% url 'privacy' %}" class="open-modal"
+                            data-modal="privacy-modal">นโยบายความเป็นส่วนตัว</a>
+                    </label>
+                </div>
+
+                <!-- ===== Modals ===== -->
+                <div id="terms-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+                    <div class="modal-backdrop" data-close></div>
+                    <div class="modal-dialog" role="document" aria-labelledby="termsTitle">
+                        <button class="modal-close" aria-label="ปิด" title="ปิด" data-close>&times;</button>
+                        <h2 id="termsTitle" class="modal-title">ข้อกำหนดการใช้งาน</h2>
+                        <div class="modal-body">
+                            <iframe src="{% url 'terms' %}" title="Terms of Use" loading="lazy"></iframe>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn" data-close>ปิดหน้าต่าง</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="privacy-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+                    <div class="modal-backdrop" data-close></div>
+                    <div class="modal-dialog" role="document" aria-labelledby="privacyTitle">
+                        <button class="modal-close" aria-label="ปิด" title="ปิด" data-close>&times;</button>
+                        <h2 id="privacyTitle" class="modal-title">นโยบายความเป็นส่วนตัว</h2>
+                        <div class="modal-body">
+                            <iframe src="{% url 'privacy' %}" title="Privacy Policy" loading="lazy"></iframe>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn" data-close>ปิดหน้าต่าง</button>
+                        </div>
+                    </div>
+                </div>
+
+                
+            
+                <!-- ===== Scripts ===== -->
+                <script>
+                    (function () {
+                        function openModal(id) {
+                            const m = document.getElementById(id);
+                            if (!m) return;
+                            m.setAttribute('aria-hidden', 'false');
+                            // trap focus แบบง่าย ๆ
+                            const btnClose = m.querySelector('[data-close]');
+                            btnClose && btnClose.focus();
+                            document.body.style.overflow = 'hidden';
+                        }
+                        function closeModal(el) {
+                            const m = el.closest('.modal');
+                            if (!m) return;
+                            m.setAttribute('aria-hidden', 'true');
+                            document.body.style.overflow = '';
+                        }
+                        document.addEventListener('click', function (e) {
+                            const link = e.target.closest('a.open-modal');
+                            if (link) {
+                                e.preventDefault();
+                                const targetId = link.getAttribute('data-modal');
+                                if (targetId) openModal(targetId);
+                            }
+                            const toClose = e.target.closest('[data-close]');
+                            if (toClose) { closeModal(toClose); }
+                        });
+                        // ปิดด้วย ESC
+                        document.addEventListener('keydown', function (e) {
+                            if (e.key === 'Escape') {
+                                document.querySelectorAll('.modal[aria-hidden="false"]').forEach(m => {
+                                    m.setAttribute('aria-hidden', 'true');
+                                    document.body.style.overflow = '';
+                                });
+                            }
+                        });
+                    })();
+                </script>
+
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-user-plus"></i>
+                    สมัครสมาชิก
+                </button>
+            </form>
+
+            <!-- Login Link -->
+            <div class="login-link">
+                <p>มีบัญชีอยู่แล้ว?</p>
+                <a href="{% url 'login' %}">
+                    <i class="fas fa-sign-in-alt"></i>
+                    เข้าสู่ระบบ
+                </a>
             </div>
-
-            <!-- Terms and Conditions -->
-            <div class="checkbox-group">
-                <input type="checkbox" id="terms" class="checkbox-input" required>
-                <label for="terms" class="checkbox-label">
-                    ฉันยอมรับ <a href="#" target="_blank">ข้อกำหนดการใช้งาน</a> และ <a href="#" target="_blank">นโยบายความเป็นส่วนตัว</a>
-                </label>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="submit-btn" id="submitBtn">
-                <i class="fas fa-user-plus"></i>
-                สมัครสมาชิก
-            </button>
-        </form>
-
-        <!-- Login Link -->
-        <div class="login-link">
-            <p>มีบัญชีอยู่แล้ว?</p>
-            <a href="{% url 'login' %}">
-                <i class="fas fa-sign-in-alt"></i>
-                เข้าสู่ระบบ
-            </a>
         </div>
-    </div>
 
-    <!-- Scripts -->
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-    
-    <script>
-        // Form validation and password strength
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('registerForm');
-            const passwordInput = document.getElementById('id_password1');
-            const confirmPasswordInput = document.getElementById('id_password2');
-            const passwordStrength = document.getElementById('passwordStrength');
-            const submitBtn = document.getElementById('submitBtn');
+        <!-- Scripts -->
+        <script type="text/javascript"
+            src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-            // Password strength checker
-            passwordInput.addEventListener('input', function() {
-                const password = this.value;
-                const strength = checkPasswordStrength(password);
-                updatePasswordStrength(strength);
+        <script>
+            // Form validation and password strength
+            document.addEventListener('DOMContentLoaded', function () {
+                const form = document.getElementById('registerForm');
+                const passwordInput = document.getElementById('id_password1');
+                const confirmPasswordInput = document.getElementById('id_password2');
+                const passwordStrength = document.getElementById('passwordStrength');
+                const submitBtn = document.getElementById('submitBtn');
+
+                // Password strength checker
+                passwordInput.addEventListener('input', function () {
+                    const password = this.value;
+                    const strength = checkPasswordStrength(password);
+                    updatePasswordStrength(strength);
+                });
+
+                // Confirm password validation
+                confirmPasswordInput.addEventListener('input', function () {
+                    const password = passwordInput.value;
+                    const confirmPassword = this.value;
+
+                    if (confirmPassword && password !== confirmPassword) {
+                        this.setCustomValidity('รหัสผ่านไม่ตรงกัน');
+                        this.style.borderColor = '#e74c3c';
+                    } else {
+                        this.setCustomValidity('');
+                        this.style.borderColor = '#27ae60';
+                    }
+                });
+
+                // Form submission
+                form.addEventListener('submit', function (e) {
+                    submitBtn.classList.add('loading');
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังสมัครสมาชิก...';
+                });
+
+                // Password strength function
+                function checkPasswordStrength(password) {
+                    let score = 0;
+
+                    if (password.length >= 8) score++;
+                    if (/[a-z]/.test(password)) score++;
+                    if (/[A-Z]/.test(password)) score++;
+                    if (/[0-9]/.test(password)) score++;
+                    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+                    if (score < 2) return 'weak';
+                    if (score < 4) return 'medium';
+                    if (score < 5) return 'strong';
+                    return 'very-strong';
+                }
+
+                // Update password strength indicator
+                function updatePasswordStrength(strength) {
+                    passwordStrength.className = `password-strength ${strength}`;
+                }
+
+                // Add smooth animations to form groups
+                const formGroups = document.querySelectorAll('.form-group');
+                formGroups.forEach((group, index) => {
+                    group.style.animationDelay = `${index * 0.1}s`;
+                    group.classList.add('slide-in-left');
+                });
             });
 
-            // Confirm password validation
-            confirmPasswordInput.addEventListener('input', function() {
-                const password = passwordInput.value;
-                const confirmPassword = this.value;
-                
-                if (confirmPassword && password !== confirmPassword) {
-                    this.setCustomValidity('รหัสผ่านไม่ตรงกัน');
-                    this.style.borderColor = '#e74c3c';
-                } else {
-                    this.setCustomValidity('');
-                    this.style.borderColor = '#27ae60';
+            // Add loading state management
+            window.addEventListener('beforeunload', function () {
+                const submitBtn = document.getElementById('submitBtn');
+                if (submitBtn.classList.contains('loading')) {
+                    submitBtn.classList.remove('loading');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> สมัครสมาชิก';
                 }
             });
-
-            // Form submission
-            form.addEventListener('submit', function(e) {
-                submitBtn.classList.add('loading');
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังสมัครสมาชิก...';
-            });
-
-            // Password strength function
-            function checkPasswordStrength(password) {
-                let score = 0;
-                
-                if (password.length >= 8) score++;
-                if (/[a-z]/.test(password)) score++;
-                if (/[A-Z]/.test(password)) score++;
-                if (/[0-9]/.test(password)) score++;
-                if (/[^A-Za-z0-9]/.test(password)) score++;
-                
-                if (score < 2) return 'weak';
-                if (score < 4) return 'medium';
-                if (score < 5) return 'strong';
-                return 'very-strong';
-            }
-
-            // Update password strength indicator
-            function updatePasswordStrength(strength) {
-                passwordStrength.className = `password-strength ${strength}`;
-            }
-
-            // Add smooth animations to form groups
-            const formGroups = document.querySelectorAll('.form-group');
-            formGroups.forEach((group, index) => {
-                group.style.animationDelay = `${index * 0.1}s`;
-                group.classList.add('slide-in-left');
-            });
-        });
-
-        // Add loading state management
-        window.addEventListener('beforeunload', function() {
-            const submitBtn = document.getElementById('submitBtn');
-            if (submitBtn.classList.contains('loading')) {
-                submitBtn.classList.remove('loading');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> สมัครสมาชิก';
-            }
-        });
-    </script>
+        </script>
 </body>
+
 </html>

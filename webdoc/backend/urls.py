@@ -26,6 +26,8 @@ urlpatterns = [
     path('intro/', views.intro_view, name='intro_view'),
     # ใบรับรองปริญญานิพนธ์
     path('certificate/', views.certificate_view, name='certificate'),
+    path('legal/terms/', views.terms_view, name='terms'),
+    path('legal/privacy/', views.privacy_view, name='privacy'),
 
     
 ]

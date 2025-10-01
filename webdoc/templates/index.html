@@ -27,6 +27,12 @@
     <!-- เนื้อหาแต่ละหน้า -->
       <div class="card-container">
         <div class="card">
+            <h3>ข้อมูลเบื้องต้นของโปรเจค</h3>
+            
+            <p></p>
+            <a href="{% url 'project_setup' %}" class="card-button">ไปยังหน้านี้</a>
+        </div>
+        <div class="card">
             <h3>แบบเสนอโครงการพิเศษ ทก.01</h3>
             <p></p>
             <a href="{% url 'sp_project_form' %}" class="card-button">ไปยังหน้านี้</a>
@@ -34,7 +40,7 @@
          <div class="card">
             <h3>หน้าปก</h3>
             <p></p>
-            <a href="{% url 'cover' %}" class="card-button">ไปยังหน้านี้</a>
+            <a href="{% url 'manage_doc' %}" class="card-button">ไปยังหน้านี้</a>
         </div>
          <!-- ✅ ใหม่: ใบรับรองปริญญานิพนธ์ -->
         <div class="card">
@@ -45,7 +51,7 @@
         <div class="card">
             <h3>บทคัดย่อ</h3>
             <p></p>
-            <a href="{% url 'intro' %}" class="card-button">ไปยังหน้านี้</a>
+            <a href="{% url 'abstract_ack_view' %}" class="card-button">ไปยังหน้านี้</a>
         </div>
         <div class="card">
             <h3>บทที่ 1</h3>

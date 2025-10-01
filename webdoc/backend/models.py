@@ -4,11 +4,10 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import JSONField
-
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
+from django.contrib.auth.models import User
 
 
 class CustomUser(AbstractUser):
@@ -22,6 +21,59 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email
 
+
+class BackendCustomUser(models.Model):
+    user_id = models.AutoField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'backend_customuser'
+
+
+class DocIntroduction(models.Model):
+    doc_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(                   # <-- เปลี่ยนตรงนี้
+        settings.AUTH_USER_MODEL,               # ใช้ auth user เดียวกับระบบ
+        on_delete=models.DO_NOTHING,
+        db_column='user_id',
+        related_name='doc_introductions',)
+
+    # ชื่อโครงงาน
+    name_pro_th = models.CharField(max_length=255, blank=True, null=True)
+    name_pro_en = models.CharField(max_length=255, blank=True, null=True)
+
+    # ผู้จัดทำ (JSON: {"th": [...], "en": [...]})
+    student_name = models.JSONField(blank=True, null=True)
+
+    # ปีการศึกษา
+    school_y_BE = models.IntegerField(blank=True, null=True)
+    school_y_AD = models.IntegerField(blank=True, null=True)
+
+    # กรรมการ
+    comm_dean    = models.CharField(max_length=255, blank=True, null=True)
+    comm_prathan = models.CharField(max_length=255, blank=True, null=True)
+    comm_first   = models.CharField(max_length=255, blank=True, null=True)
+    comm_sec     = models.CharField(max_length=255, blank=True, null=True)
+
+    # อาจารย์ที่ปรึกษา
+    advisor_th   = models.CharField(max_length=200, blank=True, null=True)
+    advisor_en   = models.CharField(max_length=200, blank=True, null=True)
+
+    # อาจารย์ที่ปรึกษาร่วม (ใน DB เก็บ JSON → ถ้าอยากให้เป็น string ธรรมดา ค่อยเปลี่ยนสคีมา)
+    coadvisor_th = models.JSONField(blank=True, null=True)
+    coadvisor_en = models.JSONField(blank=True, null=True)
+
+    # ภาควิชา
+    dep_th = models.CharField(max_length=255, blank=True, null=True)
+    dep_en = models.CharField(max_length=255, blank=True, null=True)
+
+    # timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'doc_introduction'
 
 class SpProject(models.Model):
     user = models.ForeignKey(
@@ -99,53 +151,38 @@ class DocCover(models.Model):
 
 #แก้ไขเพิ่มมา
 # สร้างโมเดลใหม่สำหรับบทคัดย่อและกิตติกรรมประกาศ
-class Abstract(models.Model):
-    abstract_id = models.AutoField(primary_key=True)
+# project/app/models.py
+
+class DocAbstract(models.Model):
+    
+    doc_id = models.AutoField(primary_key=True) 
+    # One-to-one relationship กับ User model
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         db_column='user_id',
         to_field='user_id'
     )
-    # ข้อมูลเอกสาร
-    project_name_th = models.TextField(null=True, blank=True)
-    project_name_en = models.TextField(null=True, blank=True)
-    major_th = models.TextField(null=True, blank=True)
-    major_en = models.TextField(null=True, blank=True)
-    advisor_th = models.CharField(max_length=255, null=True, blank=True)
-    advisor_en = models.CharField(max_length=255, null=True, blank=True)
-    coadvisor_th = models.CharField(max_length=255, null=True, blank=True)
-    coadvisor_en = models.CharField(max_length=255, null=True, blank=True)
-    academic_year_th = models.IntegerField(null=True, blank=True)
-    academic_year_en = models.IntegerField(null=True, blank=True)
-
-    # 🔹 จำนวนหน้า
-    total_pages = models.IntegerField(null=True, blank=True)
-
-    # บทคัดย่อ
-    abstract_th_para1 = models.TextField(null=True, blank=True)
-    abstract_th_para2 = models.TextField(null=True, blank=True)
-    abstract_en_para1 = models.TextField(null=True, blank=True)
-    abstract_en_para2 = models.TextField(null=True, blank=True)
-    keyword_th = models.TextField(null=True, blank=True)
-    keyword_en = models.TextField(null=True, blank=True)
-
-    # ผู้จัดทำ
-    author1_th = models.CharField(max_length=255, null=True, blank=True)
-    author1_en = models.CharField(max_length=255, null=True, blank=True)
-    author2_th = models.CharField(max_length=255, null=True, blank=True)
-    author2_en = models.CharField(max_length=255, null=True, blank=True)
-
-    # กิตติกรรมประกาศ
-    acknow_para1 = models.TextField(null=True, blank=True)
-    acknow_para2 = models.TextField(null=True, blank=True)
-    acknow_name1 = models.CharField(max_length=255, null=True, blank=True)
-    acknow_name2 = models.CharField(max_length=255, null=True, blank=True)
+    total_pages = models.IntegerField()
+    keyword_th = models.CharField(max_length=200)
+    keyword_en = models.CharField(max_length=200)
+    
+    # ใช้ JSONField ของ Django สำหรับเก็บข้อมูล JSON โดยตรง
+    abstract_th_json = models.JSONField(default=list)
+    abstract_en_json = models.JSONField(null=True, blank=True, default=list)
+    acknow_json = models.JSONField(
+        verbose_name="", 
+        null=True, 
+        blank=True, 
+        default=list
+    )
 
     class Meta:
-        managed = False
-        db_table = 'abstract'
+        db_table = 'doc_abstract' # กำหนดชื่อตารางในฐานข้อมูล
 
+    def __str__(self):
+        return f"Abstract for {self.user.username}"
+    
 # โมเดลใบรับรองปริญญานิพนธ์ (อิงตาราง certificate เดิม)
 class Certificate(models.Model):
     # คีย์หลักอัตโนมัติ (ตามตาราง)

@@ -19,7 +19,7 @@
   <nav class="navbar">
     <div class="nav-container">
       <div class="nav-logo">
-        <img src="{% static 'img/kmutnb_logo.png' %}" alt="KMUTNB" class="logo-img">
+        <img src="{% static 'img/kmutnb_logo_cover.png' %}" alt="KMUTNB" class="logo-img">
         <span class="logo-text">ระบบจัดการเอกสาร</span>
       </div>
 
@@ -101,7 +101,7 @@
               <div class="fx-line dim"></div>
               <div class="fx-line dim short"></div>
               <div class="fx-line"></div>
-              <div class="fx-typing" data-strings='["บทที่ 1 บทนำ","1.1 ที่มาและความสำคัญของปัญหา","1.2 วัตถุประสงค์ของโครงงาน","1.3 ขอบเขตของโครงงาน"]'>
+              <div class="fx-typing" data-strings='["บทที่ 1 บทนำ","บทที่ 2 เอกสารที่เกี่ยวข้อง","บทที่ 3 วิธีการดำเนินงาน","บทที่ 4 สรุปผลการวิจัย","บทที่ 5 สรุป อภิปรายผล"]'>
                 <span class="fx-typing__text"></span><span class="fx-caret"></span>
               </div>
               <div class="fx-list">
@@ -115,15 +115,15 @@
 
         <article class="fx-panel fx-blue">
           <header class="fx-header">
-            <span class="fx-badge">👥 จัดการข้อมูลเบื้องต้น</span>
+            <span class="fx-badge">📄 จัดการข้อมูลเบื้องต้น</span>
             <h3>กรอกข้อมูลโครงงานครั้งเดียว ใช้ได้ทั้งเล่ม</h3>
             <p>บันทึกผู้จัดทำ อาจารย์ที่ปรึกษา และรายละเอียดโปรเจค</p>
           </header>
           <div class="fx-window">
             <div class="fx-window__chrome"><span></span><span></span><span></span></div>
             <div class="fx-chips">
-              <span class="chip">ผู้จัดทำ: สมชาย · สมหญิง</span>
-              <span class="chip">ที่ปรึกษา: รศ.ดร.อานันท์</span>
+              <span class="chip">ชื่อโครงงาน</span>
+              <span class="chip">ชื่ออาจารย์ที่ปรึกษา</span>
               <span class="chip good"><i class="fas fa-check"></i> บันทึกแล้ว</span>
             </div>
             <div class="fx-form-ghost">
@@ -152,15 +152,15 @@
 
         <article class="fx-panel fx-yellow">
           <header class="fx-header">
-            <span class="fx-badge">🛡️ บันทึกอัตโนมัติ</span>
-            <h3>ไม่ต้องกลัวข้อมูลหาย</h3>
-            <p>เชื่อมต่อ MySQL ผ่าน phpMyAdmin · update_or_create ตาม user_id</p>
+            <span class="fx-badge">🛡️ บันทึกข้อมูลเพียงคลิกเดียว</span>
+            <h3>ไม่ต้องกลัวข้อมูลสูญหาย</h3>
+            <p>บันทึกข้อมูลในฐานข้อมูล MySQL ได้อย่างมีประสิทธิภาพ</p>
           </header>
           <div class="fx-window">
             <div class="fx-window__chrome"><span></span><span></span><span></span></div>
             <div class="fx-safe">
-              <div class="safe-item"><i class="fas fa-database"></i> backend_customuser</div>
-              <div class="safe-item"><i class="fas fa-link"></i> FK → sp_project, sp_project_author</div>
+              <div class="safe-item"><i class="fas fa-database"></i>ระบบจัดการเอกสาร</div>
+              <div class="safe-item"><i class="fas fa-link"></i> ข้อมูลเอกสาร → ข้อมูลผู้ใช้งาน</div>
               <div class="safe-item ok"><i class="fas fa-shield-alt"></i> บันทึกสำเร็จ</div>
             </div>
           </div>
@@ -174,23 +174,23 @@
     <div class="container">
       <div class="ribbon">
         <div class="ribbon-track">
-          <span class="ribbon-chip">จัดหัวข้ออัตโนมัติ (บทที่ 1–5)</span>
-          <span class="ribbon-chip">แทรกเลขข้อมาตรฐาน</span>
-          <span class="ribbon-chip">บันทึกอัตโนมัติลง MySQL</span>
-          <span class="ribbon-chip">ดึงข้อมูลกลับมาแก้ไขได้</span>
-          <span class="ribbon-chip">รองรับ python-docx / .docx</span>
-          <span class="ribbon-chip">Export พร้อมสารบัญ</span>
-          <span class="ribbon-chip">เทมเพลตคณะ/ภาควิชา</span>
-          <span class="ribbon-chip">ตรวจความสอดคล้องรูปแบบ</span>
+          <span class="ribbon-chip">จัดหัวข้ออัตโนมัติ (บทที่ 1-5)</span>
+          <span class="ribbon-chip">แทรกเลขหัวข้อตามมาตรฐานมหาวิทยาลัย</span>
+          <span class="ribbon-chip">บันทึกข้อมูลลงฐานข้อมูล MySQL</span>
+          <span class="ribbon-chip">ดึงข้อมูลกลับมาแก้ไขได้ทุกเมื่อ</span>
+          <span class="ribbon-chip">สร้างเอกสารไฟล์ .docx เพียงคลิกเดียว</span>
+          <span class="ribbon-chip">สร้างสารบัญพร้อมเลขหัวข้ออัตโนมัติ</span>
+          <span class="ribbon-chip">เอกสารมีรูปแบบตาม คณะ/ภาควิชา 90% </span>
+          <span class="ribbon-chip">ใช้งานง่าย สะดวก</span>
         </div>
       </div>
 
       <div class="stats-grid">
-        <div class="stat-item"><div class="stat-number" data-count="500">0</div><div class="stat-label">เอกสารที่จัดการ</div></div>
+        <div class="stat-item"><div class="stat-number" data-count="100">0</div><div class="stat-label">เอกสารที่จัดการ</div></div>
         <div class="stat-item"><div class="stat-number" data-count="100">0</div><div class="stat-label">ผู้ใช้งาน</div></div>
         <div class="stat-item"><div class="stat-number" data-count="90" data-suffix="%">0%</div><div class="stat-label">ความถูกต้องของการจัดรูปแบบ</div></div>
         <div class="stat-item"><div class="stat-number" data-text="24/7">0</div><div class="stat-label">พร้อมใช้งาน</div></div>
-        <div class="stat-item"><div class="stat-number" data-count="15">0</div><div class="stat-label">เทมเพลตมาตรฐาน</div></div>
+        <div class="stat-item"><div class="stat-number" data-count="10+">0</div><div class="stat-label">เทมเพลตมาตรฐาน</div></div>
         <div class="stat-item"><div class="stat-number" data-count="70" data-suffix="%">0%</div><div class="stat-label">เวลาที่ประหยัดโดยเฉลี่ย</div></div>
       </div>
     </div>

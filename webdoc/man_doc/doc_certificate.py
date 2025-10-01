@@ -104,7 +104,8 @@ def _underline_line(length=40):
 # ----------------------------------------------------
 #                  MAIN GENERATOR
 # ----------------------------------------------------
-def doc_certificate(topic, author1, author2, dean, chairman, committee1, committee2):
+
+def doc_certificate(topic, author1, author2, comm_dean, prathan, comm_first, comm_sec):
     doc = Document()
     _set_base_style(doc)
 
@@ -144,21 +145,21 @@ def doc_certificate(topic, author1, author2, dean, chairman, committee1, committ
     doc.add_paragraph()
     # ---------- คณบดี (ชิดขวา + เว้นด้วย \t จากเส้น) ----------
     _right(doc, f"{_underline_line(40)}คณบดี", spacing_after_pt=2, indent_spaces=2)
-    _left(doc, f"\t\t\t\t\t({dean.strip()})", spacing_after_pt=8)
+    _left(doc, f"\t\t\t\t\t({comm_dean.strip()})", spacing_after_pt=8)
 
     # ---------- คณะกรรมการ ----------
     _left(doc, "คณะกรรมการสอบปริญญานิพนธ์", spacing_after_pt=6)
 
     # ประธาน
     _left(doc, f"{_underline_line(40)}ประธานกรรมการ", spacing_after_pt=1)
-    _left(doc, f"\t({chairman.strip()})" if (chairman or "").strip() else "", spacing_after_pt=8)
+    _left(doc, f"\t({prathan.strip()})" if (prathan or "").strip() else "", spacing_after_pt=8)
 
     # กรรมการ 1
     _left(doc, f"{_underline_line(40)}กรรมการ", spacing_after_pt=1)
-    _left(doc, f"\t({committee1.strip()})" if (committee1 or "").strip() else "", spacing_after_pt=8)
+    _left(doc, f"\t({comm_first.strip()})" if (comm_first or "").strip() else "", spacing_after_pt=8)
 
     # กรรมการ 2 (ถ้ามี)
-    if (committee2 or "").strip():
+    if (comm_sec or "").strip():
         _left(doc, f"{_underline_line(40)}กรรมการ", spacing_after_pt=1)
-        _left(doc, f"\t({committee2.strip()})", spacing_after_pt=8)
+        _left(doc, f"\t({comm_sec.strip()})", spacing_after_pt=8)
     return doc

@@ -11,10 +11,10 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 
 #หน้าปกไทย
-def doc_cover_th( project_name_th, project_name_en,
+def doc_cover_th(project_name_th, project_name_en,
                 author1_th, author2_th,
                 author1_en, author2_en,
-                academic_year):
+                academic_year_be,dep_th):
 
     doc = Document()
     style = doc.styles["Normal"]
@@ -59,9 +59,9 @@ def doc_cover_th( project_name_th, project_name_en,
     doc.add_paragraph("\n\n\n")
     doc.add_paragraph("ปริญญานิพนธ์นี้เป็นส่วนหนึ่งของการศึกษาตามหลักสูตรอุตสาหกรรมศาสตรบัณฑิต").alignment = 1
     doc.add_paragraph("สาขาวิชาเทคโนโลยีสารสนเทศ ภาควิชาเทคโนโลยีสารสนเทศ").alignment = 1
-    doc.add_paragraph("คณะเทคโนโลยีและการจัดการอุตสาหกรรม").alignment = 1
+    doc.add_paragraph(f"คณะ{dep_th}").alignment = 1
     doc.add_paragraph("มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
-    doc.add_paragraph(f"ปีการศึกษา {academic_year}").alignment = 1
+    doc.add_paragraph(f"ปีการศึกษา {academic_year_be}").alignment = 1
     doc.add_paragraph("ลิขสิทธิ์ของมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
 
     return doc
@@ -70,7 +70,7 @@ def doc_cover_th( project_name_th, project_name_en,
 def doc_cover_sec( project_name_th, project_name_en,
                 author1_th, author2_th,
                 author1_en, author2_en,
-                academic_year):
+                academic_year,dep_th):
 
     doc = Document()
     style = doc.styles["Normal"]
@@ -101,7 +101,7 @@ def doc_cover_sec( project_name_th, project_name_en,
     doc.add_paragraph("\n\n\n\n\n\n\n\n")
     doc.add_paragraph("ปริญญานิพนธ์นี้เป็นส่วนหนึ่งของการศึกษาตามหลักสูตรอุตสาหกรรมศาสตรบัณฑิต").alignment = 1
     doc.add_paragraph("สาขาวิชาเทคโนโลยีสารสนเทศ ภาควิชาเทคโนโลยีสารสนเทศ").alignment = 1
-    doc.add_paragraph("คณะเทคโนโลยีและการจัดการอุตสาหกรรม").alignment = 1
+    doc.add_paragraph(f"คณะ {dep_th}").alignment = 1
     doc.add_paragraph("มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
     doc.add_paragraph(f"ปีการศึกษา {academic_year}").alignment = 1
     doc.add_paragraph("ลิขสิทธิ์ของมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
@@ -111,7 +111,7 @@ def doc_cover_sec( project_name_th, project_name_en,
 def doc_cover_en(project_name_th, project_name_en,
                  author1_th, author2_th,
                  author1_en, author2_en,
-                 academic_year):
+                 academic_year,dep_en):
 
     doc = Document()
     style = doc.styles["Normal"]
@@ -141,7 +141,7 @@ def doc_cover_en(project_name_th, project_name_en,
     doc.add_paragraph("FOR THE BACHELOR’S DEGREE OF INDUSTRIAL TECHNOLOGY").alignment = 1
     doc.add_paragraph("PROGRAM IN INFORMATION TECHNOLOGY").alignment = 1
     doc.add_paragraph("DEPARTMENT OF INFORMATION TECHNOLOGY").alignment = 1
-    doc.add_paragraph("FACULTY OF INDUSTRIAL TECHNOLOGY AND MANAGEMENT").alignment = 1
+    doc.add_paragraph(f"FACULTY OF {dep_en}").alignment = 1
     doc.add_paragraph("KING MONGKUT'S UNIVERSITY OF TECHNOLOGY NORTH BANGKOK").alignment = 1
 
     # ✅ แปลงปี พ.ศ. → ค.ศ. ด้วยการลด 543

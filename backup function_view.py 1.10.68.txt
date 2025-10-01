@@ -1,0 +1,79 @@
+@login_required
+def doc_cover_view(request):
+    user = request.user
+    action = request.POST.get('action')
+    print (action)
+    initial = {}
+
+    # 🔹 แยก get_data_cover ออกมา
+    if request.method == 'POST' and action == 'get_data_cover':
+        try:
+            project = DocCover.objects.get(user=user)
+            initial = {
+            'name_pro_th': project.project_name_th,
+            'name_pro_en': project.project_name_en,
+            'academic_year': project.academic_year,
+            'authors_th': [project.author1_name_th or '', project.author2_name_th or ''],
+            'authors_en': [project.author1_name_en or '', project.author2_name_en or ''],
+        }
+
+        
+            initial['authors_th_json'] = json.dumps(initial.get('authors_th', []))
+            initial['authors_en_json'] = json.dumps(initial.get('authors_en', []))
+
+        except DocCover.DoesNotExist:
+                initial = {}
+
+        return render(request, 'cover.html', {'initial': initial})
+
+    # 🔹 ส่วนบันทึก / สร้างเอกสาร
+    if request.method == 'POST' and action in ['save_cover', 'generate_cover_th','generate_cover_en','generate_cover_sec']:
+        project_name_th = request.POST.get('name_pro_th', '')
+        project_name_en = request.POST.get('name_pro_en', '')
+        author1_th = request.POST.get('name_author_th_1', '')
+        author2_th = request.POST.get('name_author_th_2', '')
+        author1_en = request.POST.get('name_author_en_1', '')
+        author2_en = request.POST.get('name_author_en_2', '')
+        academic_year = request.POST.get('academic_year', '')
+
+        # บันทึกหรืออัปเดตข้อมูลหน้าปก
+        DocCover.objects.update_or_create(
+            user=user,
+            defaults={
+                'project_name_th': project_name_th,
+                'project_name_en': project_name_en,
+                'author1_name_th': author1_th,
+                'author2_name_th': author2_th,
+                'author1_name_en': author1_en,
+                'author2_name_en': author2_en,
+                'academic_year': academic_year,
+            }
+        )
+
+        # สร้างไฟล์ .docx ถ้าเลือก generate
+        if action == 'generate_cover_th':
+            doc = doc_cover_th(project_name_th, project_name_en, author1_th, author2_th, author1_en, author2_en, academic_year)
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            response['Content-Disposition'] = 'attachment; filename=cover_th.docx'
+            doc.save(response)
+            return response
+
+        elif action == 'generate_cover_en':
+            doc = doc_cover_en(project_name_th, project_name_en, author1_th, author2_th, author1_en, author2_en, academic_year)
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            response['Content-Disposition'] = 'attachment; filename=cover_en.docx'
+            doc.save(response)
+            return response
+        elif action == 'generate_cover_sec':
+            doc = doc_cover_sec(project_name_th, project_name_en, author1_th, author2_th, author1_en, author2_en, academic_year)
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            response['Content-Disposition'] = 'attachment; filename=cover_sec.docx'
+            doc.save(response)
+            return response
+
+
+    return render(request, 'cover.html')
+
+
+------------------------------------
+

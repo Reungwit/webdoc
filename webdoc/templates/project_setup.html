@@ -1,0 +1,247 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Setup</title>
+    <link rel="stylesheet" href="{% static 'css/pro_setup.css' %}">
+</head>
+<body>
+
+<div class="form-container">
+    <h1>ตั้งค่าข้อมูลโครงงาน</h1>
+
+    {% if initial.error %}
+        <div class="alert alert-danger">{{ initial.error }}</div>
+    {% endif %}
+
+    <form id="setupForm" method="post" action="{% url 'project_setup' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="actionField" value="save_setup">
+
+        <div class="form-grid-2">
+            <div>
+                <label for="name_pro_th">ชื่อโครงงาน (ไทย)</label>
+                <input type="text" id="name_pro_th" name="name_pro_th" value="{{ initial.name_pro_th|default_if_none:'' }}">
+            </div>
+            <div>
+                <label for="name_pro_en">ชื่อโครงงาน (อังกฤษ)</label>
+                <input type="text" id="name_pro_en" name="name_pro_en" value="{{ initial.name_pro_en|default_if_none:'' }}">
+            </div>
+        </div>
+
+        <!-- <div class="form-grid-2">
+            <div>
+                <label for="dep_th">คณะ (ไทย)</label>
+                <input type="text" id="dep_th" name="dep_th" value="{{ initial.dep_th|default_if_none:'' }}">
+            </div>
+            <div>
+                <label for="dep_en">คณะ (อังกฤษ)</label>
+                <input type="text" id="dep_en" name="dep_en" value="{{ initial.dep_en|default_if_none:'' }}">
+            </div>
+        </div> -->
+
+        <div class="form-grid-2">
+    <div>
+        <label for="dep_selector">คณะ (ไทย)</label>
+        
+        <select id="dep_selector" name="dep_th" onchange="syncDepartment()">
+            <option value="">--- เลือกคณะ ---</option>
+            
+            <option 
+                value="คณะวิศวกรรมศาสตร์" 
+                data-en="Faculty of Engineering" 
+                {% if initial.dep_th == 'คณะวิศวกรรมศาสตร์' %}selected{% endif %}>
+                คณะวิศวกรรมศาสตร์
+            </option>
+            
+            <option 
+                value="คณะเทคโนโลยีสารสนเทศ" 
+                data-en="Faculty of Information Technology" 
+                {% if initial.dep_th == 'คณะเทคโนโลยีสารสนเทศ' %}selected{% endif %}>
+                คณะเทคโนโลยีสารสนเทศ
+            </option>
+
+            <option 
+                value="คณะวิทยาศาสตร์ประยุกต์" 
+                data-en="Faculty of Applied Science" 
+                {% if initial.dep_th == 'คณะวิทยาศาสตร์ประยุกต์' %}selected{% endif %}>
+                คณะวิทยาศาสตร์ประยุกต์
+            </option>
+            
+            </select>
+        
+        <input type="hidden" id="dep_en" name="dep_en" value="{{ initial.dep_en|default_if_none:'' }}">
+    </div>
+    
+    <div>
+        <label for="dep_en_display">คณะ (อังกฤษ) (อัตโนมัติ)</label>
+        <input type="text" id="dep_en_display" value="{{ initial.dep_en|default_if_none:'' }}" readonly>
+    </div>
+</div>
+
+<script>
+    // ฟังก์ชัน JavaScript ยังคงเดิม เพื่อซิงค์ค่าจาก data-en ไปยัง input hidden
+    function syncDepartment() {
+        const selector = document.getElementById('dep_selector');
+        // ดึง option ที่ถูกเลือก
+        const selectedOption = selector.options[selector.selectedIndex];
+        
+        // ดึงค่าภาษาอังกฤษจาก attribute 'data-en'
+        const enValue = selectedOption.getAttribute('data-en') || '';
+        
+        // ตั้งค่าให้ input type="hidden" (เพื่อส่งค่า dep_en ไปยังเซิร์ฟเวอร์)
+        document.getElementById('dep_en').value = enValue;
+        
+        // ตั้งค่าให้ input type="text" readonly (เพื่อแสดงผลให้ผู้ใช้เห็น)
+        document.getElementById('dep_en_display').value = enValue;
+    }
+
+    // เรียกฟังก์ชันเมื่อหน้าโหลดเสร็จ เพื่อให้ค่าเริ่มต้นถูกต้อง
+    document.addEventListener('DOMContentLoaded', (event) => {
+        syncDepartment(); 
+    });
+</script>
+
+        <div class="form-grid-2">
+            <div>
+                <label for="school_y_BE">ปีการศึกษา (พ.ศ.)</label>
+                <input type="text" id="school_y_BE" name="school_y_BE" value="{{ initial.school_y_BE|default_if_none:'' }}">
+            </div>
+            <div>
+                <label for="school_y_AD">ปีการศึกษา (ค.ศ.)</label>
+                <input type="text" id="school_y_AD" name="school_y_AD" value="{{ initial.school_y_AD|default_if_none:'' }}">
+            </div>
+        </div>
+
+        <div>
+            <label>ผู้จัดทำ</label>
+            <div id="author-container"
+                 data-authors-th='{{ initial.authors_th_json|default:"[]"|escapejs }}'
+                 data-authors-en='{{ initial.authors_en_json|default:"[]"|escapejs }}'>
+                </div>
+            <div class="author-controls">
+                <button type="button" id="add-button" onclick="addAuthor()" class="btn btn-secondary">เพิ่มผู้จัดทำ</button>
+                <button type="button" onclick="removeAuthor()" class="btn btn-danger">ลบผู้จัดทำ</button>
+            </div>
+        </div>
+
+        <div class="form-grid-2">
+            <div>
+                <label for="advisor_th">ชื่ออาจารย์ที่ปรึกษา (ไทย)</label>
+                <input type="text" id="advisor_th" name="advisor_th" value="{{ initial.advisor_th|default_if_none:'' }}">
+            </div>
+            <div>
+                <label for="advisor_en">ชื่ออาจารย์ที่ปรึกษา (อังกฤษ)</label>
+                <input type="text" id="advisor_en" name="advisor_en" value="{{ initial.advisor_en|default_if_none:'' }}">
+            </div>
+        </div>
+
+        <div class="form-grid-2">
+            <div>
+                <label for="coadvisor_th">ชื่ออาจารย์ที่ปรึกษาร่วม (ไทย)</label>
+                <input type="text" id="coadvisor_th" name="coadvisor_th" value="{{ initial.coadvisor_th|default_if_none:'' }}">
+            </div>
+            <div>
+                <label for="coadvisor_en">ชื่ออาจารย์ที่ปรึกษาร่วม (อังกฤษ)</label>
+                <input type="text" id="coadvisor_en" name="coadvisor_en" value="{{ initial.coadvisor_en|default_if_none:'' }}">
+            </div>
+        </div>
+
+
+        
+
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary" onclick="document.getElementById('actionField').value='save_setup'">บันทึกข้อมูล</button>
+            <button type="submit" name="action" value="get_data" class="btn btn-secondary">โหลดข้อมูลเดิม</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // ส่งค่า JSON ไปยัง JavaScript อย่างปลอดภัย
+    const initialAuthorsTh = JSON.parse('{{ initial.authors_th_json|default:"[]"|escapejs }}');
+    const initialAuthorsEn = JSON.parse('{{ initial.authors_en_json|default:"[]"|escapejs }}');
+</script>
+<script>
+    let authorCount = 0;
+    const maxAuthors = 3;
+    const container = document.getElementById('author-container');
+    const addBtn = document.getElementById('add-button');
+
+    function createAuthorInput(index, name_th = '', name_en = '') {
+        const authorBlock = document.createElement('div');
+        authorBlock.className = 'author-input-block'; // ใช้สำหรับลบทีละบล็อก
+
+        const labelTh = document.createElement('label');
+        labelTh.setAttribute('for', `name_author_th_${index}`);
+        labelTh.textContent = `ชื่อผู้จัดทำคนที่ ${index} (ภาษาไทย):`;
+
+        const inputTh = document.createElement('input');
+        inputTh.type = 'text';
+        inputTh.id = `name_author_th_${index}`;
+        inputTh.name = `name_author_th_${index}`;
+        inputTh.value = name_th;
+
+        const labelEn = document.createElement('label');
+        labelEn.setAttribute('for', `name_author_en_${index}`);
+        labelEn.textContent = `ชื่อผู้จัดทำคนที่ ${index} (ภาษาอังกฤษ):`;
+
+        const inputEn = document.createElement('input');
+        inputEn.type = 'text';
+        inputEn.id = `name_author_en_${index}`;
+        inputEn.name = `name_author_en_${index}`;
+        inputEn.value = name_en;
+
+        authorBlock.appendChild(labelTh);
+        authorBlock.appendChild(inputTh);
+        authorBlock.appendChild(labelEn);
+        authorBlock.appendChild(inputEn);
+
+        container.appendChild(authorBlock);
+    }
+
+    function renderAuthorsFromData() {
+        container.innerHTML = '';
+        const count = Math.max(initialAuthorsTh.length, initialAuthorsEn.length);
+
+        if (count === 0) {
+            // ถ้าไม่มีข้อมูลเลย ให้สร้างช่องว่าง 1 ช่อง
+            addAuthor();
+        } else {
+            for (let i = 0; i < count; i++) {
+                createAuthorInput(i + 1, initialAuthorsTh[i] || '', initialAuthorsEn[i] || '');
+            }
+            authorCount = count;
+        }
+        updateAddButtonState();
+    }
+
+    function addAuthor() {
+        if (authorCount >= maxAuthors) return;
+        authorCount++;
+        createAuthorInput(authorCount);
+        updateAddButtonState();
+    }
+
+    function removeAuthor() {
+        if (authorCount > 1) {
+            container.removeChild(container.lastElementChild);
+            authorCount--;
+            updateAddButtonState();
+        }
+    }
+
+    function updateAddButtonState() {
+        if (addBtn) {
+            addBtn.disabled = authorCount >= maxAuthors;
+        }
+    }
+
+    // เริ่มการทำงานเมื่อ DOM โหลดเสร็จ
+    document.addEventListener("DOMContentLoaded", renderAuthorsFromData);
+
+</script>
+</body>
+</html>

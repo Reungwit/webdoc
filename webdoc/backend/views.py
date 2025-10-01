@@ -6,10 +6,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 import json
 from .forms import RegisterForm, LoginForm
-from .models import SpProject, SpProjectAuthor, DocCover, Abstract , Certificate ,Chapter1,RefWebsite ,RefBook ,Chapter5
+from .models import SpProject, SpProjectAuthor, DocCover, Certificate ,Chapter1,RefWebsite ,RefBook ,Chapter5 ,DocIntroduction,DocAbstract
 from man_doc.doc_sp_01 import doc_sp_01
 from man_doc.doc_cover import doc_cover_th, doc_cover_en, doc_cover_sec  
-from man_doc.doc_intro import doc_intro  
+from man_doc.doc_abstract_ack import doc_abstract_ack  
 from man_doc.doc_refer import doc_refer 
 from man_doc.doc_chapter5 import doc_chapter5 
 from django.template.loader import render_to_string
@@ -21,7 +21,10 @@ from man_doc.doc_certificate import doc_certificate
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 from django.views.decorators.clickjacking import xframe_options_exempt
-
+from django.utils.dateparse import parse_date
+from django.contrib import messages
+from django.db import transaction
+from django.urls import reverse
 
 # Register / Login / Logout
 def register_view(request):
@@ -40,8 +43,6 @@ def register_view(request):
         form = RegisterForm()
     return render(request, 'register.html', {'form': form})
 
-
-
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -54,18 +55,19 @@ def login_view(request):
         form = LoginForm()
     return render(request, 'login.html', {'form': form})
 
-
 def logout_view(request):
     logout(request)
     return redirect('login')
 
-# Static Pages
-@login_required
-def index(request):
-    return render(request, 'index.html')
 
-def manage_doc(request):
-    return render(request, 'index.html')
+def index(request):
+    user = request.user
+    intro = DocIntroduction.objects.filter(user=user).first()
+    if not intro or not is_intro_ok_check(intro):
+        messages.info(request, 'โปรดกรอกข้อมูลเบื้องต้นของโครงงานก่อนเข้าใช้งานในส่วนอื่นๆ')
+        return redirect('project_setup')
+    
+    return render(request, 'index.html', {})
 
 def about(request):
     return render(request, 'index.html')
@@ -98,7 +100,6 @@ def chapter_3_view(request):
 def chapter_4_view(request):
     return render(request, 'chapter_4.html')
 
-
 def refer_view(request):
     return render(request, 'refer.html')
 
@@ -110,83 +111,6 @@ def terms_view(request):
 
 def privacy_view(request):
     return render(request, "legal/privacy_policy.html")
-
-@login_required
-def doc_cover_view(request):
-    user = request.user
-    action = request.POST.get('action')
-    print (action)
-    initial = {}
-
-    # 🔹 แยก get_data_cover ออกมา
-    if request.method == 'POST' and action == 'get_data_cover':
-        try:
-            project = DocCover.objects.get(user=user)
-            initial = {
-            'name_pro_th': project.project_name_th,
-            'name_pro_en': project.project_name_en,
-            'academic_year': project.academic_year,
-            'authors_th': [project.author1_name_th or '', project.author2_name_th or ''],
-            'authors_en': [project.author1_name_en or '', project.author2_name_en or ''],
-        }
-
-        
-            initial['authors_th_json'] = json.dumps(initial.get('authors_th', []))
-            initial['authors_en_json'] = json.dumps(initial.get('authors_en', []))
-
-        except DocCover.DoesNotExist:
-                initial = {}
-
-        return render(request, 'cover.html', {'initial': initial})
-
-    # 🔹 ส่วนบันทึก / สร้างเอกสาร
-    if request.method == 'POST' and action in ['save_cover', 'generate_cover_th','generate_cover_en','generate_cover_sec']:
-        project_name_th = request.POST.get('name_pro_th', '')
-        project_name_en = request.POST.get('name_pro_en', '')
-        author1_th = request.POST.get('name_author_th_1', '')
-        author2_th = request.POST.get('name_author_th_2', '')
-        author1_en = request.POST.get('name_author_en_1', '')
-        author2_en = request.POST.get('name_author_en_2', '')
-        academic_year = request.POST.get('academic_year', '')
-
-        # บันทึกหรืออัปเดตข้อมูลหน้าปก
-        DocCover.objects.update_or_create(
-            user=user,
-            defaults={
-                'project_name_th': project_name_th,
-                'project_name_en': project_name_en,
-                'author1_name_th': author1_th,
-                'author2_name_th': author2_th,
-                'author1_name_en': author1_en,
-                'author2_name_en': author2_en,
-                'academic_year': academic_year,
-            }
-        )
-
-        # สร้างไฟล์ .docx ถ้าเลือก generate
-        if action == 'generate_cover_th':
-            doc = doc_cover_th(project_name_th, project_name_en, author1_th, author2_th, author1_en, author2_en, academic_year)
-            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-            response['Content-Disposition'] = 'attachment; filename=cover_th.docx'
-            doc.save(response)
-            return response
-
-        elif action == 'generate_cover_en':
-            doc = doc_cover_en(project_name_th, project_name_en, author1_th, author2_th, author1_en, author2_en, academic_year)
-            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-            response['Content-Disposition'] = 'attachment; filename=cover_en.docx'
-            doc.save(response)
-            return response
-        elif action == 'generate_cover_sec':
-            doc = doc_cover_sec(project_name_th, project_name_en, author1_th, author2_th, author1_en, author2_en, academic_year)
-            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-            response['Content-Disposition'] = 'attachment; filename=cover_sec.docx'
-            doc.save(response)
-            return response
-
-
-    return render(request, 'cover.html')
-
 
 # แบบฟอร์ม ทก.01
 @login_required
@@ -340,215 +264,191 @@ def sp_project_form_view(request):
         return render(request, 'sp_project_form.html', {'initial': initial})
     
 
+
+
 @login_required
-def intro_view(request):
+def abstract_ack_view(request):
     user = request.user
     initial = {}
-    action = request.POST.get('action')
 
+    # === ส่วนจัดการ POST Request (เมื่อมีการกดปุ่ม) ===
     if request.method == 'POST':
-        # Action: ดึงข้อมูล
+        action = request.POST.get('action')
+
+        # Action: ดึงข้อมูล (แค่ redirect ไปให้ GET request ทำงาน)
         if action == 'get_data_intro':
-            try:
-                abstract_data = Abstract.objects.get(user=user)
-                initial = {
-                    'project_name_th': abstract_data.project_name_th,
-                    'project_name_en': abstract_data.project_name_en,
-                    'major_th': abstract_data.major_th,
-                    'major_en': abstract_data.major_en,
-                    'advisor_th': abstract_data.advisor_th,
-                    'advisor_en': abstract_data.advisor_en,
-                    'coadvisor_th': abstract_data.coadvisor_th,
-                    'coadvisor_en': abstract_data.coadvisor_en,
-                    'academic_year_th': abstract_data.academic_year_th,
-                    'academic_year_en': abstract_data.academic_year_en,
-                    'abstract_th_para1': abstract_data.abstract_th_para1,
-                    'abstract_th_para2': abstract_data.abstract_th_para2,
-                    'abstract_en_para1': abstract_data.abstract_en_para1,
-                    'abstract_en_para2': abstract_data.abstract_en_para2,
-                    'keyword_th': abstract_data.keyword_th,
-                    'keyword_en': abstract_data.keyword_en,
-                    'acknow_para1': abstract_data.acknow_para1,
-                    'acknow_para2': abstract_data.acknow_para2,
-                    'acknow_name1': abstract_data.acknow_name1,
-                    'acknow_name2': abstract_data.acknow_name2,
-                    'author1_th': abstract_data.author1_th,
-                    'author1_en': abstract_data.author1_en,
-                    'author2_th': abstract_data.author2_th,
-                    'author2_en': abstract_data.author2_en,
-                    'total_pages': abstract_data.total_pages,   # ✅ เพิ่มจำนวนหน้า
-                }
-                messages.success(request, 'ดึงข้อมูลเก่าสำเร็จแล้ว')
-                return render(request, 'intro.html', {'initial': initial})
-            except Abstract.DoesNotExist:
-                messages.info(request, 'ไม่พบข้อมูลเก่า')
-                return render(request, 'intro.html', {'initial': {}})
+            messages.success(request, 'ดึงข้อมูลล่าสุดสำเร็จแล้ว')
+            return redirect('abstract_ack_view')
 
         # Action: บันทึกข้อมูล
         elif action == 'save_intro':
+            # รวบรวมข้อมูลสำหรับตาราง DocAbstract
             form_data = {
-                'project_name_th': request.POST.get('project_name_th', ''),
-                'project_name_en': request.POST.get('project_name_en', ''),
-                'major_th': request.POST.get('major_th', ''),
-                'major_en': request.POST.get('major_en', ''),
-                'advisor_th': request.POST.get('advisor_th', ''),
-                'advisor_en': request.POST.get('advisor_en', ''),
-                'coadvisor_th': request.POST.get('coadvisor_th', ''),
-                'coadvisor_en': request.POST.get('coadvisor_en', ''),
-                'academic_year_th': request.POST.get('academic_year_th', ''),
-                'academic_year_en': request.POST.get('academic_year_en', ''),
-                'abstract_th_para1': request.POST.get('abstract_th_para1', ''),
-                'abstract_th_para2': request.POST.get('abstract_th_para2', ''),
-                'abstract_en_para1': request.POST.get('abstract_en_para1', ''),
-                'abstract_en_para2': request.POST.get('abstract_en_para2', ''),
+                'total_pages': request.POST.get('total_pages') or None,
                 'keyword_th': request.POST.get('keyword_th', ''),
                 'keyword_en': request.POST.get('keyword_en', ''),
-                'acknow_para1': request.POST.get('acknow_para1', ''),
-                'acknow_para2': request.POST.get('acknow_para2', ''),
-                'acknow_name1': request.POST.get('acknow_name1', ''),
-                'acknow_name2': request.POST.get('acknow_name2', ''),
-                'author1_th': request.POST.get('author1_th', ''),
-                'author1_en': request.POST.get('author1_en', ''),
-                'author2_th': request.POST.get('author2_th', ''),
-                'author2_en': request.POST.get('author2_en', ''),
-                'total_pages': request.POST.get('total_pages', None),   # ✅ เก็บจำนวนหน้า
+                # แปลง JSON string จากฟอร์มกลับเป็น Python list/dict ก่อนบันทึก
+                'abstract_th_json': json.loads(request.POST.get('abstract_th_json', '[]')),
+                'abstract_en_json': json.loads(request.POST.get('abstract_en_json', '[]')),
+                'acknow_json': json.loads(request.POST.get('acknowledgement_json', '[]')),
             }
-            Abstract.objects.update_or_create(user=user, defaults=form_data)
+            
+            # ใช้ update_or_create เพื่อสร้างใหม่หรืออัปเดตถ้ามีข้อมูลอยู่แล้ว
+            DocAbstract.objects.update_or_create(user=user, defaults=form_data)
+            
             messages.success(request, 'บันทึกข้อมูลเรียบร้อยแล้ว')
-            return redirect('intro_view')
+            return redirect('abstract_ack_view')
 
         # Action: สร้างไฟล์ Word
         elif action == 'generate_intro':
-            form_data = {
-                'project_name_th': request.POST.get('project_name_th', ''),
-                'project_name_en': request.POST.get('project_name_en', ''),
-                'major_th': request.POST.get('major_th', ''),
-                'major_en': request.POST.get('major_en', ''),
-                'advisor_th': request.POST.get('advisor_th', ''),
-                'advisor_en': request.POST.get('advisor_en', ''),
-                'coadvisor_th': request.POST.get('coadvisor_th', ''),
-                'coadvisor_en': request.POST.get('coadvisor_en', ''),
-                'academic_year_th': request.POST.get('academic_year_th', ''),
-                'academic_year_en': request.POST.get('academic_year_en', ''),
-                'abstract_th_para1': request.POST.get('abstract_th_para1', ''),
-                'abstract_th_para2': request.POST.get('abstract_th_para2', ''),
-                'abstract_en_para1': request.POST.get('abstract_en_para1', ''),
-                'abstract_en_para2': request.POST.get('abstract_en_para2', ''),
-                'keyword_th': request.POST.get('keyword_th', ''),
-                'keyword_en': request.POST.get('keyword_en', ''),
-                'acknow_para1': request.POST.get('acknow_para1', ''),
-                'acknow_para2': request.POST.get('acknow_para2', ''),
-                'acknow_name1': request.POST.get('acknow_name1', ''),
-                'acknow_name2': request.POST.get('acknow_name2', ''),
-                'author1_th': request.POST.get('author1_th', ''),
-                'author1_en': request.POST.get('author1_en', ''),
-                'author2_th': request.POST.get('author2_th', ''),
-                'author2_en': request.POST.get('author2_en', ''),
-                'total_pages': request.POST.get('total_pages', None),   # ✅ ส่งไป doc_intro.py
-            }
-            doc = doc_intro(form_data)
-            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-            response['Content-Disposition'] = 'attachment; filename=abstract_and_acknow.docx'
-            doc.save(response)
-            return response
-            
-    # ถ้าเป็น GET request (เข้าหน้าครั้งแรก)
-    # เราจะส่ง initial เป็น dict ว่างเปล่าเสมอ เพื่อให้ฟอร์มขึ้นมาแบบไม่มีข้อมูล
-    return render(request, 'intro.html', {'initial': initial})
+            try:
+                # ดึงข้อมูลล่าสุดจากทั้งสองตารางเพื่อความถูกต้อง
+                intro_data = DocIntroduction.objects.get(user=user)
+                abstract_data = DocAbstract.objects.get(user=user)
 
+                # รวบรวมข้อมูลทั้งหมดเพื่อส่งไปสร้างไฟล์
+                full_data_for_docx = {
+                    'project_name_th': intro_data.name_pro_th,
+                    'project_name_en': intro_data.name_pro_en,
+                    'major_th': intro_data.dep_th,
+                    'major_en': intro_data.dep_en,
+                    'advisor_th': intro_data.advisor_th,
+                    'advisor_en': intro_data.advisor_en,
+                    'coadvisor_th': intro_data.coadvisor_th,
+                    'coadvisor_en': intro_data.coadvisor_en,
+                    'academic_year_th': intro_data.school_y_BE,
+                    'academic_year_en': intro_data.school_y_AD,
+                    'student_names': intro_data.student_name or [],
+                    
+                    # ข้อมูลจาก DocAbstract
+                    'total_pages': abstract_data.total_pages,
+                    'keyword_th': abstract_data.keyword_th,
+                    'keyword_en': abstract_data.keyword_en,
+                    'abstract_th_paragraphs': abstract_data.abstract_th_json, # เป็น Python list อยู่แล้ว
+                    'abstract_en_paragraphs': abstract_data.abstract_en_json, # เป็น Python list อยู่แล้ว
+                    'acknowledgement_paragraphs': abstract_data.acknow_json,  # เป็น Python list อยู่แล้ว
+                }
+                
+                # --- ส่วนของการสร้างไฟล์ DOCX (ต้องมีฟังก์ชัน doc_intro) ---
+                doc = doc_abstract_ack(full_data_for_docx)
+                response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                response['Content-Disposition'] = 'attachment; filename=abstract_and_acknow.docx'
+                doc.save(response)
+                return response
+                # ---------------------------------------------------------
+
+                messages.info(request, "ส่วนของการสร้างไฟล์ยังไม่ได้เปิดใช้งาน")
+                return redirect('abstract_ack_view')
+
+            except (DocIntroduction.DoesNotExist, DocAbstract.DoesNotExist):
+                messages.error(request, 'ไม่สามารถสร้างไฟล์ได้ เนื่องจากข้อมูลโครงงานหรือบทคัดย่อไม่ครบถ้วน')
+                return redirect('abstract_ack_view')
+
+    # === ส่วนจัดการ GET Request (เมื่อเข้าหน้าเว็บครั้งแรก หรือหลัง redirect) ===
+    # 1. ดึงข้อมูลจาก DocIntroduction (ส่วนที่คุณห้ามแก้)
+    try:
+        data_from_introduction = DocIntroduction.objects.get(user=user)
+        initial = {
+            'project_name_th': data_from_introduction.name_pro_th,
+            'project_name_en': data_from_introduction.name_pro_en,
+            'major_th': data_from_introduction.dep_th,
+            'major_en': data_from_introduction.dep_en,
+            'advisor_th': data_from_introduction.advisor_th,
+            'advisor_en': data_from_introduction.advisor_en,
+            'coadvisor_th': data_from_introduction.coadvisor_th,
+            'coadvisor_en': data_from_introduction.coadvisor_en,
+            'academic_year_th': data_from_introduction.school_y_BE,
+            'academic_year_en': data_from_introduction.school_y_AD,
+        }
+        # ดึงข้อมูล student_name เพิ่มเติม
+        initial['student_names'] = data_from_introduction.student_name or []
+        
+    except DocIntroduction.DoesNotExist:
+        messages.warning(request, 'กรุณากรอกข้อมูลโครงงานในหน้าแรกก่อน')
+
+    # 2. ดึงข้อมูลจาก DocAbstract และนำมารวมกับ initial
+    try:
+        abstract_data = DocAbstract.objects.get(user=user)
+        initial.update({
+            'total_pages': abstract_data.total_pages,
+            'keyword_th': abstract_data.keyword_th,
+            'keyword_en': abstract_data.keyword_en,
+            # แปลง Python list/dict กลับเป็น JSON string เพื่อส่งให้ JavaScript ใน template
+            'abstract_th_json': json.dumps(abstract_data.abstract_th_json),
+            'abstract_en_json': json.dumps(abstract_data.abstract_en_json),
+            'acknowledgement_json': json.dumps(abstract_data.acknow_json),
+        })
+    except DocAbstract.DoesNotExist:
+        # หากไม่มีข้อมูล ไม่ต้องทำอะไร ปล่อยให้ค่าใน template เป็นค่าว่าง
+        pass
+
+    return render(request, 'abstract_ack.html', {'initial': initial})
 
 # ใบรับรอง
-@login_required
-# ---------- helper: แปลง model -> initial dict ให้ตรงกับ template ----------
-def initial_from_cert(cert):
-    return {
-        'topic'      : cert.topic or '',
-        'author1'    : cert.author1 or '',
-        'author2'    : cert.author2 or '',
-        'dean'       : cert.dean or '',
-        'chairman'   : cert.chairman or '',
-        'committee1' : cert.committee1 or '',
-        'committee2' : cert.committee2 or '',
-    }
 
 @login_required
 def certificate_view(request):
     user = request.user
-    initial = {}
+    uid = _current_user_id(request)
+    intro = DocIntroduction.objects.filter(user_id=uid).first()
+    if not intro:
+        messages.error(request, "ยังไม่มีข้อมูล Project Setup กรุณากรอกก่อน")
+        return redirect('project_setup')
+
     action = request.POST.get('action', '')
+    initial = {}
 
     if request.method == 'POST':
-
-        # ----- 1) ดึงข้อมูลจากฐานข้อมูลมาแสดงในฟอร์ม -----
+        # ดึงข้อมูล (เฉพาะกรรมการ)
         if action == 'get_certificate':
             try:
-                cert = Certificate.objects.get(user=user)
-                initial = initial_from_cert(cert)
-                messages.success(request, 'ดึงข้อมูลใบรับรองสำเร็จ')
-            except Certificate.DoesNotExist:
-                messages.info(request, 'ยังไม่มีข้อมูลใบรับรองสำหรับผู้ใช้นี้')
-            return render(request, 'Certificate.html', {'initial': initial})
+                cert = DocIntroduction.objects.get(user=user)
+                initial = {
+                    'comm_dean': cert.comm_dean,
+                    'comm_prathan': cert.comm_prathan,
+                    'comm_first': cert.comm_first,
+                    'comm_sec': cert.comm_sec,
+                }
+                messages.success(request, 'ดึงข้อมูลสำเร็จ')
+            except DocIntroduction.DoesNotExist:
+                messages.info(request, 'ยังไม่มีข้อมูล')
+            return render(request, 'certificate.html', {'initial': initial})
 
-        # ----- 2) บันทึกข้อมูลลงฐานข้อมูล -----
         elif action == 'save_certificate':
             form_data = {
-                'topic'     : (request.POST.get('topic') or '').strip(),
-                'author1'   : (request.POST.get('author1') or '').strip(),
-                'author2'   : (request.POST.get('author2') or '').strip(),
-                'dean'      : (request.POST.get('dean') or '').strip(),
-                'chairman'  : (request.POST.get('chairman') or '').strip(),
-                'committee1': (request.POST.get('committee1') or '').strip(),
-                'committee2': (request.POST.get('committee2') or '').strip(),
+                'comm_dean': request.POST.get('comm_dean', '').strip(),
+                'comm_prathan': request.POST.get('comm_prathan', '').strip(),
+                'comm_first': request.POST.get('comm_first', '').strip(),
+                'comm_sec': request.POST.get('comm_sec', '').strip(),
             }
-            Certificate.objects.update_or_create(user=user, defaults=form_data)
-            messages.success(request, 'บันทึกข้อมูลใบรับรองเรียบร้อยแล้ว')
-            return redirect('certificate')   # ชื่อ route ตาม urls.py
+            DocIntroduction.objects.update_or_create(user=user, defaults=form_data)
+            messages.success(request, 'บันทึกข้อมูลกรรมการเรียบร้อยแล้ว')
+            return redirect('certificate')
 
-        # ----- 3) ดาวน์โหลดเอกสาร (.docx) -----
         elif action == 'generate_certificate':
-            # 3.1 อ่านจากฟอร์ม
-            topic      = (request.POST.get('topic') or '').strip()
-            author1    = (request.POST.get('author1') or '').strip()
-            author2    = (request.POST.get('author2') or '').strip()
-            dean       = (request.POST.get('dean') or '').strip()
-            chairman   = (request.POST.get('chairman') or '').strip()
-            committee1 = (request.POST.get('committee1') or '').strip()
-            committee2 = (request.POST.get('committee2') or '').strip()
+            # ดึงข้อมูลจาก intro
+            project_name_th = intro.name_pro_th or ""
+            author1_th, author2_th, author1_en, author2_en = _authors_from_intro(intro)
 
-            # 3.2 ถ้าฟอร์มว่าง ให้ fallback ไปดึงค่าล่าสุดจากฐานข้อมูล
-            if not any([topic, author1, author2, dean, chairman, committee1, committee2]):
-                try:
-                    cert = Certificate.objects.get(user=user)
-                    topic      = cert.topic or ''
-                    author1    = cert.author1 or ''
-                    author2    = cert.author2 or ''
-                    dean       = cert.dean or ''
-                    chairman   = cert.chairman or ''
-                    committee1 = cert.committee1 or ''
-                    committee2 = cert.committee2 or ''
-                except Certificate.DoesNotExist:
-                    messages.error(request, 'ยังไม่มีข้อมูลสำหรับสร้างเอกสาร โปรดบันทึกหรือกดดึงข้อมูลก่อน')
-                    return redirect('certificate')
+            # ดึงข้อมูลกรรมการจาก DB
+            cert = DocIntroduction.objects.filter(user=user).first()
+            comm_dean = cert.comm_dean if cert else ''
+            prathan = cert.comm_prathan if cert else ''
+            comm_first = cert.comm_first if cert else ''
+            comm_sec = cert.comm_sec if cert else ''
 
-            # 3.3 สร้างเอกสาร
-            try:
-                doc = doc_certificate(topic, author1, author2, dean, chairman, committee1, committee2)
-            except Exception as e:
-                messages.error(request, f'สร้างเอกสารล้มเหลว: {e}')
-                return redirect('certificate')
-
-            # 3.4 ส่งไฟล์ให้ดาวน์โหลด แล้วจบการทำงานตรงนี้
-            buf = io.BytesIO()
+            doc = doc_certificate(project_name_th, author1_th, author2_th,
+                                  comm_dean, prathan, comm_first, comm_sec)
+            buf = BytesIO()
             doc.save(buf)
             buf.seek(0)
-            return FileResponse(buf, as_attachment=True, filename='certificate.docx')
+            return FileResponse(buf, as_attachment=True, filename='Certificate.docx')
 
-    # --- GET: แสดงฟอร์มว่างเสมอ ---
-    return render(request, 'certificate.html', {'initial': {}})
+    return render(request, 'certificate.html', {'initial': initial})
 
 # ========== บรรณานุกรม ==========
 
-from django.utils.dateparse import parse_date
+
 
 
 @login_required
@@ -759,7 +659,7 @@ def refer_view(request):
         if bulk:
             RefBook.objects.bulk_create(bulk)
 
-    def initial_refs_from_db(user):
+    def initial_refs_web_from_db(user):
         """ดึง Website ของ user → สร้าง list[dict] สำหรับ hydrate ฟอร์ม"""
         rows = RefWebsite.objects.filter(user=user).order_by('ref_no', 'ref_web_id')
         out = []
@@ -824,7 +724,7 @@ def refer_view(request):
             save_books_from_refs(request.user, references)
 
             # ดึงกลับไป hydrate
-            initial_refs = initial_refs_from_db(request.user) + initial_books_from_db(request.user)
+            initial_refs = initial_refs_web_from_db(request.user) + initial_books_from_db(request.user)
             ctx = {'initial_refs_json': json.dumps(initial_refs, ensure_ascii=False)}
             messages.success(request, f'บันทึกข้อมูลสำเร็จ {len(initial_refs)} รายการ')
             return render(request, 'refer.html', ctx)
@@ -845,7 +745,7 @@ def refer_view(request):
             return response
 
         if action == 'get_data':
-            initial_refs = initial_refs_from_db(request.user) + initial_books_from_db(request.user)
+            initial_refs = initial_refs_web_from_db(request.user) + initial_books_from_db(request.user)
             ctx = {'initial_refs_json': json.dumps(initial_refs, ensure_ascii=False)}
             return render(request, 'refer.html', ctx)
 
@@ -939,9 +839,7 @@ def chapter_1_view(request):
                     response['Content-Disposition'] = 'attachment; filename=chapter1.docx'
                     doc.save(response) 
                     return response
-                    
-                    
-            
+                
            # Get data โดยไม่กดปุ่ม
            # อัปเดต initial เพื่อแสดงผลข้อมูลล่าสุด
             initial = {
@@ -1209,7 +1107,7 @@ def chapter_5_view(request):
                     'updated_at': timezone.now(),
                 }
             )
-            messages.success(request, '💾 บันทึกข้อมูลบทที่ 5 เรียบร้อยแล้ว (ฟอร์มถูกเคลียร์)')
+            messages.success(request, '💾 บันทึกข้อมูลบทที่ 5 เรียบร้อยแล้ว')
             # เคลียร์ฟอร์มตามดีไซน์
             return render(request, 'chapter_5.html', {
                 'initial': {'intro_body': '', 'chapter5_json': []}
@@ -1256,3 +1154,297 @@ def chapter_5_view(request):
             'chapter5_json': (db_sections if isinstance(db_sections, list) else []),
         }
     })
+
+# ---------- helper ----------
+def _parse_lines_to_list(text):
+    if not text:
+        return []
+    return [line.strip() for line in text.splitlines() if line.strip()]
+
+def is_intro_ok_check(intro: DocIntroduction) -> bool:
+    if not intro:
+        return False
+    if not intro.name_pro_th or not intro.name_pro_en:
+        return False
+    if not isinstance(intro.student_name, list) or len(intro.student_name) == 0:
+        return False
+    if not intro.school_y_BE or not intro.school_y_AD:
+        return False
+    if not intro.dep_th or not intro.dep_en:
+        return False
+    return True
+
+
+
+
+# ---------- UI กรอกข้อมูลโครงงาน ----------
+def _current_user_id(request):
+    uid = getattr(request.user, 'user_id', None) or getattr(request.user, 'id', None)
+    if not uid:
+        try:
+            uid = int(request.POST.get('user_id', 0))
+        except Exception:
+            uid = None
+    return uid
+
+def is_intro_ok_check(intro: DocIntroduction) -> bool:
+    try:
+        names_th = (intro.student_name or {}).get('th', []) if isinstance(intro.student_name, dict) else []
+        names_en = (intro.student_name or {}).get('en', []) if isinstance(intro.student_name, dict) else []
+    except Exception:
+        names_th, names_en = [], []
+    return bool(intro.name_pro_th and intro.name_pro_en and (names_th or names_en))
+
+@transaction.atomic
+def project_setup_view(request):
+    uid = _current_user_id(request)
+    if not uid:
+        return render(request, 'project_setup.html', {
+            'initial': {'error': 'ไม่พบ user_id กรุณาเข้าสู่ระบบหรือลองใหม่'}
+        })
+
+    intro = DocIntroduction.objects.filter(user_id=uid).first()
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        print(">>> ACTION =", action)
+
+        if action == 'get_data':
+            initial = {}
+            if intro:
+                student_name = intro.student_name or {}
+                authors_th = student_name.get('th', []) if isinstance(student_name, dict) else []
+                authors_en = student_name.get('en', []) if isinstance(student_name, dict) else []
+
+                # coadvisor_* เป็น JSON ใน DB อาจเก็บเป็นสตริง/ลิสต์/อ็อบเจกต์ -> แปลงเป็นสตริงสำหรับแสดงใน input
+                def to_str(v):
+                    if v is None:
+                        return ''
+                    if isinstance(v, (list, dict)):
+                        # ถ้าใน DB เคยเก็บเป็น array/object ให้แสดงแบบ join/json
+                        try:
+                            return ', '.join(v) if isinstance(v, list) else json.dumps(v, ensure_ascii=False)
+                        except Exception:
+                            return json.dumps(v, ensure_ascii=False)
+                    return str(v)
+
+                initial.update({
+                    # ---------- ตรง DB ----------
+                    'name_pro_th': intro.name_pro_th or '',
+                    'name_pro_en': intro.name_pro_en or '',
+                    'dep_th': intro.dep_th or '',
+                    'dep_en': intro.dep_en or '',
+                    'school_y_BE': intro.school_y_BE or '',
+                    'school_y_AD': intro.school_y_AD or '',
+                    'advisor_th': intro.advisor_th or '',
+                    'advisor_en': intro.advisor_en or '',
+                    'coadvisor_th': to_str(intro.coadvisor_th),
+                    'coadvisor_en': to_str(intro.coadvisor_en),
+                    
+
+                    # สำหรับ JS กล่องผู้จัดทำ
+                    'authors_th_json': json.dumps(authors_th, ensure_ascii=False),
+                    'authors_en_json': json.dumps(authors_en, ensure_ascii=False),
+                    'authors_th': authors_th,
+                    'authors_en': authors_en,
+                })
+            else:
+                initial.update({
+                    'authors_th_json': '[]',
+                    'authors_en_json': '[]',
+                    'authors_th': [],
+                    'authors_en': [],
+                })
+            return render(request, 'project_setup.html', {'initial': initial})
+
+        elif action == 'save_setup':
+            # ผู้จัดทำ (สูงสุด 3)
+            authors_th, authors_en = [], []
+            for i in range(1, 4):
+                th = (request.POST.get(f'name_author_th_{i}', '') or '').strip()
+                en = (request.POST.get(f'name_author_en_{i}', '') or '').strip()
+                if th or en:
+                    authors_th.append(th)
+                    authors_en.append(en)
+
+            student_name = {'th': authors_th, 'en': authors_en}
+
+            # ปีการศึกษาเป็น int ใน DB -> แปลงให้ถูกชนิด (ว่างให้เป็น None)
+            def to_int(v):
+                v = (v or '').strip()
+                return int(v) if v.isdigit() else None
+
+            # coadvisor_* ใน DB เป็น JSON: ถ้าคุณใส่สตริงจาก input ปกติ เราจะเก็บเป็น JSON string
+            def to_json_primitive_str(v):
+                v = (v or '').strip()
+                if not v:
+                    return None
+                # เก็บเป็น JSON string (เช่น "Assoc. Prof. XXX")
+                return v  # Django JSONField จะเซฟเป็นสตริง JSON ได้โดยตรง
+
+            defaults = {
+                # ---------- ชื่อตรง DB ----------
+                'name_pro_th': (request.POST.get('name_pro_th') or '').strip(),
+                'name_pro_en': (request.POST.get('name_pro_en') or '').strip(),
+                'dep_th': (request.POST.get('dep_th') or '').strip(),
+                'dep_en': (request.POST.get('dep_en') or '').strip(),
+                'school_y_BE': to_int(request.POST.get('school_y_BE')),
+                'school_y_AD': to_int(request.POST.get('school_y_AD')),
+                'advisor_th': (request.POST.get('advisor_th') or '').strip(),
+                'advisor_en': (request.POST.get('advisor_en') or '').strip(),
+                'coadvisor_th': to_json_primitive_str(request.POST.get('coadvisor_th')),
+                'coadvisor_en': to_json_primitive_str(request.POST.get('coadvisor_en')),
+                'student_name': student_name,
+            }
+
+            obj, created = DocIntroduction.objects.update_or_create(
+                user_id=uid,
+                defaults=defaults
+            )
+
+            if not is_intro_ok_check(obj):
+                messages.warning(request, 'กรุณากรอกอย่างน้อย: ชื่อโครงงาน (TH/EN) และชื่อผู้จัดทำอย่างน้อย 1 คน')
+                return redirect(reverse('project_setup'))
+
+            messages.success(request, 'บันทึกข้อมูล Project Setup สำเร็จ')
+            return redirect(reverse('index'))
+
+    # GET ปกติ
+    initial = {}
+    if intro:
+        st = intro.student_name or {}
+        authors_th = st.get('th', []) if isinstance(st, dict) else []
+        authors_en = st.get('en', []) if isinstance(st, dict) else []
+
+        def to_str(v):
+            if v is None:
+                return ''
+            if isinstance(v, (list, dict)):
+                try:
+                    return ', '.join(v) if isinstance(v, list) else json.dumps(v, ensure_ascii=False)
+                except Exception:
+                    return json.dumps(v, ensure_ascii=False)
+            return str(v)
+
+        initial.update({
+            'name_pro_th': intro.name_pro_th or '',
+            'name_pro_en': intro.name_pro_en or '',
+            'dep_th': intro.dep_th or '',
+            'dep_en': intro.dep_en or '',
+            'school_y_BE': intro.school_y_BE or '',
+            'school_y_AD': intro.school_y_AD or '',
+            'advisor_th': intro.advisor_th or '',
+            'advisor_en': intro.advisor_en or '',
+            'coadvisor_th': to_str(intro.coadvisor_th),
+            'coadvisor_en': to_str(intro.coadvisor_en),
+            'authors_th_json': json.dumps(authors_th, ensure_ascii=False),
+            'authors_en_json': json.dumps(authors_en, ensure_ascii=False),
+            'authors_th': authors_th,
+            'authors_en': authors_en,
+        })
+    else:
+        initial.update({
+            'authors_th_json': '[]',
+            'authors_en_json': '[]',
+            'authors_th': [],
+            'authors_en': [],
+        })
+    return render(request, 'project_setup.html', {'initial': initial})
+
+@login_required
+def _authors_from_intro(intro):
+    """
+    ดึงชื่อผู้จัดทำจาก intro.student_name (JSON: {"th":[...], "en":[...]})
+    คืนค่า: author1_th, author2_th, author1_en, author2_en (ถ้าไม่มีเติมเป็น "")
+    """
+    data = intro.student_name or {}
+    th = []
+    en = []
+
+    if isinstance(data, dict):
+        th = data.get('th') or []
+        en = data.get('en') or []
+        if not isinstance(th, list):
+            th = []
+        if not isinstance(en, list):
+            en = []
+    else:
+        # กันข้อมูลผิดรูป
+        try:
+            parsed = json.loads(data)
+            th = parsed.get('th', []) if isinstance(parsed, dict) else []
+            en = parsed.get('en', []) if isinstance(parsed, dict) else []
+        except Exception:
+            th, en = [], []
+
+    # normalize ให้มีอย่างน้อย 2 ช่อง
+    th = [(th[i] or '').strip() if i < len(th) else '' for i in range(2)]
+    en = [(en[i] or '').strip() if i < len(en) else '' for i in range(2)]
+    return th[0], th[1], en[0], en[1]
+
+
+def manage_doc_view(request):
+    """
+    - GET: แสดงหน้า manage_doc พร้อมปุ่มดาวน์โหลด
+    - POST: สร้างไฟล์และส่งคืนเป็น attachment ตาม action
+    """
+    uid = getattr(request.user, 'pk', None)  # ใช้ pk ปลอดภัยสุด
+    if not uid:
+        messages.error(request, "กรุณาเข้าสู่ระบบก่อน")
+        return redirect('login')
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+
+        # ดึงข้อมูลโครงงานของผู้ใช้
+        intro = DocIntroduction.objects.filter(user_id=uid).first()
+        if not intro:
+            messages.error(request, "ยังไม่มีข้อมูลโครงงาน กรุณากรอกที่หน้า Project Setup ก่อน")
+            return render(request, 'manage_doc.html', {})
+
+        # เตรียมข้อมูลสำหรับเอกสาร
+        project_name_th = intro.name_pro_th or ""
+        project_name_en = intro.name_pro_en or ""
+        dep_th = intro.dep_th or ""
+        dep_en = intro.dep_en or ""
+        author1_th, author2_th, author1_en, author2_en = _authors_from_intro(intro)
+
+        academic_year_be = intro.school_y_BE or 0
+        academic_year_for_en = academic_year_be  # ใน doc_cover_en จัดการแปลงเป็น ค.ศ. แล้ว
+        
+
+        if action == 'generate_cover_th':
+            doc = doc_cover_th(project_name_th, project_name_en,
+                               author1_th, author2_th,
+                               author1_en, author2_en,
+                               academic_year_be,dep_th)
+            resp = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            resp['Content-Disposition'] = 'attachment; filename=cover_th.docx'
+            doc.save(resp)
+            return resp
+
+        elif action == 'generate_cover_en':
+            doc = doc_cover_en(project_name_th, project_name_en,
+                               author1_th, author2_th,
+                               author1_en, author2_en,
+                               academic_year_for_en,dep_en)
+            resp = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            resp['Content-Disposition'] = 'attachment; filename=cover_en.docx'
+            doc.save(resp)
+            return resp
+
+        elif action == 'generate_cover_sec':
+            doc = doc_cover_sec(project_name_th, project_name_en,
+                                author1_th, author2_th,
+                                author1_en, author2_en,
+                                academic_year_be,dep_th)
+            resp = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            resp['Content-Disposition'] = 'attachment; filename=cover_sec.docx'
+            doc.save(resp)
+            return resp
+
+        else:
+            messages.error(request, "ไม่พบ action ที่รองรับ")
+
+    # GET (หรือ POST action ไม่ถูกต้อง) → แสดงหน้า
+    return render(request, 'manage_doc.html', {})

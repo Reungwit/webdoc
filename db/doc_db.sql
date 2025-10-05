@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 01, 2025 at 11:28 AM
+-- Generation Time: Oct 01, 2025 at 06:51 PM
 -- Server version: 8.0.42
 -- PHP Version: 8.2.12
 
@@ -328,6 +328,13 @@ CREATE TABLE `doc_abstract` (
   `acknow_json` json DEFAULT NULL COMMENT 'กิตติกรรมประกาศ'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `doc_abstract`
+--
+
+INSERT INTO `doc_abstract` (`doc_id`, `user_id`, `total_pages`, `keyword_th`, `keyword_en`, `abstract_th_json`, `abstract_en_json`, `acknow_json`) VALUES
+(1, 2, 10, '', '', '[\"ทดสอบ1\", \"ทดสอบ2\"]', '[\"Test1\", \"Test2\"]', '[\"ทดสอบ1\", \"ทดสอบ2\"]');
+
 -- --------------------------------------------------------
 
 --
@@ -361,7 +368,7 @@ CREATE TABLE `doc_introduction` (
 --
 
 INSERT INTO `doc_introduction` (`doc_id`, `name_pro_th`, `name_pro_en`, `student_name`, `school_y_BE`, `school_y_AD`, `comm_dean`, `comm_prathan`, `comm_first`, `comm_sec`, `advisor_th`, `advisor_en`, `coadvisor_th`, `coadvisor_en`, `dep_th`, `dep_en`, `user_id`, `created_at`, `updated_at`) VALUES
-(3, 'ตตตต', 'Special Project Formatting Assistant', '{\"en\": [\"Reungwit Singla\", \"test\"], \"th\": [\"นายเรืองวิชญ์  สิงห์หล้า\", \"นางสาวสุกฤตา  กาหาวงศ์\"]}', 2568, 2025, 'test', 'test', 'test', 'test', 'รองศาสตราจารย์ ดร.ยุพิน สรรพคุณ', '', '\"ไม่มี\"', '\"None\"', 'qqqq', 'qqqq', 2, '2025-09-27 06:59:40', '2025-09-30 23:27:02');
+(3, 'ตตตต', 'Special Project Formatting Assistant', '{\"en\": [\"Reungwit Singla\", \"test\"], \"th\": [\"นายเรืองวิชญ์  สิงห์หล้า\", \"นางสาวสุกฤตา  กาหาวงศ์\"]}', 2568, 2025, 'test', 'test', 'test', 'test', 'รองศาสตราจารย์ ดร.ยุพิน สรรพคุณ', '', '\"ไม่มี\"', '\"None\"', 'คณะเทคโนโลยีสารสนเทศ', 'Faculty of Information Technology', 2, '2025-09-27 06:59:40', '2025-10-01 09:47:03');
 
 -- --------------------------------------------------------
 
@@ -739,6 +746,12 @@ ALTER TABLE `django_migrations`
   MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
+-- AUTO_INCREMENT for table `doc_abstract`
+--
+ALTER TABLE `doc_abstract`
+  MODIFY `doc_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `doc_introduction`
 --
 ALTER TABLE `doc_introduction`
@@ -822,7 +835,6 @@ ALTER TABLE `django_admin_log`
 -- Constraints for table `doc_abstract`
 --
 ALTER TABLE `doc_abstract`
-  ADD CONSTRAINT `fk_abs_doc` FOREIGN KEY (`doc_id`) REFERENCES `doc_introduction` (`doc_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_abs_user` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --

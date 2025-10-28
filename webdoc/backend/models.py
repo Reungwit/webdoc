@@ -3,15 +3,12 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-<<<<<<< HEAD
-=======
 from django.db.models import JSONField
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 
->>>>>>> master
 
 class CustomUser(AbstractUser):
     user_id = models.AutoField(primary_key=True)
@@ -148,32 +145,6 @@ class DocCover(models.Model):
         db_table = 'doc_cover'
         managed = False  # เพราะคุณสร้างตารางเองใน phpMyAdmin
 
-<<<<<<< HEAD
-class Abstract(models.Model): 
-    abstract_id = models.AutoField(primary_key=True)
-
-    author1_th = models.CharField(max_length=255)
-    author1_en = models.CharField(max_length=255)
-    author2_th = models.CharField(max_length=255)
-    author2_en = models.CharField(max_length=255)
-    project_name_th = models.CharField(max_length=255)
-    project_name_en = models.CharField(max_length=255)
-    abstract_th = models.TextField()
-    abstract_en = models.TextField()
-    major_th = models.CharField(max_length=255)
-    major_en = models.CharField(max_length=255)
-    advisor_th = models.CharField(max_length=255)
-    advisor_en = models.CharField(max_length=255)
-    coadvisor_th = models.CharField(max_length=255)
-    coadvisor_en = models.CharField(max_length=255)
-    academic_year_th = models.IntegerField()
-    academic_year_en = models.IntegerField()
-    keyword_th = models.CharField(max_length=255)
-    keyword_en = models.CharField(max_length=255)
-
-    class Meta:
-        db_table = 'abstract'
-=======
 
 
 #แก้ไขเพิ่มมา
@@ -435,5 +406,4 @@ class Chapter5(models.Model):
 
     def __str__(self):
         return f'Chapter5(doc_id={self.doc_id}, user_id={self.user_id})'
->>>>>>> master
 

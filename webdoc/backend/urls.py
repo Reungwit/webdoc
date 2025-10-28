@@ -1,28 +1,14 @@
 from django.urls import path
 from . import views
 
-<<<<<<< Updated upstream
-app_name = 'webdoc'
-=======
->>>>>>> Stashed changes
 
 urlpatterns = [
-<<<<<<< HEAD
-    path('', views.login_view, name='login'),
-    path('register/', views.register_view, name='register'),
-    path('logout/', views.logout_view, name='logout'),
-    path('index/', views.index, name='index'),
-    path('manage/', views.manage_doc, name='manage_doc'),
-    #path('section_detail', views.section_detail, name='section_detail'),
-
-=======
     path('project-setup/', views.project_setup_view, name='project_setup'),
     path('manage-doc/', views.manage_doc_view, name='manage_doc'),
     path('index/', views.index, name='index'),
     path('register/', views.register_view, name='register'),
     path('login', views.login_view, name='login'),
     path('about/', views.about, name='about'),
->>>>>>> master
     path('logout/', views.logout_view, name='logout'),
     path('sp_project_form/', views.sp_project_form_view, name='sp_project_form'),
     path('sp_project_form_2/', views.sp_project_form_view, name='sp_project_form_2'),

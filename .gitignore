@@ -14,3 +14,4 @@ db/certificate.sql
 webdoc/backend/__pycache__/admin.cpython-310.pyc
 /webdoc/backend/__pycache__
 *.pyc
+*.pyc

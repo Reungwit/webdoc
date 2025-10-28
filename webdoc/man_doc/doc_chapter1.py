@@ -12,30 +12,15 @@ from pythainlp.tokenize import word_tokenize #ใช้ตัดคำ
 from docx.table import _Cell
 from docx.text.paragraph import Paragraph
 from docx.document import Document as DocxDocument
+from man_doc.doc_function import *
+
+
 def doc_chapter1(sec11_p1,sec11_p2,sec11_p3,purpose_count,purpose_1,purpose_2,purpose_3,hypo_paragraph,
                 hypo_items,scope_data,para_premise_str,premise_data,def_items,benefit_items):
     
-    doc = Document()
-
-    # กำหนดรูปแบบฟอนต์สำหรับเอกสาร
-    style = doc.styles["Normal"]
-    style.font.name = "TH SarabunPSK"
-    style.element.rPr.rFonts.set(qn("w:eastAsia"), "TH SarabunPSK")
-    style.font.size = Pt(16)
-    style.paragraph_format.space_before = Pt(0)
-    style.paragraph_format.space_after = Pt(0)
-    style.paragraph_format.line_spacing = 1.0
-
-    # ตั้งค่าขอบกระดาษ
-    section = doc.sections[0]
-    section.top_margin = Inches(2.0)  # กำหนด margin หน้าแรก
-    section.bottom_margin = Inches(1)
-    section.left_margin = Inches(1.5)
-    section.right_margin = Inches(1)
-
+    
+    doc = doc_setup()
      
-  
-        
     add_center_paragraph(doc, "บทที่ 1", bold=True ,font_size=20)
     add_center_paragraph(doc, "บทนำ\n", bold=True , font_size=20)
 
@@ -111,10 +96,6 @@ def doc_chapter1(sec11_p1,sec11_p2,sec11_p3,purpose_count,purpose_1,purpose_2,pu
             txt = (item or "").strip()
         if txt:
             add_paragraph_indent(doc, f"1.7.{i}  {txt}",custom_tap=0.8)
-            
-            
-            
-            
             
             
             

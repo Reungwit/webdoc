@@ -1,3 +1,40 @@
+from docx import Document
+from docx.shared import Pt
+from docx.oxml.ns import qn
+from docx.enum.text import WD_ALIGN_PARAGRAPH 
+from docx.enum.style import WD_STYLE_TYPE
+from docx.shared import Pt, Cm, Inches
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.enum.text import WD_BREAK # เหมือนกด Ctrl + Enter ใน Word
+from docx.enum.section import WD_SECTION
+from pythainlp.tokenize import word_tokenize #ใช้ตัดคำ
+from docx.table import _Cell
+from docx.text.paragraph import Paragraph
+from docx.document import Document as DocxDocument
+from typing import List, Dict, Any, Iterable, Tuple
+
+def doc_setup():
+    doc = Document()
+
+    # กำหนดรูปแบบฟอนต์สำหรับเอกสาร
+    style = doc.styles["Normal"]
+    style.font.name = "TH SarabunPSK"
+    style.element.rPr.rFonts.set(qn("w:eastAsia"), "TH SarabunPSK")
+    style.font.size = Pt(16)
+    style.paragraph_format.space_before = Pt(0)
+    style.paragraph_format.space_after = Pt(0)
+    style.paragraph_format.line_spacing = 1.0
+
+    # ตั้งค่าขอบกระดาษ
+    section = doc.sections[0]
+    section.top_margin = Inches(2.0)  # กำหนด margin หน้าแรก
+    section.bottom_margin = Inches(1)
+    section.left_margin = Inches(1.5)
+    section.right_margin = Inches(1)
+
+    return doc
+
 def add_center_paragraph(doc, text, bold=False ,font_size=16):
     p = doc.add_paragraph(text)
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER

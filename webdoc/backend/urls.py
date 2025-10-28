@@ -1,7 +1,8 @@
 # urls.py
 from django.urls import path
 from . import views
-
+from man_views import *
+from man_views.sp_project_form_view import sp_project_form_view
 urlpatterns = [
     path('project-setup/', views.project_setup_view, name='project_setup'),
     path('manage-doc/', views.manage_doc_view, name='manage_doc'),
@@ -10,7 +11,7 @@ urlpatterns = [
     path('login', views.login_view, name='login'),
     path('about/', views.about, name='about'),
     path('logout/', views.logout_view, name='logout'),
-    path('sp_project_form/', views.sp_project_form_view, name='sp_project_form'),
+    path('sp_project_form/', sp_project_form_view, name='sp_project_form'),
     path('sp_project_form_2/', views.sp_project_form_view, name='sp_project_form_2'),
     path('abstract_ack/', views.abstract_ack_view, name='abstract_ack_view'),
     path('chapter_1/', views.chapter_1_view, name='chapter_1'),

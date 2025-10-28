@@ -8,7 +8,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 import os
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
-
+from man_doc.doc_function import *
 
 #หน้าปกไทย
 def doc_cover_th(project_name_th, project_name_en,
@@ -56,7 +56,7 @@ def doc_cover_th(project_name_th, project_name_en,
     doc.add_paragraph("\n\n\n\n\n\n")
     doc.add_paragraph(f" {author1_th}").alignment = 1
     doc.add_paragraph(f" {author2_th}").alignment = 1
-    doc.add_paragraph("\n\n\n")
+    doc.add_paragraph("\n\n\n\n")
     doc.add_paragraph("ปริญญานิพนธ์นี้เป็นส่วนหนึ่งของการศึกษาตามหลักสูตรอุตสาหกรรมศาสตรบัณฑิต").alignment = 1
     doc.add_paragraph("สาขาวิชาเทคโนโลยีสารสนเทศ ภาควิชาเทคโนโลยีสารสนเทศ").alignment = 1
     doc.add_paragraph(f"{dep_th}").alignment = 1

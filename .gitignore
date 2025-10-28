@@ -21,3 +21,9 @@ webdoc/backend/__pycache__/admin.cpython-310.pyc
 *.pyc
 *.pyc
 >>>>>>> 5b0ae3c32a75f21c66ca2da050f2ac23f8d8ee8e
+<<<<<<< Updated upstream
+=======
+*.pyc
+/webdoc/man_doc/__pycache__
+>>>>>>> Stashed changes
+*.pyc

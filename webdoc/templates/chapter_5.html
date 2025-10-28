@@ -1,0 +1,333 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>บทที่ 5</title>
+  <link rel="stylesheet" href="{% static 'css/chapter_5.css' %}">
+  <style>
+    /* fallback เล็กน้อยเผื่อไม่ได้โหลดไฟล์ css */
+    .card{border:1px solid #e5e7eb;border-radius:8px;margin-bottom:24px;background:#fff}
+    .card-header{padding:12px 16px;font-weight:700;border-bottom:1px solid #e5e7eb}
+    .card-body{padding:16px}
+    .btn{padding:10px 16px;border-radius:6px;cursor:pointer;border:none}
+    .btn-outline-secondary{border:2px solid #6c757d;background:transparent;color:#6c757d}
+    .btn-outline-warning{border:2px solid #ffc107;background:transparent;color:#c28700}
+    .text-center{text-align:center}
+    .legend-flex{display:flex;align-items:center;gap:10px}
+    .number{font-weight:800;background:#eef4ff;color:#274690;border-radius:999px;min-width:42px;height:26px;display:inline-flex;align-items:center;justify-content:center;padding:0 10px}
+    .main-block{border:1px dashed #e5e7eb;border-left:4px solid #0d6efd;border-radius:8px;padding:12px;margin-top:12px;background:#fafbff}
+    .sub-label{display:inline-block;font-weight:700;margin:10px 0 6px}
+    .sub-input,.main-input,.title-input,.form-control{width:100%;padding:10px 12px;border:1px solid #cfd5de;border-radius:6px;box-sizing:border-box}
+    .button-group{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <form id="chapter5Form" method="POST" action="{% url 'chapter_5' %}">
+      {% csrf_token %}
+
+      <div class="text-center"><h1>บทที่ 5</h1></div>
+
+      <div class="card">
+        <div class="card-header bg-success">บทนำ</div>
+        <div class="card-body">
+          <label for="intro_body" class="form-label">บทนำ</label>
+          <!-- เพิ่มคลาส clean-textarea -->
+          <textarea class="form-control clean-textarea" id="intro_body" name="intro_body" rows="8">{{ initial.intro_body|default:'' }}</textarea>
+        </div>
+      </div>
+
+      <div id="root_sections"></div>
+
+      <div class="text-center" style="margin-bottom: 16px;">
+        <button type="button" class="btn btn-outline-info" id="add-root">+ เพิ่มหัวข้อใหญ่</button>
+      </div>
+
+      <input type="hidden" id="chapter5_json" name="chapter5_json" value="" />
+
+      <div class="button-group">
+        <button class="btn btn-primary" type="submit" name="action" value="save">บันทึกข้อมูล</button>
+        <button class="btn btn-info" type="submit" name="action" value="get_data">ดึงข้อมูล</button>
+        <button class="btn btn-success" type="submit" name="action" value="generate_docx">สร้างเอกสาร</button>
+      </div>
+    </form>
+  </div>
+
+  {# Prefill JSON อย่างปลอดภัย #}
+  {% if initial.chapter5_json|default:None %}{{ initial.chapter5_json|json_script:"chapter5-data" }}{% endif %}
+
+  <!-- เทมเพลตของหัวข้อใหญ่ -->
+  <template id="tmpl-section">
+    <div class="card section">
+      <div class="card-header legend-flex">
+        <span class="number" aria-hidden="true"></span>
+        <input type="text" class="title-input" placeholder="ชื่อหัวข้อใหญ่" />
+      </div>
+
+      <div class="card-body">
+        <label class="form-label">เนื้อหา (ย่อหน้า)</label>
+        <!-- เพิ่มคลาส clean-textarea -->
+        <textarea class="form-control body-input clean-textarea" rows="5" placeholder="พิมพ์เนื้อหาโดยสรุปของหัวข้อนี้..."></textarea>
+
+        <div class="subblock">
+          <div class="row" style="gap:8px;margin:8px 0 12px;">
+            <button type="button" class="btn btn-outline-secondary me-2" data-cmd="add-main">+ เพิ่มหัวข้อหลัก (5.x.y)</button>
+            <button type="button" class="btn btn-outline-warning" data-cmd="remove-main">ลบหัวข้อหลัก (ข้อล่าสุด)</button>
+          </div>
+          <input type="hidden" class="main-count" value="0">
+          <div class="mains-wrap"></div>
+        </div>
+
+        <div class="controls row" style="margin-top:8px;">
+          <button type="button" class="btn btn-outline-warning" data-cmd="remove-section">ลบหัวข้อใหญ่</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    /* ========== Utilities ========== */
+    const $  = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+    function getJsonScript(id){
+      const el = document.getElementById(id);
+      if(!el) return null;
+      try { return JSON.parse(el.textContent); } catch(e){ console.error('JSON Script Error:', e); return null; }
+    }
+
+    /* ========== Clean textareas: เรียกก่อน serialize() ========== */
+    function cleanTextareas() {
+      const textareas = document.querySelectorAll(".clean-textarea");
+      textareas.forEach(textarea => {
+        const rawText = textarea.value;
+        const cleanedText = rawText
+          .replace(/\r?\n/g, "")   // ลบบรรทัดใหม่ทั้งหมด
+          .replace(/\s+/g, " ")    // รวมช่องว่างซ้ำ
+          .trim();
+        textarea.value = cleanedText;
+      });
+    }
+
+    /* ========== Default data (กรณีไม่มีข้อมูลจาก DB) ========== */
+    function defaultSections(){
+      return [
+        { title: 'สรุปผลการดำเนินงาน', body: '', points: [] },
+        { title: 'อภิปรายผล', body: '', points: [] },
+        { title: 'ข้อเสนอแนะ', body: '', points: [] },
+      ];
+    }
+
+    let secAutoId = 0;
+
+    // ---------- Sub item (5.x.y.z) ----------
+    function createSubItem(sectionEl, mainIdx, subIdx, val=''){
+      const subLbl = document.createElement('label');
+      subLbl.className = 'form-label sub-label';
+      subLbl.textContent = `5.${getRootIndex(sectionEl)}.${mainIdx}.${subIdx}`;
+
+      const subInput = document.createElement('input');
+      subInput.type = 'text';
+      subInput.className = 'sub-input';
+      subInput.id = `sub_${sectionEl.dataset.sid}_${mainIdx}_${subIdx}`;
+      subInput.value = val;
+
+      return [subLbl, subInput];
+    }
+
+    // ---------- Main block (5.x.y) ----------
+    function createMainBlock(index, mainVal='', subsList=[], sectionEl){
+      const wrap = document.createElement('div');
+      wrap.className = 'main-block';
+      const rootIdx = getRootIndex(sectionEl);
+
+      const lbl = document.createElement('label');
+      lbl.className = 'form-label';
+      lbl.textContent = `5.${rootIdx}.${index}`;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'main-input';
+      input.id = `main_${sectionEl.dataset.sid}_${index}`;
+      input.value = mainVal;
+
+      const controls = document.createElement('div');
+      controls.className = 'row';
+      const mainNumStr = `5.${rootIdx}.${index}`;
+      controls.innerHTML = `
+        <button type="button" class="btn btn-outline-secondary me-2" data-subcmd="add" data-main="${index}">+ เพิ่มหัวข้อย่อย (${mainNumStr}.x)</button>
+        <button type="button" class="btn btn-outline-warning" data-subcmd="remove" data-main="${index}">ลบหัวข้อย่อย (ข้อล่าสุด)</button>
+      `;
+
+      const subCount = document.createElement('input');
+      subCount.type = 'hidden';
+      subCount.className = 'sub-count';
+      subCount.dataset.main = index.toString();
+      subCount.value = Array.isArray(subsList) ? subsList.length : 0;
+
+      const subsWrap = document.createElement('div');
+      subsWrap.className = 'subs-wrap';
+      subsWrap.id = `subs_${sectionEl.dataset.sid}_${index}`;
+
+      (subsList || []).forEach((sv, j) => {
+        const subIdx = j + 1;
+        const [label, inputSub] = createSubItem(sectionEl, index, subIdx, sv);
+        subsWrap.appendChild(label);
+        subsWrap.appendChild(inputSub);
+      });
+      subCount.value = (subsList || []).length;
+
+      wrap.appendChild(lbl);
+      wrap.appendChild(input);
+      wrap.appendChild(controls);
+      wrap.appendChild(subCount);
+      wrap.appendChild(subsWrap);
+      return wrap;
+    }
+
+    // ---------- Section (5.x) ----------
+    function createSectionNode(data={title:'', body:'', points:[]}){
+      const node = document.getElementById('tmpl-section').content.firstElementChild.cloneNode(true);
+      node.dataset.sid = (++secAutoId).toString();
+
+      $('.title-input', node).value = data.title || '';
+      $('.body-input',  node).value = data.body  || '';
+
+      const mainsWrap = $('.mains-wrap', node);
+      const mainCountInput = $('.main-count', node);
+
+      function renderMainsFromData(list){
+        mainsWrap.innerHTML = '';
+        let count = 0;
+        (list || []).forEach(item => {
+          count++;
+          mainsWrap.appendChild(createMainBlock(count, item.main || '', item.subs || [], node));
+        });
+        mainCountInput.value = count;
+      }
+      renderMainsFromData(data.points || []);
+
+      node.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button');
+        if(!btn) return;
+
+        if(btn.dataset.cmd){
+          const cmd = btn.dataset.cmd;
+          const parent = node.parentElement;
+          if(cmd==='remove-section'){ parent.removeChild(node); renumber(); }
+          else if(cmd==='add-main'){
+            const cur = (mainCountInput.value|0) + 1;
+            mainCountInput.value = cur;
+            mainsWrap.appendChild(createMainBlock(cur, '', [], node));
+            renumber();
+          } else if(cmd==='remove-main'){
+            const cur = (mainCountInput.value|0);
+            if(cur>0){ mainsWrap.removeChild(mainsWrap.lastElementChild); mainCountInput.value = cur-1; renumber(); }
+          }
+          return;
+        }
+
+        if(btn.dataset.subcmd){
+          const subcmd = btn.dataset.subcmd;
+          const mainIdx = parseInt(btn.dataset.main,10);
+          const subCountInput = $(`.sub-count[data-main="${mainIdx}"]`, node);
+          const subsWrap = $(`#subs_${node.dataset.sid}_${mainIdx}`, node);
+          let cur = (subCountInput.value|0);
+          if(subcmd==='add'){
+            cur++; subCountInput.value = cur;
+            const [label, input] = createSubItem(node, mainIdx, cur, '');
+            subsWrap.appendChild(label);
+            subsWrap.appendChild(input);
+            renumber();
+          }else if(subcmd==='remove' && cur>0){
+            subsWrap.removeChild(subsWrap.lastElementChild);
+            subsWrap.removeChild(subsWrap.lastElementChild);
+            subCountInput.value = cur-1;
+            renumber();
+          }
+        }
+      });
+
+      return node;
+    }
+
+    // ---------- Helpers ----------
+    function getRootIndex(sectionEl){
+      const parent = sectionEl.parentElement;
+      if (!parent || parent.id !== 'root_sections') return 1;
+      return Array.from(parent.children).indexOf(sectionEl) + 1;
+    }
+
+    function deserialize(arr){
+      const root = document.getElementById('root_sections');
+      root.innerHTML = '';
+      (arr || []).forEach(s => root.appendChild(createSectionNode(s)));
+      renumber();
+    }
+
+    function serialize(){
+      function sectionToObj(sectionEl){
+        const title = $('.title-input', sectionEl).value.trim();
+        const body  = $('.body-input',  sectionEl).value.trim();
+
+        const points = [];
+        $$('.main-block', sectionEl).forEach((blk)=>{
+          const mainVal = $('input.main-input', blk).value.trim();
+          const subs = [];
+          $$('.subs-wrap > input.sub-input', blk).forEach(inp => subs.push(inp.value.trim()));
+          if(mainVal || subs.some(Boolean)) points.push({ main: mainVal, subs: subs.filter(Boolean) });
+        });
+        return { title, body, points };
+      }
+      const list  = $$('#root_sections > .section').map(sectionToObj);
+      return JSON.stringify(list);
+    }
+
+    function renumber(){
+      const root = document.getElementById('root_sections');
+      $$('#root_sections > .section').forEach((sec, i)=>{
+        const rootIndex = i+1;
+        $('.number', sec).textContent = '5.' + rootIndex;
+
+        $$('.main-block', sec).forEach((blk, mi)=>{
+          const mainIndex = mi+1;
+          const mainNumStr = `5.${rootIndex}.${mainIndex}`;
+
+          const mainLabel = $('label.form-label', blk);
+          if (mainLabel && !mainLabel.classList.contains('sub-label')) {
+            mainLabel.textContent = mainNumStr;
+          }
+          const subs = $$('.subs-wrap > .sub-label', blk);
+          subs.forEach((slab, sj)=>{
+            const subIndex = sj+1;
+            slab.textContent = `${mainNumStr}.${subIndex}`;
+          });
+          const addButton = $(`button[data-subcmd="add"]`, blk);
+          if (addButton) addButton.textContent = `+ เพิ่มหัวข้อย่อย (${mainNumStr}.x)`;
+        });
+      });
+    }
+
+    // ---------- Init ----------
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const pre = getJsonScript('chapter5-data');
+      deserialize(Array.isArray(pre) && pre.length ? pre : defaultSections());
+
+      document.getElementById('add-root').addEventListener('click', ()=>{
+        document.getElementById('root_sections').appendChild(createSectionNode());
+        renumber();
+      });
+
+      document.getElementById('chapter5Form').addEventListener('submit', (e)=>{
+        const action = e.submitter && e.submitter.value;
+        if(action==='save' || action==='generate_docx'){
+          cleanTextareas(); // เรียกก่อน serialize()
+          document.getElementById('chapter5_json').value = serialize();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

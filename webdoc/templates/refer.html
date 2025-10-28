@@ -1,0 +1,363 @@
+{% comment %} เหลือฐานข้อมูล จัดรูปแบบบางอย่าง สร้างไฟล์เอกสารได้แล้ว {% endcomment %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บรรณานุกรม</title>
+    <link rel="stylesheet" href="{% static 'css/refer.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1 class="main-title">บรรณานุกรม</h1>
+        <form id="referForm" method="POST" action="{% url 'refer' %}" class="form">
+            {% csrf_token %}
+
+            <input type="hidden" id="ref_count" name="ref_count" value="0">
+
+            <div id="references-container" class="references-container">
+            </div>
+
+            <div class="button-container">
+                <button type="submit" name="action" value="save_refer" class="btn btn-gray">
+                    บันทึกข้อมูล
+                </button>
+                <button type="submit" name="action" value="get_data" class="btn btn-orange">
+                    ดึงข้อมูลเก่า
+                </button>
+
+                <button type="button" onclick="addReferenceSection()" class="btn btn-blue">
+                    + เพิ่มรายการอ้างอิง
+                </button>
+                <button type="button" onclick="removeLastReferenceSection()" class="btn btn-red">
+                    - ลบรายการล่าสุด
+                </button>
+                <button type="submit" name="action" value="generate_refer" class="btn btn-green">
+                    สร้างเอกสารบรรณานุกรม
+                </button>
+            </div>
+        </form>
+    </div>
+
+    
+<script>
+    const labels = {
+        th: {
+            refType: "ประเภทแหล่งอ้างอิง",
+            language: "ภาษา",
+            author: "ผู้แต่ง",
+            addAuthor: "+ เพิ่มผู้แต่ง",
+            removeAuthor: "- ลบผู้แต่ง",
+            title: "ชื่อเรื่อง",
+            url: "URL",
+            accessDate: "วันเดือนปีที่ค้นข้อมูล",
+            printCount: "ครั้งที่พิมพ์",
+            cityPrint: "เมืองที่พิมพ์",
+            publisher: "สำนักพิมพ์",
+            yearPrint: "ปีที่พิมพ์",
+            articleAuthor: "ชื่อผู้เขียนบทความ",
+            articleTitle: "ชื่อบทความ",
+            editor: "บรรณาธิการ",
+            bookTitle: "ชื่อหนังสือ",
+            pages: "หน้าที่ปรากฏบทความ",
+            format: "รูปแบบของข้อมูล",
+            cityProd: "เมืองที่ผลิต",
+            yearProd: "ปีที่ผลิต",
+            newspaperName: "ชื่อหนังสือพิมพ์",
+            pubDate: "วัน เดือน ปี ที่พิมพ์",
+            section: "ภาคตอน",
+            page: "เลขหน้า",
+            journalName: "ชื่อวารสาร",
+            resourceType: "ชนิดของรายการทรัพยากร",
+            dbUpdateDate: "เดือนปีที่ฐานข้อมูลปรับปรุง",
+            availableFrom: "แหล่งที่มา (URL)",
+            conferenceName: "ชื่อการประชุม",
+            conferenceDate: "วัน เดือน ปี ที่ประชุม",
+            conferenceLocation: "สถานที่จัดประชุม",
+            presenter: "ชื่อผู้นำเสนอผลงาน",
+            presentationTitle: "ชื่อเรื่องที่นำเสนอ",
+            volumeIssue: "ปีที่(ฉบับที่)"
+        },
+        en: {
+            refType: "Reference Type",
+            language: "Language",
+            author: "Author",
+            addAuthor: "+ Add Author",
+            removeAuthor: "- Remove Author",
+            title: "Title",
+            url: "URL",
+            accessDate: "Date Accessed",
+            printCount: "Edition",
+            cityPrint: "City of Publication",
+            publisher: "Publisher",
+            yearPrint: "Year of Publication",
+            articleAuthor: "Article Author",
+            articleTitle: "Article Title",
+            editor: "Editor",
+            bookTitle: "Book Title",
+            pages: "Pages",
+            format: "Format",
+            cityProd: "City of Production",
+            yearProd: "Year of Production",
+            newspaperName: "Newspaper Name",
+            pubDate: "Date Published",
+            section: "Section",
+            page: "Page(s)",
+            journalName: "Journal Name",
+            resourceType: "Resource Type",
+            dbUpdateDate: "Database Update Date",
+            availableFrom: "Available from (URL)",
+            conferenceName: "Conference Name",
+            conferenceDate: "Conference Date",
+            conferenceLocation: "Conference Location",
+            presenter: "Presenter",
+            presentationTitle: "Presentation Title",
+            volumeIssue: "Volume(Issue)"
+        }
+    };
+
+    // utils: แปลงวันที่ ISO (YYYY-MM-DD) เป็น format ตามภาษา
+function formatDateForLang(isoDate, lang) {
+    if (!isoDate) return '';
+    const d = new Date(isoDate);
+
+    const months_th = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+    const months_en = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    if (lang === 'en') {
+        // Year Month Day (e.g., 2025 Sep 19)
+        return `${d.getFullYear()} ${months_en[d.getMonth()]} ${d.getDate()}`;
+    } else {
+        // Day Month Year (e.g., 19 ก.ย. 2568)
+        const year_th = d.getFullYear() + 543;  // ปี พ.ศ.
+        return `${d.getDate()} ${months_th[d.getMonth()]} ${year_th}`;
+    }
+}
+
+
+    let refCounter = 0;
+
+    function createAuthorFields(index, lang) {
+        return `
+            <div id="authors_container_${index}" class="authors-container">
+                <div class="field-group">
+                    <label for="author_${index}_1" class="field-label">${labels[lang].author} 1:</label>
+                    <input type="text" id="author_${index}_1" name="author_${index}_1" class="field-input">
+                </div>
+            </div>
+            <div class="author-buttons">
+                <button type="button" id="add_author_btn_${index}" onclick="addAuthor(${index})" class="btn-text-blue">${labels[lang].addAuthor}</button>
+                <button type="button" id="remove_author_btn_${index}" onclick="removeAuthor(${index})" class="btn-text-red hidden">${labels[lang].removeAuthor}</button>
+            </div>
+        `;
+    }
+
+    function createField(id, label, type = 'text', placeholder = '', spanClass = '') {
+        return `
+            <div class="field-group ${spanClass}">
+                <label for="${id}" class="field-label">${label}:</label>
+                <input type="${type}" id="${id}" name="${id}" class="field-input" placeholder="${placeholder}">
+            </div>
+        `;
+    }
+
+    function createSelect(id, label, options) {
+        return `
+            <div class="field-group">
+                <label for="${id}" class="field-label">${label}:</label>
+                <select id="${id}" name="${id}" class="field-select">
+                    ${options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('')}
+                </select>
+            </div>
+        `;
+    }
+
+    function generateTextFields(index) {
+        const refType = document.getElementById(`ref_type_${index}`).value;
+        const lang = document.getElementById(`lang_${index}`).value;
+        const l = labels[lang];
+        let textFieldsHTML = '';
+        const authorFields = createAuthorFields(index, lang);
+
+        switch(refType) {
+            case "1": // Website
+                textFieldsHTML = authorFields + createField(`title_${index}`, l.title, 'text', '', 'span-2') + createField(`url_${index}`, l.url, 'url') + createField(`access_date_${index}`, l.accessDate, 'date');
+                break;
+            case "2": // Book
+                textFieldsHTML = authorFields + createField(`title_${index}`, l.title, 'text', '', 'span-2') + createField(`print_count_${index}`, l.printCount, 'text') + createField(`city_print_${index}`, l.cityPrint) + createField(`publisher_${index}`, l.publisher) + createField(`y_print_${index}`, l.yearPrint, 'text', 'YYYY');
+                break;
+            case "3": // Article in Book
+                textFieldsHTML = createField(`article_author_${index}`, l.articleAuthor) + createField(`article_title_${index}`, l.articleTitle, 'text', '', 'span-2') + createField(`editor_${index}`, l.editor) + createField(`book_title_${index}`, l.bookTitle) + createField(`city_print_${index}`, l.cityPrint) + createField(`publisher_${index}`, l.publisher) + createField(`y_print_${index}`, l.yearPrint, 'text', 'YYYY') + createField(`pages_${index}`, l.pages, 'text', 'e.g., p. 15-20');
+                break;
+            case "4": // Multimedia
+                textFieldsHTML = createField(`author_${index}`, l.author) + createField(`title_${index}`, l.title) + createField(`format_${index}`, l.format) + createField(`city_prod_${index}`, l.cityProd) + createField(`publisher_${index}`, l.publisher) + createField(`y_prod_${index}`, l.yearProd, 'text', 'YYYY');
+                break;
+            case "5": // Newspaper Article
+                textFieldsHTML = createField(`author_${index}`, l.author) + createField(`article_title_${index}`, l.articleTitle) + createField(`journal_name_${index}`, l.journalName) + createField(`pub_date_${index}`, l.pubDate, 'text', 'e.g., 2023 Jun 1') + createField(`volume_issue_${index}`, l.volumeIssue, 'text', 'e.g., 124(11)') + createField(`pages_${index}`, l.pages, 'text', 'e.g., 980-3');
+                break;
+            case "6": // Database Article
+                textFieldsHTML = createField(`author_${index}`, l.author) + createField(`article_title_${index}`, l.articleTitle) + createField(`journal_name_${index}`, l.journalName) + createField(`resource_type_${index}`, l.resourceType) + createField(`db_update_date_${index}`, l.dbUpdateDate, 'date') + createField(`access_date_${index}`, l.accessDate, 'date') + createField(`url_${index}`, l.availableFrom, 'url', '', 'span-2');
+                break;
+            case "7": // Conference Proceedings
+                textFieldsHTML = createField(`editor_${index}`, l.editor) + createField(`title_${index}`, l.title) + createField(`conference_name_${index}`, l.conferenceName) + createField(`conference_date_${index}`, l.conferenceDate, 'text', 'e.g., 2023 Sep 6-10') + createField(`conference_location_${index}`, l.conferenceLocation) + createField(`city_print_${index}`, l.cityPrint) + createField(`publisher_${index}`, l.publisher) + createField(`y_print_${index}`, l.yearPrint, 'text', 'YYYY');
+                break;
+            case "8": // Conference Presentation
+                textFieldsHTML = createField(`presenter_${index}`, l.presenter) + createField(`presentation_title_${index}`, l.presentationTitle, 'text', '', 'span-2') + createField(`editor_${index}`, l.editor) + createField(`conference_name_${index}`, l.conferenceName) + createField(`conference_date_${index}`, l.conferenceDate, 'text', 'e.g., 2023 Sep 6-10') + createField(`conference_location_${index}`, l.conferenceLocation) + createField(`city_print_${index}`, l.cityPrint) + createField(`publisher_${index}`, l.publisher) + createField(`y_print_${index}`, l.yearPrint, 'text', 'YYYY') + createField(`page_${index}`, l.page, 'text', 'e.g., p. 15-20');
+                break;
+            case "9": // Journal Article
+                textFieldsHTML = createField(`author_${index}`, l.author) + createField(`article_title_${index}`, l.articleTitle) + createField(`newspaper_name_${index}`, l.newspaperName) + createField(`pub_date_${index}`, l.pubDate, 'date') + createField(`section_${index}`, l.section) + createField(`page_${index}`, l.page);
+                break;
+            default:
+                textFieldsHTML = '';
+                break;
+        }
+
+        document.getElementById(`textFields_${index}`).innerHTML = textFieldsHTML;
+    }
+
+    function addReferenceSection() {
+        refCounter++;
+        const container = document.getElementById('references-container');
+        const newSection = document.createElement('div');
+        newSection.className = 'reference-section';
+        newSection.id = `ref_section_${refCounter}`;
+        newSection.innerHTML = `
+            <h2 class="section-title">รายการอ้างอิงที่ ${refCounter}</h2>
+            <div class="grid grid-cols-2">
+                <div class="field-group">
+                    <label for="lang_${refCounter}" class="field-label">${labels.th.language}:</label>
+                    <select id="lang_${refCounter}" name="lang_${refCounter}" onchange="generateTextFields(${refCounter})" class="field-select">
+                        <option value="th">ภาษาไทย</option>
+                        <option value="en">อังกฤษ</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="ref_type_${refCounter}" class="field-label">${labels.th.refType}:</label>
+                    <select id="ref_type_${refCounter}" name="ref_type_${refCounter}" onchange="generateTextFields(${refCounter})" class="field-select">
+                        <option value="">-- กรุณาเลือก --</option>
+                        <option value="1">เว็บไซต์ (Website)</option>
+                        <option value="2">หนังสือ (Book)</option>
+                        <option value="3">บทความในหนังสือ (Article in Book)</option>
+                        <option value="4">สื่อมัลติมีเดีย (Multimedia)</option>
+                        <option value="5">บทความในวารสาร (Journal Article)</option>
+                        <option value="6">บทความในฐานข้อมูล (Database Article)</option>
+                        <option value="7">รายงานการประชุม (Conference Proceedings)</option>
+                        <option value="8">การนำเสนอผลงานในการประชุม (Conference Presentation)</option>
+                        <option value="9">บทความจากหนังสือพิมพ์ (Newspaper Article)</option>
+                    </select>
+                </div>
+            </div>
+            <div id="textFields_${refCounter}" class="text-fields"></div>
+        `;
+        container.appendChild(newSection);
+        document.getElementById('ref_count').value = refCounter;
+    }
+
+    function removeLastReferenceSection() {
+        const container = document.getElementById('references-container');
+        if (container.lastElementChild) {
+            container.removeChild(container.lastElementChild);
+            refCounter--;
+            if (refCounter < 0) refCounter = 0;
+            document.getElementById('ref_count').value = refCounter;
+        }
+    }
+
+    function addAuthor(index) {
+        const authorsContainer = document.getElementById(`authors_container_${index}`);
+        const currentAuthorCount = authorsContainer.children.length;
+        const lang = document.getElementById(`lang_${index}`).value;
+        if (currentAuthorCount < 3) {
+            const newAuthorNum = currentAuthorCount + 1;
+            const newAuthorDiv = document.createElement('div');
+            newAuthorDiv.className = 'field-group';
+            newAuthorDiv.innerHTML = `
+                <label for="author_${index}_${newAuthorNum}" class="field-label">${labels[lang].author} ${newAuthorNum}:</label>
+                <input type="text" id="author_${index}_${newAuthorNum}" name="author_${index}_${newAuthorNum}" class="field-input">
+            `;
+            authorsContainer.appendChild(newAuthorDiv);
+        }
+        if (authorsContainer.children.length >= 3) {
+            document.getElementById(`add_author_btn_${index}`).disabled = true;
+        }
+        document.getElementById(`remove_author_btn_${index}`).classList.remove('hidden');
+    }
+
+    function removeAuthor(index) {
+        const authorsContainer = document.getElementById(`authors_container_${index}`);
+        if (authorsContainer.children.length > 1) {
+            authorsContainer.removeChild(authorsContainer.lastElementChild);
+        }
+        if (authorsContainer.children.length < 3) {
+            document.getElementById(`add_author_btn_${index}`).disabled = false;
+        }
+        if (authorsContainer.children.length <= 1) {
+            document.getElementById(`remove_author_btn_${index}`).classList.add('hidden');
+        }
+    }
+    
+    // =============================== 
+    // ✅ ส่วนที่ "เพิ่มมาใหม่" สำหรับดึงข้อมูลเก่า 
+    // ===============================
+
+    // เติมนักเขียนให้ครบช่อง (ไม่เกิน 3)
+    function fillAuthorsFromArray(index, authors) {
+        if (!authors || !authors.length) return;
+        document.getElementById(`author_${index}_1`).value = authors[0] || '';
+        for (let i = 2; i <= Math.min(authors.length, 3); i++) {
+            addAuthor(index);
+            const v = authors[i-1] || '';
+            const el = document.getElementById(`author_${index}_${i}`);
+            if (el) el.value = v;
+        }
+    }
+
+    // เติมค่าตาม initialRefs ที่ได้จาก backend
+    function hydrateFromInitial(initialRefs) {
+        if (!Array.isArray(initialRefs)) return;
+        const container = document.getElementById('references-container');
+        container.innerHTML = '';
+        window.refCounter = 0;
+        document.getElementById('ref_count').value = 0;
+
+        initialRefs.forEach((r, idx) => {
+            const index = idx + 1;
+            addReferenceSection();
+            document.getElementById(`lang_${index}`).value = r.language || 'th';
+            document.getElementById(`ref_type_${index}`).value = r.ref_type || '';
+            generateTextFields(index);
+
+            if (r.ref_type === '1') { // Website
+                fillAuthorsFromArray(index, r.authors || []);
+                document.getElementById(`title_${index}`).value = r.title || '';
+                document.getElementById(`url_${index}`).value = r.url || '';
+                document.getElementById(`access_date_${index}`).value = r.access_date || '';
+            } else if (r.ref_type === '2') { // Book
+                fillAuthorsFromArray(index, r.authors || []);
+                document.getElementById(`title_${index}`).value = r.title || '';
+                document.getElementById(`print_count_${index}`).value = r.print_count || '';
+                document.getElementById(`city_print_${index}`).value = r.city_print || '';
+                document.getElementById(`publisher_${index}`).value = r.publisher || '';
+                document.getElementById(`y_print_${index}`).value = r.y_print || '';
+            }
+        });
+
+        document.getElementById('ref_count').value = initialRefs.length;
+    }
+
+    // รับ JSON string จาก view แล้ว parse เป็น object
+    const initialRefs = (() => {
+        const raw = '{{ initial_refs_json|default:"null"|escapejs }}';
+        try { return raw === "null" ? null : JSON.parse(raw); }
+        catch (e) { console.warn("Bad JSON", e); return null; }
+    })();
+
+    window.addEventListener("DOMContentLoaded", () => {
+        if (initialRefs) {
+            hydrateFromInitial(initialRefs);
+        }
+    });
+</script>
+</body>
+</html>

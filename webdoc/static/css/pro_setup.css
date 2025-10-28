@@ -1,0 +1,362 @@
+/* ================= Google Fonts ================= */
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&display=swap');
+
+/* ================= Theme Tokens (จาก landing.css) ================= */
+:root {
+    --primary: #2f6fd6;
+    --primary-2: #6ba8ff;
+    --primary-3: #9cc5ff;
+    --ink: #0f172a;
+    --ink-2: #1f2937;
+    --muted: #64748b;
+    --muted-2: #94a3b8;
+
+    --bg: #ffffff;
+    --bg-soft: #f6f9ff;
+    --card: #ffffff;
+    --card-border: #e6eef9;
+
+    --shadow-sm: 0 4px 14px rgba(24, 39, 75, .08);
+    --shadow: 0 10px 30px rgba(24, 39, 75, .12);
+    --shadow-lg: 0 20px 55px rgba(24, 39, 75, .16);
+    --radius: 20px;
+    --ring: 0 0 0 3px rgba(47, 111, 214, .35);
+
+    --success: #16a34a;
+    --danger: #e11d48;
+    --warning: #f59e0b;
+}
+
+/* ================= Reset & Base ================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Kanit', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color: var(--ink-2);
+    background: linear-gradient(180deg, #eef4ff 0%, #f8fbff 100%);
+    line-height: 1.65;
+    display: flex;
+    justify-content: center;
+    padding: 48px 24px;
+    min-height: 100vh;
+}
+
+/* ================= Form Container ================= */
+.form-container {
+    width: 100%;
+    max-width: 900px;
+    background: var(--card);
+    padding: 40px;
+    border-radius: var(--radius);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow);
+    animation: fadeIn .5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+/* ================= Form Elements ================= */
+form {
+    display: grid;
+    gap: 24px;
+}
+
+label {
+    font-weight: 600;
+    color: #0b59ca;
+    margin-bottom: 6px;
+    display: block;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background-color: var(--bg-soft);
+    font-family: 'Kanit', sans-serif;
+    font-size: 1rem;
+    color: var(--ink-2);
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: var(--ring);
+}
+
+/* ================= Section Styling for Authors ================= */
+#author-container {
+    background: #fbfdff;
+    border: 1px dashed var(--card-border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 12px;
+}
+
+#author-container br {
+    display: none; /* ซ่อน <br> ที่ไม่จำเป็น */
+}
+
+#author-container label {
+    margin-top: 16px;
+}
+#author-container label:first-child {
+    margin-top: 0;
+}
+
+#author-container input {
+    margin-bottom: 8px;
+}
+
+/* ================= Buttons ================= */
+.btn, button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn:focus-visible, button:focus-visible {
+    outline: none;
+    box-shadow: var(--ring);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), #1f56b6);
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(47, 111, 214, .25);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.btn-secondary {
+    background: var(--bg-soft);
+    color: var(--ink-2);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    border-color: #d1dceb;
+}
+
+.btn-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+.btn-danger:hover {
+    background: #fca5a5;
+    color: #fff;
+}
+
+.btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+    border-top: 1px solid var(--card-border);
+    padding-top: 24px;
+}
+
+/* จัดกลุ่มปุ่ม เพิ่ม/ลบ */
+.author-controls {
+    display: flex;
+    gap: 12px;
+    margin-top: -12px;
+    margin-bottom: 12px;
+}
+.author-controls button {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
+
+/* ================= Form Layout Additions ================= */
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px; /* Add gap only between columns */
+}
+
+
+/* ================= Alert Message ================= */
+.alert {
+    padding: 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
+.alert-danger {
+    background-color: #fef2f2;
+    color: var(--danger);
+    border: 1px solid #fecaca;
+}
+
+/* ================= Responsive ================= */
+@media (max-width: 768px) {
+    body {
+        padding: 24px 12px;
+    }
+    .form-container {
+        padding: 24px;
+    }
+    h1 {
+        font-size: 1.8rem;
+    }
+    .form-grid-2 {
+        grid-template-columns: 1fr; /* กลับเป็น 1 คอลัมน์บนจอมือถือ */
+        gap: 24px 0; /* เปลี่ยน gap ให้อยู่ระหว่างแถวแทน */
+    }
+}
+
+/* ========================
+   Department UI (scoped)
+   ======================== */
+
+/* Grid 2 คอลัมน์ (ยุบเป็น 1 คอลัมน์เมื่อจอแคบ) */
+.dep-scope.form-grid-2{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 768px){
+  .dep-scope.form-grid-2{ grid-template-columns: 1fr; }
+}
+
+/* Label */
+.dep-scope > div > label{
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+  
+}
+
+/* Base input/select look */
+.dep-scope select#dep_selector,
+.dep-scope #dep_en_display{
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--card-border, #e5e7eb);
+  border-radius: 10px;
+  background: var(--bg-soft, #f8fafc);
+  color: var(--ink-2, #0f172a);
+  font-family: 'Kanit', sans-serif;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+  box-shadow: 0 1px 0 rgba(0,0,0,.02);
+  -webkit-transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+  -moz-transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+  -ms-transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+  -o-transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+/* Readonly look */
+.dep-scope #dep_en_display[readonly]{
+  background: var(--bg-soft-2, #f4f7ff);
+  cursor: default;
+  opacity: .98;
+}
+
+/* Hover */
+.dep-scope select#dep_selector:hover,
+.dep-scope #dep_en_display:hover{
+  border-color: var(--hover-border, #d1dceb);
+}
+
+/* Focus ring */
+.dep-scope select#dep_selector:focus,
+.dep-scope #dep_en_display:focus{
+  border-color: var(--primary, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.2);
+}
+
+/* Custom arrow ของ <select> */
+.dep-scope select#dep_selector{
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted, #64748b) 50%),
+    linear-gradient(135deg, var(--muted, #64748b) 50%, transparent 50%),
+    linear-gradient(to right, transparent, transparent);
+  background-position:
+    calc(100% - 22px) calc(50% - 4px),
+    calc(100% - 16px) calc(50% - 4px),
+    100% 0;
+  background-size: 6px 6px, 6px 6px, 2.75rem 100%;
+  background-repeat: no-repeat;
+  padding-right: 2.75rem;
+}
+
+/* State helpers (ถ้าต้องการ ใส่คลาสผ่าน JS) */
+.dep-scope .is-invalid{
+  border-color: #fecaca !important;
+  background-color: #fff5f5 !important;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, .15) !important;
+}
+.dep-scope .is-success{
+  border-color: #86efac !important;
+  background-color: #f0fff4 !important;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, .15) !important;
+}
+
+/* Dark mode (ตาม system) */
+@media (prefers-color-scheme: dark){
+  .dep-scope > div > label{
+    color: var(--muted, #94a3b8);
+  }
+  .dep-scope select#dep_selector,
+  .dep-scope #dep_en_display{
+    background: var(--bg-soft, #0f172a);
+    color: var(--ink-2, #e5e7eb);
+    border-color: var(--card-border, #243041);
+  }
+  .dep-scope #dep_en_display[readonly]{
+    background: var(--bg-soft-2, #0b1220);
+  }
+  .dep-scope select#dep_selector:focus,
+  .dep-scope #dep_en_display:focus{
+    border-color: var(--primary, #60a5fa);
+    box-shadow: 0 0 0 3px rgba(32, 132, 255, 0.25);
+  }
+}

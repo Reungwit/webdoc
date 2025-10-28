@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="{% static './css/index.css' %}">
 </head>
 <body>
+    <!-- Top Navigation Bar -->
     <nav class="navbar">
         <div class="nav-left">
-            <img class ="img_logo" src="{% static 'img/kmutnb_logo.png' %}" alt="logo" width ="50" ; >
-            <a href="{% url 'index' %}">หน้าแรก</a>
+            <img class="img_logo" src="{% static 'img/kmutnb_logo.png' %}" alt="logo" width="50">
+            <a href="{% url 'index' %}">หน้าหลัก</a>
             <a href="{% url 'manage_doc' %}">จัดการรูปเล่ม</a>
             <a href="{% url 'about' %}">เกี่ยวกับ</a>
         </div>
@@ -24,52 +25,482 @@
         </div>
     </nav>
 
-    <!-- เนื้อหาแต่ละหน้า -->
-      <div class="card-container">
-        <div class="card">
-            <h3>แบบเสนอโครงการพิเศษ ทก.01</h3>
-            <p></p>
-            <a href="{% url 'sp_project_form' %}" class="card-button">ไปยังหน้านี้</a>
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Left Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">
+                    <i class="fas fa-folder"></i>
+                    โครงสร้างเล่มปริญญานิพนธ์                </h4>
+                <div class="sidebar-content" id="main-navigation">
+                    <div class="nav-item" data-url="{% url 'project_setup' %}" data-type="main">
+                        <i class="fas fa-cog"></i>
+                        <span>ข้อมูลเบื้องต้นของโปรเจค</span>
+                    </div>
+                    <!-- <div class="nav-item" data-url="{% url 'sp_project_form' %}" data-type="main" > 
+                        <i class="fas fa-file-alt"></i>
+                        <span>แบบเสนอโครงการพิเศษ ทก.01</span>
+                    </div> -->
+                    <div class="nav-item" data-url="{% url 'manage_doc' %}" data-type="main">
+                        <i class="fas fa-book"></i>
+                        <span>หน้าปก</span>
+                    </div>
+                    <div class="nav-item" data-url="{% url 'certificate' %}" data-type="main">
+                        <i class="fas fa-certificate"></i>
+                        <span>ใบรับรองปริญญานิพนธ์</span>
+                    </div>
+                    <div class="nav-item" data-url="{% url 'abstract_ack_view' %}" data-type="main">
+                        <i class="fas fa-file-text"></i>
+                        <span>บทคัดย่อ</span>
+                    </div>
+                    <div class="nav-item chapter-item" data-url="{% url 'chapter_1' %}" data-type="chapter" data-chapter="1">
+                        <i class="fas fa-file"></i>
+                        <span>บทที่ 1</span>
+                    </div>
+                    <div class="nav-item chapter-item" data-url="{% url 'chapter_2' %}" data-type="chapter" data-chapter="2">
+                        <i class="fas fa-file"></i>
+                        <span>บทที่ 2</span>
+                    </div>
+                    <div class="nav-item chapter-item" data-url="{% url 'chapter_3' %}" data-type="chapter" data-chapter="3">
+                        <i class="fas fa-file"></i>
+                        <span>บทที่ 3</span>
+                    </div>
+                    <div class="nav-item chapter-item" data-url="{% url 'chapter_4' %}" data-type="chapter" data-chapter="4">
+                        <i class="fas fa-file"></i>
+                        <span>บทที่ 4</span>
+                    </div>
+                    <div class="nav-item chapter-item" data-url="{% url 'chapter_5' %}" data-type="chapter" data-chapter="5">
+                        <i class="fas fa-file"></i>
+                        <span>บทที่ 5</span>
+                    </div>
+                    <div class="nav-item" data-url="{% url 'refer' %}" data-type="main">
+                        <i class="fas fa-bookmark"></i>
+                        <span>บรรณานุกรม</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section" id="chapter-outline" style="display: none;">
+                <h4 class="sidebar-title">
+                    <i class="fas fa-list"></i>
+                    โครงสร้างบท
+                </h4>
+                <div class="sidebar-content" id="chapter-navigation">
+                    <!-- Chapter outline will be populated here -->
+                </div>
+            </div>
         </div>
-         <div class="card">
-            <h3>หน้าปก</h3>
-            <p></p>
-            <a href="{% url 'cover' %}" class="card-button">ไปยังหน้านี้</a>
-        </div>
-        <div class="card">
-            <h3>บทคัดย่อ</h3>
-            <p></p>
-            <a href="{% url 'intro' %}" class="card-button">ไปยังหน้านี้</a>
-        </div>
-        <div class="card">
-            <h3>บทที่ 1</h3>
-            <p></p>
-            <a href="{% url 'chapter_1' %}" class="card-button">ไปยังหน้านี้</a>
-        </div>
-        <div class="card">
-            <h3>บทที่ 2</h3>
-            <p></p>
-            <a href="{% url 'chapter_2' %}" class="card-button">ไปยังหน้านี้</a>
-        </div>
-        <div class="card">
-            <h3>บทที่ 3</h3>
-            <p></p>
-            <a href="{% url 'chapter_3' %}" class="card-button">ไปยังหน้านี้</a>
-        </div>
-         <div class="card">
-            <h3>บทที่ 4</h3>
-            <p></p>
-            <a href="{% url 'chapter_4' %}" class="card-button">ไปยังหน้านี้</a>
-        </div>
-         <div class="card">
-            <h3>บทที่ 5</h3>
-            <p></p>
-            <a href="{% url 'chapter_5' %}" class="card-button">ไปยังหน้านี้</a>
-        </div>
-         <div class="card">
-            <h3>บรรณานุกรม</h3>
-            <p></p>
-            <a href="{% url 'refer' %}" class="card-button">ไปยังหน้านี้</a>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="working-area" id="working-area">
+                <div class="welcome-message">
+                    <p>เลือกหัวข้อจากแถบด้านซ้ายเพื่อเริ่มทำงาน</p>
+                </div>
+            </div>
         </div>
     </div>
+<<<<<<< HEAD
 </div>
+=======
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script>
+        // Chapter outlines data based on actual chapter content
+        const chapterOutlines = {
+            1: [
+                { title: "บทที่ 1 - บทนำ", type: "main" },
+                { title: "1.1 ความเป็นมาและความสำคัญของปัญหา", type: "section" },
+                { title: "1.2 วัตถุประสงค์ของการวิจัย", type: "section" },
+                { title: "1.3 สมมติฐานของการวิจัย", type: "section" },
+                { title: "1.4 ขอบเขตของการวิจัย", type: "section" },
+                { title: "1.5 ข้อตกลงเบื้องต้น", type: "section" },
+                { title: "1.6 นิยามศัพท์เฉพาะ", type: "section" },
+                { title: "1.7 ประโยชน์ที่คาดว่าจะได้รับ", type: "section" }
+            ],
+            2: [
+                { title: "บทที่ 2 - ทฤษฎีและงานที่เกี่ยวข้อง", type: "main" },
+                { title: "2.1 ทฤษฎีพื้นฐาน", type: "section" },
+                { title: "2.2 งานวิจัยที่เกี่ยวข้อง", type: "section" },
+                { title: "2.3 สรุป", type: "section" }
+            ],
+            3: [
+                { title: "บทที่ 3 - วิธีการดำเนินงาน", type: "main" },
+                { title: "3.1 วิธีการวิจัย", type: "section" },
+                { title: "3.2 เครื่องมือที่ใช้", type: "section" },
+                { title: "3.3 ขั้นตอนการดำเนินงาน", type: "section" }
+            ],
+            4: [
+                { title: "บทที่ 4 - ผลการดำเนินงาน", type: "main" },
+                { title: "4.1 ผลการทดสอบ", type: "section" },
+                { title: "4.2 การวิเคราะห์ผล", type: "section" },
+                { title: "4.3 การประเมินผล", type: "section" }
+            ],
+            5: [
+                { title: "บทที่ 5 - สรุปและข้อเสนอแนะ", type: "main" },
+                { title: "5.1 สรุปผลการดำเนินงาน", type: "section" },
+                { title: "5.2 อภิปรายผล", type: "section" },
+                { title: "5.3 ข้อเสนอแนะ", type: "section" }
+            ]
+        };
+
+        // Navigation functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainNavigation = document.getElementById('main-navigation');
+            const chapterOutline = document.getElementById('chapter-outline');
+            const chapterNavigation = document.getElementById('chapter-navigation');
+            const workingArea = document.getElementById('working-area');
+
+            // Handle main navigation clicks
+            mainNavigation.addEventListener('click', function(e) {
+                const navItem = e.target.closest('.nav-item');
+                if (!navItem) return;
+
+                const url = navItem.dataset.url;
+                const type = navItem.dataset.type;
+                const chapter = navItem.dataset.chapter;
+
+                // Remove active class from all items
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                navItem.classList.add('active');
+
+                if (type === 'chapter') {
+                    // Show chapter outline
+                    showChapterOutline(chapter);
+                    // Load chapter content
+                    loadChapterContent(url, chapter);
+                } else {
+                    // Hide chapter outline for non-chapter items
+                    chapterOutline.style.display = 'none';
+                    // Load main content
+                    loadMainContent(url);
+                }
+            });
+
+
+            function showChapterOutline(chapter) {
+                const outline = chapterOutlines[chapter];
+                if (!outline) return;
+
+                chapterNavigation.innerHTML = '';
+                
+                outline.forEach((item, index) => {
+                    const outlineItem = document.createElement('div');
+                    outlineItem.className = 'outline-item';
+                    outlineItem.dataset.section = `section-${index}`;
+                    
+                    if (item.type === 'main') {
+                        outlineItem.className += ' outline-main';
+                        outlineItem.innerHTML = `<span>${item.title}</span>`;
+                    } else if (item.type === 'section') {
+                        outlineItem.className += ' outline-section';
+                        outlineItem.innerHTML = `<span>${item.title}</span>`;
+                    }
+                    
+                    chapterNavigation.appendChild(outlineItem);
+                });
+
+                chapterOutline.style.display = 'block';
+            }
+
+            function loadChapterContent(url, chapter) {
+                // Show loading message
+                workingArea.innerHTML = `
+                    <div class="loading-message">
+                        <div class="spinner"></div>
+                        <p>กำลังโหลดเนื้อหา...</p>
+                    </div>
+                `;
+                
+                // Create iframe to load chapter content
+                setTimeout(() => {
+                    workingArea.innerHTML = `
+                        <iframe src="${url}" 
+                                id="content-iframe"
+                                style="width: 100%; min-height: 800px; border: none;"
+                                onload="adjustIframeHeight(this)"
+                                scrolling="yes">
+                        </iframe>
+                    `;
+                }, 500);
+            }
+
+            function loadMainContent(url) {
+                // Show loading message
+                workingArea.innerHTML = `
+                    <div class="loading-message">
+                        <div class="spinner"></div>
+                        <p>กำลังโหลดเนื้อหา...</p>
+                    </div>
+                `;
+                
+                // Create iframe to load main content
+                setTimeout(() => {
+                    workingArea.innerHTML = `
+                        <iframe src="${url}" 
+                                id="content-iframe"
+                                style="width: 100%; min-height: 800px; border: none;"
+                                onload="adjustIframeHeight(this)"
+                                scrolling="yes">
+                        </iframe>
+                    `;
+                }, 1000);
+            }
+
+            function scrollToSection(sectionId) {
+                const iframe = workingArea.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        
+                        // Try multiple selectors to find the target element
+                        let element = null;
+                        
+                        // First try to find by data-section attribute
+                        element = iframeDoc.querySelector(`[data-section="${sectionId}"]`);
+                        
+                        // If not found, try to find by ID
+                        if (!element) {
+                            element = iframeDoc.getElementById(sectionId);
+                        }
+                        
+                        // If still not found, try to find fieldset by legend text
+                        if (!element) {
+                            const legends = iframeDoc.querySelectorAll('legend');
+                            for (let legend of legends) {
+                                const legendText = legend.textContent.trim();
+                                if (legendText.includes('1.1') || legendText.includes('1.2') || 
+                                    legendText.includes('1.3') || legendText.includes('1.4') ||
+                                    legendText.includes('1.5') || legendText.includes('1.6') || 
+                                    legendText.includes('1.7')) {
+                                    element = legend.closest('fieldset');
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // If still not found, try to find by class or other attributes
+                        if (!element) {
+                            const fieldsets = iframeDoc.querySelectorAll('fieldset');
+                            for (let fieldset of fieldsets) {
+                                const legend = fieldset.querySelector('legend');
+                                if (legend) {
+                                    const legendText = legend.textContent.trim();
+                                    // Map section numbers to legend text patterns
+                                    const sectionMap = {
+                                        'section-0': ['1.1', 'ความเป็นมา'],
+                                        'section-1': ['1.2', 'วัตถุประสงค์'],
+                                        'section-2': ['1.3', 'สมมติฐาน'],
+                                        'section-3': ['1.4', 'ขอบเขต'],
+                                        'section-4': ['1.5', 'ข้อตกลง'],
+                                        'section-5': ['1.6', 'นิยาม'],
+                                        'section-6': ['1.7', 'ประโยชน์']
+                                    };
+                                    
+                                    if (sectionMap[sectionId]) {
+                                        const patterns = sectionMap[sectionId];
+                                        if (patterns.some(pattern => legendText.includes(pattern))) {
+                                            element = fieldset;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (element) {
+                            // Scroll to the element with smooth behavior
+                            element.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'start',
+                                inline: 'nearest'
+                            });
+                            
+                            // Add a temporary highlight effect
+                            element.style.transition = 'all 0.3s ease';
+                            element.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
+                            element.style.border = '2px solid #3498db';
+                            
+                            // Remove highlight after 2 seconds
+                            setTimeout(() => {
+                                element.style.backgroundColor = '';
+                                element.style.border = '';
+                            }, 500);
+                            
+                            console.log('Scrolled to section:', sectionId);
+                        } else {
+                            console.log('Element not found for section:', sectionId);
+                        }
+                    } catch (e) {
+                        console.log('Cannot access iframe content due to cross-origin restrictions:', e);
+                    }
+                }
+            }
+
+            // Function to adjust iframe height
+            window.adjustIframeHeight = function(iframe) {
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const height = Math.max(
+                        iframeDoc.body.scrollHeight,
+                        iframeDoc.body.offsetHeight,
+                        iframeDoc.documentElement.clientHeight,
+                        iframeDoc.documentElement.scrollHeight,
+                        iframeDoc.documentElement.offsetHeight
+                    );
+                    // Set minimum height and allow scrolling
+                    iframe.style.height = Math.max(height + 50, 800) + 'px';
+                    iframe.style.minHeight = '800px';
+                } catch (e) {
+                    // Handle cross-origin issues
+                    iframe.style.height = '800px';
+                    iframe.style.minHeight = '800px';
+                }
+            };
+
+            // Add enhanced loading styles and scroll indicators
+            const enhancedStyles = `
+                <style>
+                    .loading-message {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100%;
+                        color: #7f8c8d;
+                        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                    }
+                    
+                    .spinner {
+                        margin-top: 10px;
+                        width: 50px;
+                        height: 50px;
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #3498db;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin-bottom: 20px;
+                    }
+                    
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                    
+                    /* Scroll indicator */
+                    .scroll-indicator {
+                        position: fixed;
+                        top: 50%;
+                        right: 20px;
+                        transform: translateY(-50%);
+                        background: rgba(52, 152, 219, 0.8);
+                        color: white;
+                        padding: 10px 15px;
+                        border-radius: 25px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        z-index: 1001;
+                        opacity: 0;
+                        transition: opacity 0.3s ease;
+                        pointer-events: none;
+                    }
+                    
+                    .scroll-indicator.show {
+                        opacity: 1;
+                    }
+                    
+                    /* Enhanced iframe styling */
+                    #content-iframe {
+                        border-radius: 15px;
+                        box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+                        overflow-y: auto;
+                        overflow-x: hidden;
+                    }
+                    
+                    /* Custom scrollbar for iframe content */
+                    #content-iframe::-webkit-scrollbar {
+                        width: 8px;
+                    }
+                    
+                    #content-iframe::-webkit-scrollbar-track {
+                        background: #f1f1f1;
+                        border-radius: 4px;
+                    }
+                    
+                    #content-iframe::-webkit-scrollbar-thumb {
+                        background: linear-gradient(180deg, #3498db, #2980b9);
+                        border-radius: 4px;
+                    }
+                    
+                    #content-iframe::-webkit-scrollbar-thumb:hover {
+                        background: linear-gradient(180deg, #2980b9, #1f5f8b);
+                    }
+                    
+                    /* Smooth transitions for all elements */
+                    * {
+                        transition: all 0.3s ease;
+                    }
+                </style>
+            `;
+            
+            document.head.insertAdjacentHTML('beforeend', enhancedStyles);
+            
+            // Add scroll indicator functionality
+            function showScrollIndicator(message) {
+                let indicator = document.querySelector('.scroll-indicator');
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.className = 'scroll-indicator';
+                    document.body.appendChild(indicator);
+                }
+                
+                indicator.textContent = message;
+                indicator.classList.add('show');
+                
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 1800);
+            }
+            
+            // Enhanced scroll function with better feedback
+            function enhancedScrollToSection(sectionId) {
+                const iframe = workingArea.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    showScrollIndicator('กำลังเลื่อนไปยังส่วนที่เลือก...');
+                    
+                    setTimeout(() => {
+                        scrollToSection(sectionId);
+                    }, 300);
+                }
+            }
+            
+            // Update the outline click handler to use enhanced scroll
+            chapterNavigation.addEventListener('click', function(e) {
+                const outlineItem = e.target.closest('.outline-item');
+                if (!outlineItem) return;
+
+                // Remove active class from all outline items
+                document.querySelectorAll('.outline-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                outlineItem.classList.add('active');
+
+                // Scroll to section in working area with enhanced feedback
+                const sectionId = outlineItem.dataset.section;
+                enhancedScrollToSection(sectionId);
+            });
+        });
+    </script>
+</body>
+</html>
+>>>>>>> master

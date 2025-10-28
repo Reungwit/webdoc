@@ -1,0 +1,66 @@
+{% load static %}
+<!doctype html>
+<html lang="th">
+
+<head>
+  <meta charset="utf-8">
+  <title>ใบรับรองปริญญานิพนธ์</title>
+  
+  <link rel="stylesheet" href="{% static 'css/certificate.css' %}">
+
+  <style>
+   /* ===== Page base ===== */
+   
+  </style>
+</head>
+<body>
+  <div class="container">
+<!-- ข้อความจากไฟล์ Python docx -->
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h1 class="mb-4">ใบรับรองปริญญานิพนธ์</h1>
+
+    <form id="certForm" method="post" action="{% url 'certificate' %}">
+      {% csrf_token %}
+
+   
+<div class="card">
+  <div class="card-header bg-warning">คณะกรรมการสอบปริญญานิพนธ์</div>
+  <div class="card-body">
+    <div>
+      <label for="comm_dean">คณบดี</label>
+      <input type="text" id="comm_dean" name="comm_dean" value="{{ initial.comm_dean|default_if_none:'' }}">
+    </div>
+    <div>
+      <label for="comm_prathan">ประธานกรรมการ</label>
+      <input type="text" id="comm_prathan" name="comm_prathan" value="{{ initial.comm_prathan|default_if_none:'' }}">
+    </div>
+    <div>
+      <label for="comm_first">กรรมการคนที่ 1</label>
+      <input type="text" id="comm_first" name="comm_first" value="{{ initial.comm_first|default_if_none:'' }}">
+    </div>
+    <div>
+      <label for="comm_sec">กรรมการคนที่ 2</label>
+      <input type="text" id="comm_sec" name="comm_sec" value="{{ initial.comm_sec|default_if_none:'' }}">
+    </div>
+  </div>
+</div>
+
+      <!-- ===== ปุ่ม Action ===== -->
+      <div class="actions text-center">
+        <button type="submit" name="action" value="save_certificate" class="btn btn-primary">บันทึกข้อมูล</button>
+        <button type="submit" name="action" value="get_certificate" class="btn btn-info">ดึงข้อมูล</button>
+        <button type="submit" name="action" value="generate_certificate" class="btn btn-success">ดาวน์โหลด</button>
+      </div>
+    </form>
+  </div>
+
+  
+</body>
+</html>

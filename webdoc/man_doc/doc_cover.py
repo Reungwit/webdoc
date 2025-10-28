@@ -11,10 +11,10 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 
 #หน้าปกไทย
-def doc_cover_th( project_name_th, project_name_en,
+def doc_cover_th(project_name_th, project_name_en,
                 author1_th, author2_th,
                 author1_en, author2_en,
-                school_y):
+                academic_year_be,dep_th):
 
     doc = Document()
     style = doc.styles["Normal"]
@@ -31,12 +31,16 @@ def doc_cover_th( project_name_th, project_name_en,
     section.bottom_margin = Inches(1)
     section.left_margin = Inches(1.5)
     section.right_margin = Inches(1)
+    
+    width_in_inches = 5 / 2.54  # 5 cm to inches
+    height_in_inches = 5 / 2.54  # 5 cm to inches
 
     # ดึง path รูปภาพ (สมมุติแหม่มวางไว้ในโฟลเดอร์ static/images/)
     logo_path = os.path.join('static', 'img', 'kmutnb_logo_cover.png')
 
 # แทรกรูปภาพ
-    doc.add_picture(logo_path, width=Inches(1.7))
+    doc.add_picture(logo_path, width=Inches(width_in_inches), height=Inches(height_in_inches))
+    # แปลง 5cm เป็นนิ้ว
 
 # จัดรูปให้อยู่ตรงกลาง
     last_paragraph = doc.paragraphs[-1]            
@@ -52,12 +56,12 @@ def doc_cover_th( project_name_th, project_name_en,
     doc.add_paragraph("\n\n\n\n\n\n")
     doc.add_paragraph(f" {author1_th}").alignment = 1
     doc.add_paragraph(f" {author2_th}").alignment = 1
-    doc.add_paragraph("\n\n\n\n")
+    doc.add_paragraph("\n\n\n")
     doc.add_paragraph("ปริญญานิพนธ์นี้เป็นส่วนหนึ่งของการศึกษาตามหลักสูตรอุตสาหกรรมศาสตรบัณฑิต").alignment = 1
     doc.add_paragraph("สาขาวิชาเทคโนโลยีสารสนเทศ ภาควิชาเทคโนโลยีสารสนเทศ").alignment = 1
-    doc.add_paragraph("คณะเทคโนโลยีและการจัดการอุตสาหกรรม").alignment = 1
+    doc.add_paragraph(f"{dep_th}").alignment = 1
     doc.add_paragraph("มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
-    doc.add_paragraph(f"ปีการศึกษา {academic_year}").alignment = 1
+    doc.add_paragraph(f"ปีการศึกษา {academic_year_be}").alignment = 1
     doc.add_paragraph("ลิขสิทธิ์ของมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
 
     return doc
@@ -66,7 +70,7 @@ def doc_cover_th( project_name_th, project_name_en,
 def doc_cover_sec( project_name_th, project_name_en,
                 author1_th, author2_th,
                 author1_en, author2_en,
-                academic_year):
+                academic_year,dep_th):
 
     doc = Document()
     style = doc.styles["Normal"]
@@ -91,13 +95,13 @@ def doc_cover_sec( project_name_th, project_name_en,
     doc.add_paragraph(project_name_en).alignment = 1
 
 
-    doc.add_paragraph("\n\n\n\n\n\n\n\n")
+    doc.add_paragraph("\n\n\n\n\n\n\n")
     doc.add_paragraph(f" {author1_th}").alignment = 1
     doc.add_paragraph(f" {author2_th}").alignment = 1
-    doc.add_paragraph("\n\n\n\n\n\n\n\n")
+    doc.add_paragraph("\n\n\n\n\n\n\n")
     doc.add_paragraph("ปริญญานิพนธ์นี้เป็นส่วนหนึ่งของการศึกษาตามหลักสูตรอุตสาหกรรมศาสตรบัณฑิต").alignment = 1
     doc.add_paragraph("สาขาวิชาเทคโนโลยีสารสนเทศ ภาควิชาเทคโนโลยีสารสนเทศ").alignment = 1
-    doc.add_paragraph("คณะเทคโนโลยีและการจัดการอุตสาหกรรม").alignment = 1
+    doc.add_paragraph(f"{dep_th}").alignment = 1
     doc.add_paragraph("มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
     doc.add_paragraph(f"ปีการศึกษา {academic_year}").alignment = 1
     doc.add_paragraph("ลิขสิทธิ์ของมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
@@ -107,7 +111,7 @@ def doc_cover_sec( project_name_th, project_name_en,
 def doc_cover_en(project_name_th, project_name_en,
                  author1_th, author2_th,
                  author1_en, author2_en,
-                 academic_year):
+                 academic_year,dep_en):
 
     doc = Document()
     style = doc.styles["Normal"]
@@ -129,15 +133,15 @@ def doc_cover_en(project_name_th, project_name_en,
     title = doc.add_paragraph(project_name_en)
     title.alignment = 1
 
-    doc.add_paragraph("\n\n\n\n\n\n\n\n")
+    doc.add_paragraph("\n\n\n\n\n\n\n")
     doc.add_paragraph(f"{author1_en}").alignment = 1
     doc.add_paragraph(f"{author2_en}").alignment = 1
-    doc.add_paragraph("\n\n\n\n\n\n\n\n")
+    doc.add_paragraph("\n\n\n\n\n\n\n")
     doc.add_paragraph("PROJECT REPORT SUBMITTED IN PARTIAL FULFILLMENT OF THE REQUIREMENTS").alignment = 1
     doc.add_paragraph("FOR THE BACHELOR’S DEGREE OF INDUSTRIAL TECHNOLOGY").alignment = 1
     doc.add_paragraph("PROGRAM IN INFORMATION TECHNOLOGY").alignment = 1
     doc.add_paragraph("DEPARTMENT OF INFORMATION TECHNOLOGY").alignment = 1
-    doc.add_paragraph("FACULTY OF INDUSTRIAL TECHNOLOGY AND MANAGEMENT").alignment = 1
+    doc.add_paragraph(f"{dep_en}").alignment = 1
     doc.add_paragraph("KING MONGKUT'S UNIVERSITY OF TECHNOLOGY NORTH BANGKOK").alignment = 1
 
     # ✅ แปลงปี พ.ศ. → ค.ศ. ด้วยการลด 543
@@ -224,18 +228,3 @@ def add_paragraph_indent(doc, text, bold=False):
     else : p.runs[0].bold = False
     return p
 
-def add_wrapped_paragraph(doc, label, text, n=16):
-    lines = split_text_newline_every_n_words(text, n)
-
-    p = doc.add_paragraph()
-    run = p.add_run(label)
-    run.bold = True
-
-    # ต่อข้อความแบบขึ้นบรรทัดใหม่ทีละ run
-    for i, line in enumerate(lines):
-        if i == 0:
-            p.add_run(line)
-        else:
-            p.add_run().add_break()         # บรรทัดใหม่จริง
-            p.add_run(line)
-    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY

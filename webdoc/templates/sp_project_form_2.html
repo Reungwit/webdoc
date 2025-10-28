@@ -5,51 +5,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>แบบเสนอโครงการพิเศษ ทก.01(ต่อ)</title>
+    <link rel="stylesheet" href="{% static 'css/sp_project_form.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <form id="myForm" method="POST" action="{% url 'sp_project_form_2' %}">
-  {% csrf_token %}
-    <!-- Hidden fields ทุกช่องจากหน้าแรก -->
-  <input type="hidden" name="name_pro_th" value="{{ initial.name_pro_th|default:'' }}">
-  <input type="hidden" name="name_pro_en" value="{{ initial.name_pro_en|default:'' }}">
-  <input type="hidden" name="case_stu" value="{{ initial.case_stu|default:'' }}">
-  <input type="hidden" name="term" value="{{ initial.term|default:'' }}">
-  <input type="hidden" name="school_y" value="{{ initial.school_y|default:'' }}">
-  <input type="hidden" name="adviser" value="{{ initial.adviser|default:'' }}">
-  <input type="hidden" name="co_advisor" value="{{ initial.co_advisor|default:'' }}">
-  <input type="hidden" name="strategic" value="{{ initial.strategic|default:'' }}">
-  <input type="hidden" name="plan" value="{{ initial.plan|default:'' }}">
-  <input type="hidden" name="key_result" value="{{ initial.key_result|default:'' }}">
-  <input type="hidden" name="bg_and_sig_para1" value="{{ initial.bg_and_sig_para1|default:'' }}">
-  <input type="hidden" name="bg_and_sig_para2" value="{{ initial.bg_and_sig_para2|default:'' }}">
-  <input type="hidden" name="bg_and_sig_para3" value="{{ initial.bg_and_sig_para3|default:'' }}">
-  <input type="hidden" name="name_author_th_1" value="{{ initial.authors.0|default:'' }}">
-  <input type="hidden" name="name_author_th_2" value="{{ initial.authors.1|default:'' }}">
-  <!-- ช่องกรอกใหม่ของหน้า 2 ต่อจากนี้ -->
+        {% csrf_token %}
+        <input type="hidden" name="name_pro_th" value="{{ initial.name_pro_th|default:'' }}">
+        <input type="hidden" name="name_pro_en" value="{{ initial.name_pro_en|default:'' }}">
+        <input type="hidden" name="case_stu" value="{{ initial.case_stu|default:'' }}">
+        <input type="hidden" name="term" value="{{ initial.term|default:'' }}">
+        <input type="hidden" name="school_y" value="{{ initial.school_y|default:'' }}">
+        <input type="hidden" name="adviser" value="{{ initial.adviser|default:'' }}">
+        <input type="hidden" name="co_advisor" value="{{ initial.co_advisor|default:'' }}">
+        <input type="hidden" name="strategic" value="{{ initial.strategic|default:'' }}">
+        <input type="hidden" name="plan" value="{{ initial.plan|default:'' }}">
+        <input type="hidden" name="key_result" value="{{ initial.key_result|default:'' }}">
+        <input type="hidden" name="bg_and_sig_para1" value="{{ initial.bg_and_sig_para1|default:'' }}">
+        <input type="hidden" name="bg_and_sig_para2" value="{{ initial.bg_and_sig_para2|default:'' }}">
+        <input type="hidden" name="bg_and_sig_para3" value="{{ initial.bg_and_sig_para3|default:'' }}">
+        <input type="hidden" name="name_author_th_1" value="{{ initial.authors.0|default:'' }}">
+        <input type="hidden" name="name_author_th_2" value="{{ initial.authors.1|default:'' }}">
+        <div class="form-section purpose-info">
+            <div class="section-title">วัตถุประสงค์</div>
+            <div id="purpose_container">
+                <div class="input-group full-width">
+                    <label for="purpose_1">วัตถุประสงค์ ข้อที่ 1</label>
+                    <input type="text" id="purpose_1" name="purpose_1" value="{{ initial.purpose_1|default:'' }}">
+                </div>
+            </div>
+            <div class="button-group-inline">
+                <button type="button" id="add-purpose-button" onclick="addPurpose()">เพิ่ม วัตถุประสงค์</button>
+                <button type="button" id="remove-purpose-button" onclick="removePurpose()">ลบ วัตถุประสงค์</button>
+            </div>
+        </div>
 
-    <div id="purpose_container">
-    <label for="">วัตถุประสงค์ ข้อที่ 1</label><br>
-    <input type="text" id="purpose_1" name="purpose_1" size="50" value="{{ initial.purpose.0|default:'' }} " ><br><br>
+        <div class="form-section scope-info">
+            <div class="section-title">ขอบเขตหัวข้อใหญ่</div>
+            <div id="scope_container">
+                </div>
+            <div class="button-group-inline">
+                <button type="button" onclick="addScopeB()">เพิ่ม ขอบเขตหัวข้อใหญ่</button>
+                <button type="button" onclick="removeScopeB()">ลบ ขอบเขตหัวข้อใหญ่</button>
+                <input type="hidden" id="scope_count" name="scope_count" value="1">
+            </div>
+        </div>
 
-  </div>
-
-  <button type="button" id="add-button" onclick="addPurpose()">เพิ่ม วัตถุประสงค์</button>
-  <button type="button" onclick="removePurpose()">ลบ วัตถุประสงค์</button><br><br>
-
-  <div id="scope_container">
-   
-  </div>
-
-<button type="button" onclick="addScopeB()">เพิ่ม ขอบเขตหัวข้อใหญ่</button>
-<button type="button" onclick="removeScopeB()">ลบ ขอบเขตหัวข้อใหญ่</button>
-<input type="hidden" id="scope_count" name="scope_count" value="1">
-<!-- scope_subcount_x hidden field จะถูก JS สร้างอัตโนมัติ -->
-  {% comment %} Button {% endcomment %} <br><br>
-
-  <button type="submit" name="action" value="save">บันทึกข้อมูล</button>
-  <button type="submit" name="action" value="get_data">ดึงข้อมูล</button>
-  <button type="submit" name="action" value="generate">สร้างเอกสาร</button>
-  <a href="{% url 'sp_project_form_2' %}" class="card-button">ไปยังหน้าถัดไป</a>
+        <div class="button-group">
+            <button type="submit" name="action" value="save">บันทึกข้อมูล</button>
+            <button type="submit" name="action" value="get_data">ดึงข้อมูล</button>
+            <button type="submit" name="action" value="generate">สร้างเอกสาร</button>
+            <a href="{% url 'sp_project_form_2' %}" class="card-button">ไปยังหน้าถัดไป</a>
+        </div>
+    </form>
+</body>
+</html>
 
   <script src="{% static 'js/sp_project.js' %}"></script>
  <script>

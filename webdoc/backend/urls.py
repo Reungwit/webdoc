@@ -1,4 +1,3 @@
-# urls.py
 from django.urls import path
 from . import views
 from man_views import *
@@ -28,3 +27,4 @@ urlpatterns = [
 
     
 ]
+

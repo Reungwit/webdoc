@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>จัดการรูปเล่ม </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {   font-family: "Kanit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Noto Sans Thai", Arial, sans-serif;
+ max-width: 900px; margin: 24px auto; padding: 0 12px; }
+    .cards { display:flex;  gap:12px; }
+    .card { border:1px solid #eee; border-radius:12px; padding:16px; }
+    .btn { display:inline-block; padding:10px 14px; border-radius:8px; border:0; background:#0caada; color:#fff; text-decoration:none; }
+  </style>
+</head>
+<body>
+
+     {% if messages %}
+    <div>
+      {% for m in messages %}<p>{{ m }}</p>{% endfor %}
+    </div>
+  {% endif %}
+
+  <h1>จัดการรูปเล่ม</h1>
+  <div class="card">
+  <h3>หน้าปกภาษาไทย</h3>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="generate_cover_th">
+    <button class="btn" type="submit">ดาวน์โหลดหน้าปกภาษาไทย</button>
+  </form>
+</div>
+
+<div class="card">
+  <h3>ปกรอง</h3>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="generate_cover_sec">
+    <button class="btn" type="submit">ดาวน์โหลดหน้าปกรอง</button>
+  </form>
+</div>
+
+<div class="card">
+  <h3>หน้าปกภาษาอังกฤษ</h3>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="generate_cover_en">
+    <button class="btn" type="submit">ดาวน์โหลดหน้าปกอังกฤษ</button>
+  </form>
+</div>
+</body>
+</html>

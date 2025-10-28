@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="th">
+{% load static %}
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>บทคัดย่อและกิตติกรรมประกาศ</title>
+
+    
+    <link rel="stylesheet" href="{% static 'css/abstract_ack.css' %}">
+</head>
+
+<body>
+<div class="container mt-4">
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h1 class="mb-4">บทคัดย่อและกิตติกรรมประกาศ</h1>
+
+    <form id="myForm" method="post" action="{% url 'abstract_ack_view' %}">
+        {% csrf_token %}
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">ข้อมูลโครงงาน</div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">ชื่อปริญญานิพนธ์ (ภาษาไทย)</label>
+                        <input type="text" class="form-control" value="{{ initial.project_name_th|default:'' }}" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">ชื่อปริญญานิพนธ์ (ภาษาอังกฤษ)</label>
+                        <input type="text" class="form-control" value="{{ initial.project_name_en|default:'' }}" disabled>
+                    </div>
+                </div>
+                 <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">ชื่อคณะ (ภาษาไทย)</label>
+                        <input type="text" class="form-control" value="{{ initial.major_th|default:'' }}" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">ชื่อคณะ (ภาษาอังกฤษ)</label>
+                        <input type="text" class="form-control" value="{{ initial.major_en|default:'' }}" disabled>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                     <div class="col-md-6">
+                        <label class="form-label">ปีการศึกษา (พ.ศ.)</label>
+                        <input type="number" class="form-control" value="{{ initial.academic_year_th|default:'' }}" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">ปีการศึกษา (ค.ศ.)</label>
+                        <input type="number" class="form-control" value="{{ initial.academic_year_en|default:'' }}" disabled>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="id_total_pages" class="form-label">ปริญญานิพนธ์มีจำนวนทั้งสิ้น (หน้า)</label>
+                        <input type="number" class="form-control" id="id_total_pages" name="total_pages"
+                               value="{{ initial.total_pages|default:'' }}" min="1" placeholder="กรอกจำนวนหน้า">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">บทคัดย่อ</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h5>บทคัดย่อ (ภาษาไทย)</h5>
+                    <div id="abstract-th-container">
+                        </div>
+                    <button type="button" class="btn btn-outline-success btn-sm me-2" id="add-abstract-th">+</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="remove-abstract-th">-</button>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <h5>บทคัดย่อ (อังกฤษ)</h5>
+                    <div id="abstract-en-container">
+                        </div>
+                    <button type="button" class="btn btn-outline-success btn-sm me-2" id="add-abstract-en">+</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="remove-abstract-en">-</button>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">คำสำคัญ (ภาษาไทย)</label>
+                        <input type="text" class="form-control" name="keyword_th" value="{{ initial.keyword_th|default:'' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">คำสำคัญ (ภาษาอังกฤษ)</label>
+                        <input type="text" class="form-control" name="keyword_en" value="{{ initial.keyword_en|default:'' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">กิตติกรรมประกาศ</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div id="acknowledgement-container">
+                        </div>
+                    <button type="button" class="btn btn-outline-success btn-sm me-2" id="add-acknowledgement">+</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="remove-acknowledgement">-</button>
+                </div>
+                <hr>
+                
+            </div>
+        </div>
+        
+        <input type="hidden" name="abstract_th_json" id="abstract_th_json_input">
+        <input type="hidden" name="abstract_en_json" id="abstract_en_json_input">
+        <input type="hidden" name="acknowledgement_json" id="acknowledgement_json_input">
+
+        <div class="mt-4 mb-5 text-center">
+            <button type="submit" name="action" value="save_intro" class="btn btn-primary btn-lg me-2">บันทึกข้อมูล</button>
+            <button type="submit" name="action" value="get_data_intro" class="btn btn-info btn-lg me-2 text-white">ดึงข้อมูล</button>
+            <button type="submit" name="action" value="generate_intro" class="btn btn-success btn-lg">ดาวน์โหลด</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    
+    /**
+     * ฟังก์ชันสำหรับจัดการการเพิ่ม/ลบย่อหน้า
+     * @param {string} containerId - ID ของ div ที่จะใส่ textarea
+     * @param {string} addBtnId - ID ของปุ่มเพิ่ม
+     * @param {string} removeBtnId - ID ของปุ่มลบ
+     * @param {string} labelPrefix - ข้อความนำหน้า label (เช่น 'บทคัดย่อ (ย่อหน้าที่')
+     * @param {string} initialDataJson - ข้อมูล JSON เริ่มต้น (ถ้ามี)
+     */
+    function setupParagraphManager(containerId, addBtnId, removeBtnId, labelPrefix, initialDataJson) {
+        const container = document.getElementById(containerId);
+        const addBtn = document.getElementById(addBtnId);
+        const removeBtn = document.getElementById(removeBtnId);
+
+        // ฟังก์ชันสำหรับเพิ่มย่อหน้าใหม่
+        const addParagraph = (text = '') => {
+            const paragraphCount = container.children.length;
+            const newIndex = paragraphCount + 1;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mb-2';
+            
+            const label = document.createElement('label');
+            label.className = 'form-label';
+            label.textContent = `${labelPrefix} ${newIndex})`;
+            
+            const textarea = document.createElement('textarea');
+            textarea.className = 'form-control';
+            textarea.rows = 6;
+            textarea.value = text;
+            
+            wrapper.appendChild(label);
+            wrapper.appendChild(textarea);
+            container.appendChild(wrapper);
+        };
+
+        // ฟังก์ชันสำหรับลบย่อหน้าล่าสุด
+        const removeParagraph = () => {
+            if (container.children.length > 1) {
+                container.removeChild(container.lastChild);
+            }
+        };
+
+        addBtn.addEventListener('click', () => addParagraph());
+        removeBtn.addEventListener('click', removeParagraph);
+        
+        // โหลดข้อมูลเริ่มต้น (ถ้ามี)
+        try {
+            const initialData = JSON.parse(initialDataJson || '[]');
+            if (Array.isArray(initialData) && initialData.length > 0) {
+                initialData.forEach(text => addParagraph(text));
+            } else {
+                addParagraph(); // เพิ่มอย่างน้อย 1 ย่อหน้าถ้าไม่มีข้อมูล
+            }
+        } catch (e) {
+            console.error('Invalid initial JSON data:', e);
+            addParagraph(); // เพิ่มย่อหน้าเริ่มต้นถ้าข้อมูลผิดพลาด
+        }
+    }
+
+    // ตั้งค่าสำหรับแต่ละส่วน
+    setupParagraphManager(
+        'abstract-th-container', 
+        'add-abstract-th', 
+        'remove-abstract-th', 
+        'บทคัดย่อ (ย่อหน้าที่', 
+        '{{ initial.abstract_th_json|escapejs|default:"[]" }}'
+    );
+
+    setupParagraphManager(
+        'abstract-en-container', 
+        'add-abstract-en', 
+        'remove-abstract-en', 
+        'Abstract (Paragraph', 
+        '{{ initial.abstract_en_json|escapejs|default:"[]" }}'
+    );
+    
+    setupParagraphManager(
+        'acknowledgement-container', 
+        'add-acknowledgement', 
+        'remove-acknowledgement', 
+        'กิตติกรรมประกาศ (ย่อหน้าที่', 
+        '{{ initial.acknowledgement_json|escapejs|default:"[]" }}'
+    );
+
+    // ฟังก์ชันสำหรับรวบรวมข้อมูลจาก textarea ให้เป็น JSON ก่อน submit
+    document.getElementById('myForm').addEventListener('submit', function () {
+        const gatherData = (containerId) => {
+            const container = document.getElementById(containerId);
+            const textareas = container.querySelectorAll('textarea');
+            const data = Array.from(textareas).map(ta => ta.value.replace(/\r?\n/g, " ").replace(/\s+/g, " ").trim());
+            return JSON.stringify(data);
+        };
+
+        document.getElementById('abstract_th_json_input').value = gatherData('abstract-th-container');
+        document.getElementById('abstract_en_json_input').value = gatherData('abstract-en-container');
+        document.getElementById('acknowledgement_json_input').value = gatherData('acknowledgement-container');
+    });
+});
+</script>
+</body>
+</html>

@@ -5,77 +5,130 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>แบบเสนอโครงการพิเศษ ทก.01</title>
+  <link rel="stylesheet" href="{% static 'css/sp_project_form.css' %}">
+ 
 </head>
 <body>
 <form id="myForm" method="POST" action="{% url 'sp_project_form' %}">
   {% csrf_token %}
 
-  <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label><br>
-  <input type="text" id="name_pro_th" name="name_pro_th" size="50" value="{{ initial.name_pro_th|default:'' }}"><br><br>
-
-  <label for="name_pro_en">ชื่อโครงงาน (ภาษาอังกฤษ):</label><br>
-  <input type="text" id="name_pro_en" name="name_pro_en" size="50" value="{{ initial.name_pro_en|default:'' }}"><br><br>
-
-  <label for="case_stu">กรณีศึกษา (ถ้ามี):</label><br>
-  <input type="text" id="case_stu" name="case_stu" size="50" value="{{ initial.case_stu|default:'' }}"><br><br>
-
-  <div id="author-container">
-    <label for="name_author_th_1">ชื่อนักศึกษาผู้จัดทำโครงการ คนที่ 1</label><br>
-    <input type="text" id="name_author_th_1" name="name_author_th_1" size="50" value="{{ initial.authors.0|default:'' }}"><br><br>
-
+  <div class="form-section document-info">
+    <div class="section-title">ข้อมูลโครงงาน</div>
+    <div class="input-group full-width">
+      <label for="name_pro_th">ชื่อโครงงาน (ภาษาไทย):</label>
+      <input type="text" id="name_pro_th" name="name_pro_th" size="50" 
+             placeholder="เช่น ระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ" 
+             value="{{ initial.name_pro_th|default:'' }}">
+    </div>
+    
+    <div class="input-group full-width">
+      <label for="name_pro_en">ชื่อโครงงาน (ภาษาอังกฤษ):</label>
+      <input type="text" id="name_pro_en" name="name_pro_en" size="50" 
+             placeholder="e.g., Special Project Formatting Assistant" 
+             value="{{ initial.name_pro_en|default:'' }}">
+    </div>
+    
+    <div class="input-group full-width">
+      <label for="case_stu">กรณีศึกษา (ถ้ามี):</label>
+      <input type="text" id="case_stu" name="case_stu" size="50" 
+             placeholder="เช่น มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ หรือบริษัทต้นแบบ" 
+             value="{{ initial.case_stu|default:'' }}">
+    </div>
+    
+    <div class="input-row">
+      <div class="input-group">
+        <label for="term">ภาคเรียนที่</label>
+        <input type="text" id="term" name="term" size="30" 
+               placeholder="เช่น 1 หรือ 2" 
+               value="{{ initial.term|default:'' }}">
+      </div>
+      <div class="input-group">
+        <label for="school_y">ปีการศึกษา</label>
+        <input type="text" id="school_y" name="school_y" size="50" 
+               placeholder="เช่น 2567" 
+               value="{{ initial.school_y|default:'' }}">
+      </div>
+    </div>
   </div>
 
-  <button type="button" onclick="addAuthor()">เพิ่ม</button>
-  <button type="button" onclick="removeAuthor()">ลบ</button><br><br>
+  <div class="form-section author-info">
+    <div class="section-title">ข้อมูลผู้จัดทำ</div>
+    <div id="author-container">
+      </div>
+    <button type="button" id="add-button" onclick="addAuthor()">เพิ่ม</button>
+    <button type="button" id="remove-button" onclick="removeAuthor()">ลบ</button>
+  </div>
 
-  <label for="term">ภาคเรียนที่</label><br>
-  <input type="text" id="term" name="term" size="30" value="{{ initial.term|default:'' }}"><br><br>
+  <div class="form-section advisor-info">
+    <div class="section-title">ข้อมูลอาจารย์ที่ปรึกษา</div>
+    <div class="input-row">
+      <div class="input-group">
+        <label for="adviser">อาจารย์ที่ปรึกษา</label>
+        <input type="text" id="adviser" name="adviser" size="50" 
+               placeholder="" 
+               value="{{ initial.adviser|default:'' }}">
+      </div>
+      <div class="input-group">
+        <label for="co_advisor">อาจารย์ที่ปรึกษาร่วม</label>
+        <input type="text" id="co_advisor" name="co_advisor" size="50" 
+               placeholder="(ถ้ามี)" 
+               value="{{ initial.co_advisor|default:'' }}">
+      </div>
+    </div>
+  </div>
 
-  <label for="school_y">ปีการศึกษา</label><br>
-  <input type="text" id="school_y" name="school_y" size="50" value="{{ initial.school_y|default:'' }}"><br><br>
+  <div class="form-section abstract">
+    <div class="section-title">บทคัดย่อและกิตติกรรมประกาศ</div>
+    
+    <div class="input-group full-width">
+      <label for="strategic">ยุทธศาสตร์ และ รายละเอียด</label>
+      <textarea id="strategic" name="strategic" rows="5" cols="80" 
+      placeholder="เช่น 5 การพัฒนาวิทยาศาสตร์ เทคโนโลยี การวิจัย และ นวัตกรรมระดับขั้นแนวหน้าที่ก้าวหน้าล้ำยุค เพื่อสร้างโอกาสใหม่ และความพร้อมของประเทศในอนาคต">{{ initial.strategic|default:'' }}</textarea>
+    </div>
 
-  <label for="adviser">อาจารย์ที่ปรึกษา</label><br>
-  <input type="text" id="adviser" name="adviser" size="50" value="{{ initial.adviser|default:'' }}"><br><br>
+    <div class="input-group full-width">
+      <label for="plan">แผนงานที่...และรายละเอียด</label>
+      <textarea id="plan" name="plan" rows="5" cols="80" 
+      placeholder="เช่น 20 พัฒนาโครงสร้างพื้นฐาน ด้านวิทยาศาสตร์ วิจัย และนวัตกรรมและโครงสร้าง พื้นฐานทางคุณภาพของประเทศที่รองรับการวิจัยขั้นแนวหน้า และการพัฒนาเทคโนโลยีและนวัตกรรมสู่อนาคต">{{ initial.plan|default:'' }}</textarea>
+    </div>
+    
+    <div class="input-group full-width">
+      <label for="key_result">ผลลัพธ์ที่สำคัญ (key result)</label>
+      <textarea id="key_result" name="key_result" rows="5" cols="80" 
+      placeholder="เช่น ประเทศไทยมีโครงสร้างพื้นฐานด้านวิทยาศาสตร์ วิจัย นวัตกรรมที่สำคัญ
+        เทคโนโลยีพื้นฐาน และโครงสร้างพื้นฐานทางคุณภาพสำหรับการวิจัยขั้นแนวหน้าที่ทัดเทียมมาตรฐานสากลและสามารถรองรับการพัฒนาอย่างก้าวกระโดดสู่อนาคต 
+">{{ initial.key_result|default:'' }}</textarea>
+    </div>
+    
+    <div class="input-group full-width">
+      <label for="bg_and_sig_para1">ความเป็นมาและความสำคัญของปัญหา (ย่อหน้าที่ 1)</label>
+      <textarea id="bg_and_sig_para1" name="bg_and_sig_para1" rows="8" cols="70" class="clean-textarea" 
+      placeholder="เริ่มต้นด้วยสถานการณ์ปัจจุบันและความสำคัญของหัวข้อที่เลือก เช่น การจัดทำเล่มปริญญานิพนธ์เป็นขั้นตอนที่สำคัญสำหรับนักศึกษาในการแสดงศักยภาพและความรู้ที่ได้สั่งสมมาตลอดระยะเวลาการศึกษา กระบวนการนี้เกี่ยวข้องกับการนำเสนอเนื้อหาการวิจัย การรวบรวมข้อมูล และการทำเล่มปริญญานิพนธ์ให้ตรงตามรูปแบบที่กำหนด ซึ่งถือเป็นมาตรฐานที่ช่วยยกระดับคุณภาพของผลงานวิจัยอีกทั้งการจัดรูปเล่มที่ถูกต้องยังสะท้อนถึงความเป็นมืออาชีพและความเอาใจใส่ในรายละเอียดของนักศึกษา">{{ initial.bg_and_sig_para1|default:'' }}</textarea>
+    </div>
+    
+    <div class="input-group full-width">
+      <label for="bg_and_sig_para2">ความเป็นมาและความสำคัญของปัญหา (ย่อหน้าที่ 2)</label>
+      <textarea id="bg_and_sig_para2" name="bg_and_sig_para2" rows="8" cols="70" class="clean-textarea" 
+      placeholder="ในปัจจุบัน นักศึกษามักพบอุปสรรคในการจัดรูปเล่มปริญญานิพนธ์ เนื่องจากมีเวลาที่จำกัด ซึ่งต้องจัดทำงานวิจัยและเตรียมตัวสอบในหลายวิชา การตรวจสอบความถูกต้องของรูปแบบจึงมีโอกาสเกิดข้อผิดพลาด เช่น การจัดหน้า การเว้นวรรค หรือการละเลยรายละเอียดที่สำคัญ ปัญหาเหล่านี้ทำให้งานวิจัยที่ควรแสดงถึงคุณภาพอาจไม่สมบูรณ์ตามที่คาดหวังไว้">{{ initial.bg_and_sig_para2|default:'' }}</textarea>
+    </div>
+    
+    <div class="input-group full-width">
+      <label for="bg_and_sig_para3">ความเป็นมาและความสำคัญของปัญหา (ย่อหน้าที่ 3)</label>
+      <textarea id="bg_and_sig_para3" name="bg_and_sig_para3" rows="8" cols="70" class="clean-textarea" 
+      placeholder="เชื่อมโยงไปสู่วัตถุประสงค์และแนวทางการแก้ไข เช่น เพื่อแก้ไขปัญหาเหล่านี้ ทางคณะผู้จัดทำจึงได้พัฒนาระบบช่วยจัดทำเล่มปริญญานิพนธ์ที่สามารถสร้างรูปแบบมาตรฐานได้โดยอัตโนมัติผ่านเว็บเบราว์เซอร์ระบบจะช่วยจัดทำรูปแบบเล่ม การจัดหน้า การตัดคำ ผู้ใช้งานสามารถใส่ข้อมูลที่เตรียมไว้ลงในระบบเพื่อให้ระบบประมวลผลและสร้างเล่มปริญญานิพนธ์ที่สมบูรณ์ตรงตามมาตรฐานที่กำหนด ช่วยลดข้อผิดพลาดและเพิ่มความสะดวกสบายในการทำงานได้อย่างมีประสิทธิภาพ ">{{ initial.bg_and_sig_para3|default:'' }}</textarea>
+    </div>
+  </div>
 
-  <label for="co_advisor">อาจารย์ที่ปรึกษาร่วม</label><br>
-  <input type="text" id="co_advisor" name="co_advisor" size="50" value="{{ initial.co_advisor|default:'' }}"><br><br>
-
-  <label for="strategic">ยุทธศาสตร์ที่ ...และรายละเอียด</label><br>
-  <textarea id="strategic" name="strategic" rows="5" cols="80" value="">{{ initial.strategic|default:'' }}</textarea><br><br>
-  
-  <label for="plan">แผนงานที่...และรายละเอียด</label><br>
-  <textarea  id="" name="plan" rows="5" cols="80" value="">{{ initial.plan|default:'' }}</textarea><br><br>
-
-  <label for="key_result">ผลลัพธ์ที่สำคัญ (key result)</label><br>
-  <textarea id="" name="key_result" rows="5" cols="80">{{ initial.key_result|default:'' }}</textarea><br><br>
-
-  <label for="">ความเป็นมาและความสำคัญของปัญหา (ย่อหน้าที่ 1)</label><br>
-  <textarea id="" name="bg_and_sig_para1" rows="8" cols="70"  class="clean-textarea">{{ initial.bg_and_sig_para1|default:'' }}</textarea><br><br>
-
-  <label for="">ความเป็นมาและความสำคัญของปัญหา (ย่อหน้าที่ 2)</label><br>
-  <textarea id="" name="bg_and_sig_para2" rows="8" cols="70" class="clean-textarea">{{ initial.bg_and_sig_para2|default:'' }}</textarea><br><br>
-
-  <label for="">ความเป็นมาและความสำคัญของปัญหา (ย่อหน้าที่ 3)</label><br>
-  <textarea id="" name="bg_and_sig_para3" rows="8" cols="70" class="clean-textarea">{{ initial.bg_and_sig_para3|default:'' }}</textarea><br><br>
-
-
-
-
-
-  {% comment %} Button {% endcomment %}
-
-   
-  <button type="submit" name="action" value="save">บันทึกข้อมูล</button>
-  <button type="submit" name="action" value="get_data">ดึงข้อมูล</button>
-  <button type="submit" name="action" value="generate">สร้างเอกสาร</button>
-  <!-- input ปกติของหน้าแรก -->
-<a href="{% url 'sp_project_form_2' %}?{{ request.GET.urlencode }}{% for key, val in request.POST.items %}&{{ key }}={{ val }}{% endfor %}">ไปหน้าถัดไป</a>
-
+  {% comment %} Buttons {% endcomment %}
+  <div class="button-group">
+    <button type="submit" name="action" value="save">บันทึกข้อมูล</button>
+    <button type="submit" name="action" value="get_data">ดึงข้อมูล</button>
+    <button type="submit" name="action" value="generate">สร้างเอกสาร</button>
+    <a href="{% url 'sp_project_form_2' %}?{{ request.GET.urlencode }}{% for key, val in request.POST.items %}&{{ key }}={{ val }}{% endfor %}">ไปหน้าถัดไป</a>
+  </div>
 </form>
-
-
+</body>
 <script>
-  
 
   document.getElementById("myForm").addEventListener("submit", function (e) {
   // ✅ จัดการ textarea ทั้งหมดที่มี class="clean-textarea"

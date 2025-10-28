@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 01, 2025 at 06:19 AM
+-- Generation Time: Oct 01, 2025 at 06:51 PM
 -- Server version: 8.0.42
 -- PHP Version: 8.2.12
 
@@ -121,10 +121,8 @@ CREATE TABLE `backend_customuser` (
 --
 
 INSERT INTO `backend_customuser` (`user_id`, `password`, `last_login`, `is_superuser`, `is_active`, `username`, `first_name`, `last_name`, `is_staff`, `date_joined`, `email`, `full_name`) VALUES
-(1, 'pbkdf2_sha256$870000$kBh9QE2VrV9CBGBTobhxHz$Lkd2/zbMenIpTPk9QV32loYJQmUZWLn/RaDDPokd4XY=', '2025-07-26 13:12:23.697885', 1, 1, 'admin', '', '', 1, '2025-07-13 05:06:37.253416', 'admin@gmail.com', ''),
-(2, 'pbkdf2_sha256$870000$O10Of0E6RmlMPPsYBCOSol$p+bus7K12Z4+qHFcduQpsvtGaFYducHVJsTNjyEWST4=', '2025-07-30 06:59:45.203766', 0, 1, 'BossReungwit', '', '', 0, '2025-07-13 05:28:03.461600', 'singlaboss@gmail.com', 'ZA'),
-(4, 'pbkdf2_sha256$870000$RdkraQ3A6nbkI9mJgK5OnM$rbDGJ77Uo0TpfQC8PS+2uWfHFy1Ovdlh78Maq2Xmd74=', NULL, 0, 1, 'test', '', '', 0, '2025-07-18 03:35:54.750817', 'test@gmail.com', 'test'),
-(6, 'pbkdf2_sha256$870000$DYOn2AU52ffoHSvsp5FJbz$iHtyKDdSMUgjFgEVv8iAJsro8UPJY7Bedy/fsY/ssoI=', '2025-07-25 14:41:40.237073', 0, 1, 'test1', '', '', 0, '2025-07-25 14:41:39.728345', 'test1@gmail.com', 'ZA');
+(1, 'pbkdf2_sha256$870000$kBh9QE2VrV9CBGBTobhxHz$Lkd2/zbMenIpTPk9QV32loYJQmUZWLn/RaDDPokd4XY=', '2025-08-06 08:04:59.773340', 1, 1, 'admin', '', '', 1, '2025-07-13 05:06:37.253416', 'admin@gmail.com', ''),
+(2, 'pbkdf2_sha256$870000$8qwcUeeABxi9GgqY2tD2Li$/0ddq45eRFqPjahVOLkuO3HyKXEiUGiM7KiiCdlgR/U=', '2025-09-27 15:16:39.106346', 0, 1, 'BossReungwit', '', '', 0, '2025-07-13 05:28:03.461600', 'singlaboss@gmail.com', 'ZA');
 
 -- --------------------------------------------------------
 
@@ -149,6 +147,61 @@ CREATE TABLE `backend_customuser_user_permissions` (
   `customuser_id` bigint NOT NULL,
   `permission_id` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chapter5`
+--
+
+CREATE TABLE `chapter5` (
+  `doc_id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
+  `intro_th` longtext,
+  `sections_json` json NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `chapter5`
+--
+
+INSERT INTO `chapter5` (`doc_id`, `user_id`, `intro_th`, `sections_json`, `created_at`, `updated_at`) VALUES
+(1, 2, 'ทดสอบ', '[{\"body\": \"uuuuu\", \"title\": \"สรุปผลการดำเนินงาน\", \"points\": [{\"main\": \"yyyyy\", \"subs\": []}]}, {\"body\": \"rrrrr\", \"title\": \"อภิปรายผล\", \"points\": [{\"main\": \"eeeee\", \"subs\": []}]}, {\"body\": \"wwwww\", \"title\": \"ข้อเสนอแนะ\", \"points\": [{\"main\": \"eeeee\", \"subs\": []}]}]', NULL, '2025-09-23 05:18:55');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chapter_1`
+--
+
+CREATE TABLE `chapter_1` (
+  `chapter_id` int UNSIGNED NOT NULL COMMENT 'PK: รหัสรายการ (อัตโนมัติ)',
+  `sec11_p1` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '1.1 ย่อหน้า 1: ข้อความความเป็นมาและความสำคัญของปัญหา (ย่อหน้า 1)',
+  `sec11_p2` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '1.1 ย่อหน้า 2: ข้อความความเป็นมาและความสำคัญของปัญหา (ย่อหน้า 2)',
+  `sec11_p3` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '1.1 ย่อหน้า 3: ข้อความความเป็นมาและความสำคัญของปัญหา (ย่อหน้า 3)',
+  `purpose_count` tinyint UNSIGNED NOT NULL DEFAULT '0' COMMENT 'จำนวนวัตถุประสงค์ที่ผู้ใช้กรอก (0–3)',
+  `purpose_1` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'วัตถุประสงค์ ข้อที่ 1 (1.2.1)',
+  `purpose_2` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'วัตถุประสงค์ ข้อที่ 2 (1.2.2)',
+  `purpose_3` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'วัตถุประสงค์ ข้อที่ 3 (1.2.3)',
+  `hypo_paragraph` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '1.3 ย่อหน้า (มีได้ 0 หรือ 1 ย่อหน้า ตาม UI)',
+  `hypo_items_json` json DEFAULT NULL COMMENT '1.3.x รายการสมมติฐานย่อย (JSON array ของ string)',
+  `scope_json` json DEFAULT NULL COMMENT '1.4 ขอบเขต (JSON array ของ object: [{"main":"...","subs":["..."]}])',
+  `para_premise` json DEFAULT NULL,
+  `premise_json` json DEFAULT NULL COMMENT '1.5 ข้อตกลงเบื้องต้น (JSON array ของ object แบบเดียวกับ scope_json)',
+  `def_items_json` json DEFAULT NULL COMMENT '1.6.x รายการนิยามศัพท์ (JSON array ของ string)',
+  `benefit_items_json` json DEFAULT NULL COMMENT '1.7.x รายการประโยชน์ (JSON array ของ string)',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'เวลาที่สร้างข้อมูล',
+  `user_id` bigint NOT NULL COMMENT 'FK: อ้างอิง backend_customuser.user_id'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ฟอร์มบทที่ 1 ต่อผู้ใช้ 1 คน 1 แถว; รายการหลายข้อเก็บเป็น JSON';
+
+--
+-- Dumping data for table `chapter_1`
+--
+
+INSERT INTO `chapter_1` (`chapter_id`, `sec11_p1`, `sec11_p2`, `sec11_p3`, `purpose_count`, `purpose_1`, `purpose_2`, `purpose_3`, `hypo_paragraph`, `hypo_items_json`, `scope_json`, `para_premise`, `premise_json`, `def_items_json`, `benefit_items_json`, `created_at`, `user_id`) VALUES
+(3, 'การจัดทำเล่มปริญญานิพนธ์เป็นขั้นตอนที่สำคัญสำหรับนักศึกษาในการแสดงศักยภาพและความรู้ที่ได้สั่งสมมาตลอดระยะเวลาการศึกษา กระบวนการนี้เกี่ยวข้องกับการนำเสนอเนื้อหาการวิจัย การรวบรวมข้อมูล และการทำเล่มปริญญานิพนธ์ให้ตรงตามรูปแบบที่กำหนด ซึ่งถือเป็นมาตรฐานที่ช่วยยกระดับคุณภาพของผลงานวิจัย อีกทั้งการจัดรูปเล่มที่ถูกต้องยังสะท้อนถึงความเป็นมืออาชีพและความเอาใจใส่ในรายละเอียดของนักศึกษา', 'ในปัจจุบัน นักศึกษามักพบอุปสรรคในการจัดรูปเล่มปริญญานิพนธ์ เนื่องจากมีเวลาที่จำกัด ซึ่งต้องจัดทำงานวิจัยและเตรียมตัวสอบในหลายวิชา การตรวจสอบความถูกต้องของรูปแบบจึงมีโอกาสเกิดข้อผิดพลาด เช่น การจัดหน้า การเว้นวรรค หรือการละเลยรายละเอียดที่สำคัญ ปัญหาเหล่านี้ทำให้งานวิจัยที่ควรแสดงถึงคุณภาพอาจไม่สมบูรณ์ตามที่คาดหวังไว้', 'เพื่อแก้ไขปัญหาเหล่านี้ ทางคณะผู้จัดทำจึงได้พัฒนาระบบช่วยจัดทำเล่มปริญญานิพนธ์ที่สามารถสร้างรูปแบบมาตรฐานได้โดยอัตโนมัติผ่านเว็บเบราว์เซอร์ ระบบจะช่วยจัดทำรูปแบบเล่ม การจัดหน้า การตัดคำ ผู้ใช้งานสามารถใส่ข้อมูลที่เตรียมไว้ลงในระบบเพื่อให้ระบบประมวลผลและสร้างเล่มปริญญานิพนธ์ที่สมบูรณ์ตรงตามมาตรฐานที่กำหนด ช่วยลดข้อผิดพลาดและเพิ่มความสะดวกสบายในการทำงานได้อย่างมีประสิทธิภาพ', 3, 'เพื่อพัฒนาระบบสนับสนุนการจัดทำเล่ม ทก. และ โครงงานพิเศษ', 'เพื่อส่งเสริมการใช้เทคโนโลยีในการพัฒนาคุณภาพและมาตรฐานงานวิชาการของนักศึกษา', 'เพื่อให้ผู้ใช้สามารถใช้งานผ่านเว็บเบราว์เซอร์ได้โดยไม่ต้องติดตั้งซอฟต์แวร์เพิ่มเติม', 'การออกแบบและการพัฒนาระบบตรวจจับการล้มมีสมมุติฐานของการวิจัยเพื่อที่จะสร้างระบบ\r\nใหม่ที่มีเสถียรภาพเข้ามาทดแทนระบบงานเดิมซึ่งมีความล่าช้า มีการศึกษาค้นคว้าโดยอ้างอิงจาก\r\nงานวิจัยที่ใกล้เคียง กรณีศึกษา เครื่องตรวจจับการล้ม มีตัวแปรที่เกี่ยวข้องดังนี้', '[\"ตัวแปรต้น คือ ระบบตรวจจับการล้มต้องมีอุปกรณ์ติดตัวผู้ที่ต้องการตรวจจับได้เพียง เครื่องละ 1 คน และหากมีการสั่นสะเทือนเกิดขึ้นอาจจะให้ระบบตรวจจับผิดพลาดได้ ระบบเดิมจึงมี ความแม่นยำและยังต้องมีอุปกรณ์ติดตัวตลอดเวลาอีกด้วย\", \"ตัวแปรตาม คือ ประสิทธิภาพของระบบตรวจจับการล้มตรวจจับได้อย่างแม่นยำมากขึ้น และไม่มีสิ่งของติดอยู่ตามร่างกายหรือเสื้อผ้า\"]', '[{\"main\": \"สามารถจัดรูปแบบเล่มปริญญานิพนธ์ผ่านเว็บบราวเซอร์\", \"subs\": [\"การจัดทำระบบบนเว็บแอปพลิเคชัน\"]}, {\"main\": \"สามารถจัดรูปแบบของเอกสาร\", \"subs\": [\"การจัดรูปแบบตัวอักษรหัวข้อ หัวข้อย่อย และเนื้อหาได้\"]}]', '\"ทดสอบ\"', '[{\"main\": \"สามารถเข้าถึงข้อมูลที่มีการอัพเดตได้ก็ต่อเมื่อมีสัญญาณอินเตอร์เน็ต\", \"subs\": []}, {\"main\": \"ระบบจะต้องออนไลน์อยู่ตลอดเวลา\", \"subs\": []}, {\"main\": \"การติดตั้งกล้องที่ขนาดของห้องที่ได้ผลลัพธ์ที่ดีที่สุดขณะทดลองสูง 3 เมตร กว้าง 5 เมตร ยาว 5 เมตร\", \"subs\": []}]', '[\"แจ้งเตือน หมายถึง การเตือนหรือการแจ้งให้ทราบเมื่อมีอุบัติเหตุเกิดขึ้น\", \"GPS คือ ระบบระบุตำแหน่งบนพื้นโลก ย่อมาจากคำว่า Global Positioning System\"]', '[\"ได้รับระบบที่ช่วยแจ้งเตือนเกี่ยวกับการล้มในที่พักอาศัย\", \"ได้ระบบที่ให้ความช่วยเหลือเกี่ยวกับอุบัติเหตจากการล้มได้ทันท่วงที\", \"ช่วยลดอัตราการบาดเจ็บจากการล้มในผู้สูงอายุ\"]', '2025-09-03 04:57:52', 2);
 
 -- --------------------------------------------------------
 
@@ -250,39 +303,128 @@ CREATE TABLE `django_session` (
 
 INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALUES
 ('49qrs07dynexh8hpdymi3v1i579fbso8', '.eJxVizsOAyEMRO9CHa3AJoudMlLOgYwBscqnCLtVlLvnI4qkm5k372GibGuLWy_3uGRzMGB2v1sSPZfbB4w0fdkofTpdZbkcx-nPbNLbW_Oca_ahirfZpoAlw8zkiWbHwBAIS90jIKIrmqx6ZmEgq6rOWSbzfAEbHjRU:1ufeZV:SY1SdF0G4mNQXioqpef2W2y68MFtEVERYkxGOewcDVI', '2025-08-09 13:04:17.518052'),
-('5z45m03x890ef1mdebby15eb2i70gd4b', '.eJxVizsOAyEMRO9CHa3AJoudMlLOgYwBscqnCLtVlLvnI4qkm5k372GibGuLWy_3uGRzMGB2v1sSPZfbB4w0fdkofTpdZbkcx-nPbNLbW_Oca_ahirfZpoAlw8zkiWbHwBAIS90jIKIrmqx6ZmEgq6rOWSbzfAEbHjRU:1uh0mv:WfaaYFPxOmU6foc_vw6RbEQqLXx9d5NpCB5S6s6MZRw', '2025-08-13 06:59:45.208762'),
 ('9i0yn5ufbr0r73dwaypc5bbfwcou5exu', 'e30:1uaovv:8lutfgnT3_ORdoaPfHiEye8y_3n798y41el-NahXeAs', '2025-07-27 05:07:27.713320'),
 ('jbwpe3nxqallot4k533hfkwwolhpkd71', '.eJxVizsOAyEMRO9CHa3AJoudMlLOgYwBscqnCLtVlLvnI4qkm5k372GibGuLWy_3uGRzMGB2v1sSPZfbB4w0fdkofTpdZbkcx-nPbNLbW_Oca_ahirfZpoAlw8zkiWbHwBAIS90jIKIrmqx6ZmEgq6rOWSbzfAEbHjRU:1ufeg7:QCCqJkebRKoSPi6SBeCIWMQiENlnsva-Ot9O71ab5EU', '2025-08-09 13:11:07.840171'),
 ('orwc9gs7h2423gbt3hrul23nz6x5fztd', 'e30:1ufJZn:V0C31YNWlrZgBlrbJ7uGjjT8zlizqV8Q4ss152Ilk9s', '2025-08-08 14:39:11.966251'),
+('r4892tpziskcr71l3c8pda3w85mbuxpf', '.eJxVi0sOwjAMRO-SNaoSN65rlkicI3IcV6n4LAhdIe7OR1nAbmbevIdLst1r2prd0lrc3oHb_W5Z9GTXD-hp-LJe2nC8yHo-9NOfWaXVt0YyaWZbZgmescQwQ1bjAIF0HCUTEtDChuQj5hiweGXmwioGE4J7vgAsrTTg:1v2Wf9:NFCDp3kybgassELHVmkglY_v4Kx4eFDY6kLFdEZwydY', '2025-10-11 15:16:39.114121'),
+('u9dze1aoy51z4ks0545dshbvas6f1oe0', '.eJxVjL0OwjAMhN8lM6qaxNQOIxLPETm2USp-BkInxLtXrTLAdnff3X1c5uVd89LslWd1J-fd4TcrLDd7bqCrYWfdtOHy4Pl-7qW_ZeVWtz8UNpowXQ18ID-qSpCiRILgcRoLcEygUMAXtKBGcpRkbMwxIrnvCjlQNcQ:1ujZ8t:oSW64YALFnAmW3EoOWafUF2uVjzENSkF2OkBsVZJeaE', '2025-08-20 08:04:59.776339'),
 ('vq3w1ecq34694ot5ig7qnqur7pzdszr1', 'e30:1ucbn2:7faVuZa-IAuaqSyPQuoUxbb0NvyDi0m5gxPNGZcGybU', '2025-08-01 03:29:40.543057'),
 ('wpjhggmnryvlh8dwjkfotcdpkdwjlm7x', 'e30:1uaowt:xDpWe91KBstbfQPRahJFExy_LQpTsovMWMqDFwWneGs', '2025-07-27 05:08:27.607318');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `doc_cover`
+-- Table structure for table `doc_abstract`
 --
 
-CREATE TABLE `doc_cover` (
-  `cover_id` int NOT NULL,
-  `project_name_th` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `project_name_en` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `author1_name_th` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `author2_name_th` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `author1_name_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `author2_name_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `academic_year` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+CREATE TABLE `doc_abstract` (
+  `doc_id` int NOT NULL,
+  `user_id` bigint NOT NULL,
+  `total_pages` int NOT NULL,
+  `keyword_th` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `keyword_en` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `abstract_th_json` json NOT NULL,
+  `abstract_en_json` json DEFAULT NULL,
+  `acknow_json` json DEFAULT NULL COMMENT 'กิตติกรรมประกาศ'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `doc_abstract`
+--
+
+INSERT INTO `doc_abstract` (`doc_id`, `user_id`, `total_pages`, `keyword_th`, `keyword_en`, `abstract_th_json`, `abstract_en_json`, `acknow_json`) VALUES
+(1, 2, 10, '', '', '[\"ทดสอบ1\", \"ทดสอบ2\"]', '[\"Test1\", \"Test2\"]', '[\"ทดสอบ1\", \"ทดสอบ2\"]');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `doc_introduction`
+--
+
+CREATE TABLE `doc_introduction` (
+  `doc_id` int NOT NULL,
+  `name_pro_th` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name_pro_en` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `student_name` json DEFAULT NULL,
+  `school_y_BE` int DEFAULT NULL COMMENT 'พ.ศ',
+  `school_y_AD` int DEFAULT NULL COMMENT 'ค.ศ',
+  `comm_dean` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `comm_prathan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `comm_first` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `comm_sec` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `advisor_th` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `advisor_en` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `coadvisor_th` json DEFAULT NULL,
+  `coadvisor_en` json DEFAULT NULL,
+  `dep_th` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `dep_en` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_id` bigint NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `doc_introduction`
+--
+
+INSERT INTO `doc_introduction` (`doc_id`, `name_pro_th`, `name_pro_en`, `student_name`, `school_y_BE`, `school_y_AD`, `comm_dean`, `comm_prathan`, `comm_first`, `comm_sec`, `advisor_th`, `advisor_en`, `coadvisor_th`, `coadvisor_en`, `dep_th`, `dep_en`, `user_id`, `created_at`, `updated_at`) VALUES
+(3, 'ตตตต', 'Special Project Formatting Assistant', '{\"en\": [\"Reungwit Singla\", \"test\"], \"th\": [\"นายเรืองวิชญ์  สิงห์หล้า\", \"นางสาวสุกฤตา  กาหาวงศ์\"]}', 2568, 2025, 'test', 'test', 'test', 'test', 'รองศาสตราจารย์ ดร.ยุพิน สรรพคุณ', '', '\"ไม่มี\"', '\"None\"', 'คณะเทคโนโลยีสารสนเทศ', 'Faculty of Information Technology', 2, '2025-09-27 06:59:40', '2025-10-01 09:47:03');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `doc_ref_book`
+--
+
+CREATE TABLE `doc_ref_book` (
+  `ref_book_id` int NOT NULL COMMENT 'รหัสหนังสือ',
+  `book_authors_en` json DEFAULT NULL,
+  `book_authors_th` json NOT NULL,
+  `book_title_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `book_title_th` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `book_print_count_en` int DEFAULT NULL,
+  `book_print_count_th` int NOT NULL,
+  `book_city_print_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `book_city_print_th` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `book_publisher_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `book_publisher_th` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `book_y_print_en` int DEFAULT NULL,
+  `book_y_print_th` int NOT NULL,
   `user_id` bigint NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `doc_cover`
+-- Dumping data for table `doc_ref_book`
 --
 
-INSERT INTO `doc_cover` (`cover_id`, `project_name_th`, `project_name_en`, `author1_name_th`, `author2_name_th`, `author1_name_en`, `author2_name_en`, `academic_year`, `user_id`) VALUES
-(6, 'ัระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'นายเรืองวิชญ์  สิงห์หล้า', '', 'Reungwit Singla', '', '2568', 2);
+INSERT INTO `doc_ref_book` (`ref_book_id`, `book_authors_en`, `book_authors_th`, `book_title_en`, `book_title_th`, `book_print_count_en`, `book_print_count_th`, `book_city_print_en`, `book_city_print_th`, `book_publisher_en`, `book_publisher_th`, `book_y_print_en`, `book_y_print_th`, `user_id`) VALUES
+(3, NULL, '[\"ผต 1หนังสือ\"]', NULL, 'หหหห', NULL, 1, NULL, 'ดดดด', NULL, 'พพพ', NULL, 2568, 2);
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `doc_ref_web`
+--
+
+CREATE TABLE `doc_ref_web` (
+  `ref_web_id` int NOT NULL,
+  `ref_no` varchar(10) NOT NULL,
+  `ref_web_authors_th` json NOT NULL,
+  `ref_web_authors_en` json NOT NULL,
+  `ref_web_title_th` varchar(255) NOT NULL,
+  `ref_web_title_en` varchar(255) NOT NULL,
+  `ref_url` varchar(255) NOT NULL,
+  `ref_date_access` date NOT NULL,
+  `user_id` bigint NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `doc_ref_web`
+--
+
+INSERT INTO `doc_ref_web` (`ref_web_id`, `ref_no`, `ref_web_authors_th`, `ref_web_authors_en`, `ref_web_title_th`, `ref_web_title_en`, `ref_url`, `ref_date_access`, `user_id`) VALUES
+(1, '1', '[]', '[\"Eng\", \"Eng2\"]', '', 'uuuuqqqq', 'https://www.ukukeng.com', '2025-09-19', 2),
+(2, '2', '[\"ไทย1\", \"ไทย2\"]', '[]', 'ชื่อเรื่องไทย', '', 'https://www.ukukthai.com', '2025-09-19', 2);
 
 -- --------------------------------------------------------
 
@@ -308,17 +450,17 @@ CREATE TABLE `sp_project` (
   `purpose_1` varchar(255) NOT NULL,
   `purpose_2` varchar(255) NOT NULL,
   `purpose_3` varchar(255) NOT NULL,
+  `scope_json` json NOT NULL,
   `user_id` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 --
 -- Dumping data for table `sp_project`
 --
 
-INSERT INTO `sp_project` (`id`, `name_pro_th`, `name_pro_en`, `case_stu`, `term`, `school_y`, `adviser`, `co_advisor`, `strategic`, `plan`, `key_result`, `bg_and_sig_para1`, `bg_and_sig_para2`, `bg_and_sig_para3`, `purpose_1`, `purpose_2`, `purpose_3`, `user_id`) VALUES
-(11, 'ัระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'ไม่มี', '2', '2567', 'ผศ.จสต.นพเก้า ทองใบ', 'ไม่มี', '', '', '', '', '', '', '', '', '', 1),
-(17, 'ระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'ไม่มี', '2', '2567', 'ผศ.จสต.นพเก้า ทองใบ', 'ไม่มี', '', '', '', '', '', '', 'เพื่อพัฒนาระบบสนับสนุนการจัดทำเล่ม ทก. และ โครงงานพิเศษ', '', '', 2);
+INSERT INTO `sp_project` (`id`, `name_pro_th`, `name_pro_en`, `case_stu`, `term`, `school_y`, `adviser`, `co_advisor`, `strategic`, `plan`, `key_result`, `bg_and_sig_para1`, `bg_and_sig_para2`, `bg_and_sig_para3`, `purpose_1`, `purpose_2`, `purpose_3`, `scope_json`, `user_id`) VALUES
+(11, 'ัระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'ไม่มี', '2', '2567', 'ผศ.จสต.นพเก้า ทองใบ', 'ไม่มี', '', '', '', '', '', '', '', '', '', 'null', 1),
+(17, 'ระบบสนับสนุนการจัดทำเล่มโครงงานพิเศษ', 'Special Project Formatting Assistant', 'ไม่มี', '2', '2567', 'ผศ.จสต.นพเก้า ทองใบ', 'ไม่มี', 'การพัฒนาวิทยาศาสตร์ เทคโนโลยี การวิจัย และ นวัตกรรมระดับขั้นแนวหน้าที่ก้าวหน้าล้ำยุค เพื่อสร้างโอกาสใหม่ และความพร้อมของประเทศในอนาคต', '20 พัฒนาโครงสร้างพื้นฐาน ด้านวิทยาศาสตร์ วิจัย และนวัตกรรมและโครงสร้าง พื้นฐานทางคุณภาพของประเทศที่รองรับการวิจัยขั้นแนวหน้า และการพัฒนาเทคโนโลยีและนวัตกรรมสู่อนาคต', 'ประเทศไทยมีโครงสร้างพื้นฐานด้านวิทยาศาสตร์ วิจัย นวัตกรรมที่สำคัญ\r\nเทคโนโลยีพื้นฐาน และโครงสร้างพื้นฐานทางคุณภาพสำหรับการวิจัยขั้นแนวหน้าที่ทัดเทียมมาตรฐานสากลและสามารถรองรับการพัฒนาอย่างก้าวกระโดดสู่อนาคต\r\n', 'การจัดทำเล่มปริญญานิพนธ์เป็นขั้นตอนที่สำคัญสำหรับนักศึกษาในการแสดงศักยภาพและความรู้ที่ได้สั่งสมมาตลอดระยะเวลาการศึกษา กระบวนการนี้เกี่ยวข้องกับการนำเสนอเนื้อหาการวิจัย การรวบรวมข้อมูล และการทำเล่มปริญญานิพนธ์ให้ตรงตามรูปแบบที่กำหนด ซึ่งถือเป็นมาตรฐานที่ช่วยยกระดับคุณภาพของผลงานวิจัย อีกทั้งการจัดรูปเล่มที่ถูกต้องยังสะท้อนถึงความเป็นมืออาชีพและความเอาใจใส่ในรายละเอียดของนักศึกษา', 'ในปัจจุบัน นักศึกษามักพบอุปสรรคในการจัดรูปเล่มปริญญานิพนธ์ เนื่องจากมีเวลาที่จำกัด ซึ่งต้องจัดทำงานวิจัยและเตรียมตัวสอบในหลายวิชา การตรวจสอบความถูกต้องของรูปแบบจึงมีโอกาสเกิดข้อผิดพลาด เช่น การจัดหน้า การเว้นวรรค หรือการละเลยรายละเอียดที่สำคัญ ปัญหาเหล่านี้ทำให้งานวิจัยที่ควรแสดงถึงคุณภาพอาจไม่สมบูรณ์ตามที่คาดหวังไว้', 'เพื่อแก้ไขปัญหาเหล่านี้ ทางคณะผู้จัดทำจึงได้พัฒนาระบบช่วยจัดทำเล่มปริญญานิพนธ์ที่สามารถสร้างรูปแบบมาตรฐานได้โดยอัตโนมัติผ่านเว็บเบราว์เซอร์ ระบบจะช่วยจัดทำรูปแบบเล่ม การจัดหน้า การตัดคำ ผู้ใช้งานสามารถใส่ข้อมูลที่เตรียมไว้ลงในระบบเพื่อให้ระบบประมวลผลและสร้างเล่มปริญญานิพนธ์ที่สมบูรณ์ตรงตามมาตรฐานที่กำหนด ช่วยลดข้อผิดพลาดและเพิ่มความสะดวกสบายในการทำงานได้อย่างมีประสิทธิภาพ', '', '', '', '\"[{\\\"main\\\": \\\"\\\", \\\"subs\\\": []}]\"', 2);
 
 -- --------------------------------------------------------
 
@@ -340,7 +482,62 @@ CREATE TABLE `sp_project_author` (
 INSERT INTO `sp_project_author` (`id`, `name`, `userid`, `sp_id`) VALUES
 (40, 'นายเรืองวิชญ์  สิงห์หล้า', 1, 11),
 (41, 'นางสาวสุกฤตา  กาหาวงศ์', 1, 11),
-(318, 'นายเรืองวิชญ์  สิงห์หล้า', 2, 17);
+(397, 'นายเรืองวิชญ์  สิงห์หล้า', 2, 17),
+(398, 'นางสาวสุกฤตา  กาหาวงศ์', 2, 17);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `v_certificate`
+-- (See below for the actual view)
+--
+CREATE TABLE `v_certificate` (
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `v_doc_abstract`
+-- (See below for the actual view)
+--
+CREATE TABLE `v_doc_abstract` (
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `v_doc_cover`
+-- (See below for the actual view)
+--
+CREATE TABLE `v_doc_cover` (
+);
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_certificate`
+--
+DROP TABLE IF EXISTS `v_certificate`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_certificate`  AS SELECT `i`.`doc_id` AS `doc_id`, `i`.`user_id` AS `user_id`, `i`.`name_pro_th` AS `name_pro_th`, `i`.`name_pro_en` AS `name_pro_en`, `i`.`student_name` AS `student_name`, `i`.`school_y_BE` AS `school_y_BE`, `i`.`school_y_AD` AS `school_y_AD`, `i`.`dep_th` AS `dep_th`, `i`.`dep_en` AS `dep_en`, `i`.`advisor_th` AS `advisor_th`, `i`.`advisor_en` AS `advisor_en`, `i`.`coadvisor_th` AS `coadvisor_th`, `i`.`coadvisor_en` AS `coadvisor_en`, `i`.`certificate_options` AS `certificate_options`, `i`.`comm_dean` AS `comm_dean`, `i`.`comm_prathan` AS `comm_prathan`, `i`.`comm_first` AS `comm_first`, `i`.`comm_sec` AS `comm_sec` FROM `doc_introduction` AS `i` ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_doc_abstract`
+--
+DROP TABLE IF EXISTS `v_doc_abstract`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_doc_abstract`  AS SELECT `i`.`doc_id` AS `doc_id`, `i`.`user_id` AS `user_id`, `i`.`name_pro_th` AS `project_name_th`, `i`.`name_pro_en` AS `project_name_en`, `i`.`dep_th` AS `major_th`, `i`.`dep_en` AS `major_en`, `i`.`advisor_th` AS `advisor_th`, `i`.`advisor_en` AS `advisor_en`, `i`.`coadvisor_th` AS `coadvisor_th`, `i`.`coadvisor_en` AS `coadvisor_en`, `i`.`school_y_BE` AS `academic_year_th`, `i`.`school_y_AD` AS `academic_year_en`, `a`.`abstract_th` AS `abstract_th`, `a`.`abstract_en` AS `abstract_en`, `a`.`acknow` AS `acknow`, `a`.`acknow_name1` AS `acknow_name1`, `a`.`acknow_name2` AS `acknow_name2` FROM (`doc_introduction` `i` left join `doc_abstract` `a` on((`a`.`doc_id` = `i`.`doc_id`))) ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_doc_cover`
+--
+DROP TABLE IF EXISTS `v_doc_cover`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_doc_cover`  AS SELECT `i`.`doc_id` AS `doc_id`, `i`.`user_id` AS `user_id`, `i`.`name_pro_th` AS `name_pro_th`, `i`.`name_pro_en` AS `name_pro_en`, `i`.`student_name` AS `student_name`, `i`.`school_y_BE` AS `school_y_BE`, `i`.`school_y_AD` AS `school_y_AD`, `i`.`dep_th` AS `dep_th`, `i`.`dep_en` AS `dep_en`, `i`.`advisor_th` AS `advisor_th`, `i`.`advisor_en` AS `advisor_en`, `i`.`coadvisor_th` AS `coadvisor_th`, `i`.`coadvisor_en` AS `coadvisor_en`, `i`.`cover_options` AS `cover_options` FROM `doc_introduction` AS `i` ;
 
 --
 -- Indexes for dumped tables
@@ -393,6 +590,20 @@ ALTER TABLE `backend_customuser_user_permissions`
   ADD KEY `backend_customuser_u_permission_id_9e1b6f57_fk_auth_perm` (`permission_id`);
 
 --
+-- Indexes for table `chapter5`
+--
+ALTER TABLE `chapter5`
+  ADD PRIMARY KEY (`doc_id`),
+  ADD KEY `fk_user_ct5` (`user_id`);
+
+--
+-- Indexes for table `chapter_1`
+--
+ALTER TABLE `chapter_1`
+  ADD PRIMARY KEY (`chapter_id`),
+  ADD UNIQUE KEY `uq_chapter_1_user` (`user_id`) COMMENT 'บังคับให้ 1 ผู้ใช้มีบทที่ 1 ได้ 1 แถว';
+
+--
 -- Indexes for table `django_admin_log`
 --
 ALTER TABLE `django_admin_log`
@@ -421,11 +632,33 @@ ALTER TABLE `django_session`
   ADD KEY `django_session_expire_date_a5c62663` (`expire_date`);
 
 --
--- Indexes for table `doc_cover`
+-- Indexes for table `doc_abstract`
 --
-ALTER TABLE `doc_cover`
-  ADD PRIMARY KEY (`cover_id`),
-  ADD KEY `userid_doccover` (`user_id`);
+ALTER TABLE `doc_abstract`
+  ADD PRIMARY KEY (`doc_id`),
+  ADD UNIQUE KEY `uq_abs_doc` (`doc_id`),
+  ADD KEY `fk_abs_user` (`user_id`);
+
+--
+-- Indexes for table `doc_introduction`
+--
+ALTER TABLE `doc_introduction`
+  ADD PRIMARY KEY (`doc_id`),
+  ADD UNIQUE KEY `uq_intro_user` (`user_id`);
+
+--
+-- Indexes for table `doc_ref_book`
+--
+ALTER TABLE `doc_ref_book`
+  ADD PRIMARY KEY (`ref_book_id`),
+  ADD KEY `userid_refbook` (`user_id`);
+
+--
+-- Indexes for table `doc_ref_web`
+--
+ALTER TABLE `doc_ref_web`
+  ADD PRIMARY KEY (`ref_web_id`),
+  ADD KEY `user_id_ref_web` (`user_id`);
 
 --
 -- Indexes for table `sp_project`
@@ -468,7 +701,7 @@ ALTER TABLE `auth_permission`
 -- AUTO_INCREMENT for table `backend_customuser`
 --
 ALTER TABLE `backend_customuser`
-  MODIFY `user_id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `user_id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `backend_customuser_groups`
@@ -481,6 +714,18 @@ ALTER TABLE `backend_customuser_groups`
 --
 ALTER TABLE `backend_customuser_user_permissions`
   MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `chapter5`
+--
+ALTER TABLE `chapter5`
+  MODIFY `doc_id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `chapter_1`
+--
+ALTER TABLE `chapter_1`
+  MODIFY `chapter_id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'PK: รหัสรายการ (อัตโนมัติ)', AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `django_admin_log`
@@ -501,10 +746,28 @@ ALTER TABLE `django_migrations`
   MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
--- AUTO_INCREMENT for table `doc_cover`
+-- AUTO_INCREMENT for table `doc_abstract`
 --
-ALTER TABLE `doc_cover`
-  MODIFY `cover_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+ALTER TABLE `doc_abstract`
+  MODIFY `doc_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `doc_introduction`
+--
+ALTER TABLE `doc_introduction`
+  MODIFY `doc_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `doc_ref_book`
+--
+ALTER TABLE `doc_ref_book`
+  MODIFY `ref_book_id` int NOT NULL AUTO_INCREMENT COMMENT 'รหัสหนังสือ', AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `doc_ref_web`
+--
+ALTER TABLE `doc_ref_web`
+  MODIFY `ref_web_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `sp_project`
@@ -516,7 +779,7 @@ ALTER TABLE `sp_project`
 -- AUTO_INCREMENT for table `sp_project_author`
 --
 ALTER TABLE `sp_project_author`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=319;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=399;
 
 --
 -- Constraints for dumped tables
@@ -550,6 +813,18 @@ ALTER TABLE `backend_customuser_user_permissions`
   ADD CONSTRAINT `backend_customuser_u_permission_id_9e1b6f57_fk_auth_perm` FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`id`);
 
 --
+-- Constraints for table `chapter5`
+--
+ALTER TABLE `chapter5`
+  ADD CONSTRAINT `fk_user_ct5` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `chapter_1`
+--
+ALTER TABLE `chapter_1`
+  ADD CONSTRAINT `fk_chapter_1_user` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `django_admin_log`
 --
 ALTER TABLE `django_admin_log`
@@ -557,10 +832,28 @@ ALTER TABLE `django_admin_log`
   ADD CONSTRAINT `django_admin_log_user_id_c564eba6_fk_backend_customuser_id` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`);
 
 --
--- Constraints for table `doc_cover`
+-- Constraints for table `doc_abstract`
 --
-ALTER TABLE `doc_cover`
-  ADD CONSTRAINT `userid_doccover` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE `doc_abstract`
+  ADD CONSTRAINT `fk_abs_user` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `doc_introduction`
+--
+ALTER TABLE `doc_introduction`
+  ADD CONSTRAINT `fk_intro_user` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `doc_ref_book`
+--
+ALTER TABLE `doc_ref_book`
+  ADD CONSTRAINT `userid_refbook` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `doc_ref_web`
+--
+ALTER TABLE `doc_ref_web`
+  ADD CONSTRAINT `user_id_ref_web` FOREIGN KEY (`user_id`) REFERENCES `backend_customuser` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 --
 -- Constraints for table `sp_project`

@@ -1,5 +1,5 @@
 let authorCount = 1;
-const maxAuthors = 2;
+const maxAuthors = 3;
 const container = document.getElementById('author-container');
 
 let authors_th = [];

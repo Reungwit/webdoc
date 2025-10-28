@@ -1,0 +1,271 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ระบบจัดการเล่มปริญญานิพนธ์</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+<body>
+
+  <!-- ============== NAVBAR ============== -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <img src="{% static 'img/kmutnb_logo_cover.png' %}" alt="KMUTNB" class="logo-img">
+        <span class="logo-text">ระบบจัดการเล่มปริญญานิพนธ์</span>
+      </div>
+
+      <div class="nav-menu">
+        <a href="#home" class="nav-link">หน้าแรก</a>
+        <a href="#features" class="nav-link">คุณสมบัติ</a>
+        <a href="#stats" class="nav-link">สถิติ</a>
+        <a href="#about" class="nav-link">เกี่ยวกับระบบ</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'logout' %}" class="nav-link logout-btn">ออกจากระบบ</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="nav-link login-btn">เข้าสู่ระบบ</a>
+        {% endif %}
+      </div>
+
+      <button class="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============== HERO (ซ้ายข้อความ / ขวาไอคอน ไม่มีวงแหวน) ============== -->
+  <section id="home" class="hero hero-split">
+    <div class="hero-grid container">
+      <!-- LEFT -->
+      <div class="hero-left">
+        <h1 class="hero-title">
+          ระบบจัดการ<br>เล่มปริญญานิพนธ์<br>
+          <span class="highlight" id="typing-text"></span>
+
+        </h1>
+        <p class="hero-description">
+          จัดการเล่มปริญญานิพนธ์ ด้วยระบบที่ง่าย รวดเร็ว และปลอดภัย
+        </p>
+        <div class="hero-buttons">
+          {% if user.is_authenticated %}
+            <a href="{% url 'index' %}" class="btn btn-primary">
+              <i class="fas fa-rocket"></i> เริ่มใช้งานทันที
+            </a>
+          {% else %}
+            <a href="{% url 'register' %}" class="btn btn-primary">
+              <i class="fas fa-rocket"></i> สมัครสมาชิก
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- RIGHT (icons cluster) -->
+      <div class="hero-right">
+        <div class="cluster">
+          <div class="card lg"><i class="fas fa-file-word"></i></div>
+          <div class="card md card-2"><i class="fas fa-file-alt"></i></div>
+          
+          <div class="pill pill-1"><i class="fas fa-check-circle"></i></div>
+          <div class="pill pill-2"><i class="fas fa-clock"></i></div>
+          <div class="pill pill-3"><i class="fas fa-shield-alt"></i></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== FEATURES (เดโม) ============== -->
+  <section id="features" class="features features-showcase">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">คุณสมบัติหลัก</h2>
+        <p class="section-description">ระบบจัดการเอกสารที่ครบครันและใช้งานง่าย</p>
+      </div>
+
+      <div class="fx-grid">
+        <article class="fx-panel fx-purple">
+          <header class="fx-header">
+            <span class="fx-badge">📄 จัดการเล่มปริญญานิพนธ์</span>
+            <h3>จัดรูปแบบอัตโนมัติ</h3>
+            <p>พิมพ์ แทรกหัวข้อ/รายการ และจัดรูปแบบตามมาตรฐานได้ทันที</p>
+          </header>
+          <div class="fx-window">
+            <div class="fx-window__chrome"><span></span><span></span><span></span></div>
+            <div class="fx-editor">
+              <div class="fx-line dim"></div>
+              <div class="fx-line dim short"></div>
+              <div class="fx-line"></div>
+              <div class="fx-typing" data-strings='["บทที่ 1 บทนำ","บทที่ 2 เอกสารที่เกี่ยวข้อง","บทที่ 3 วิธีการดำเนินงาน","บทที่ 4 สรุปผลการวิจัย","บทที่ 5 สรุป อภิปรายผล","บรรณานุกรม (Vancouver)"]'>
+                <span class="fx-typing__text"></span><span class="fx-caret"></span>
+              </div>
+              <div class="fx-list">
+                <div class="fx-bullet"></div>
+                <div class="fx-bullet w-60"></div>
+                <div class="fx-bullet w-80"></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="fx-panel fx-blue">
+          <header class="fx-header">
+            <span class="fx-badge">📄 จัดการข้อมูลเบื้องต้น</span>
+            <h3>กรอกข้อมูลโครงงานครั้งเดียว ใช้ได้ทั้งเล่ม</h3>
+            <p>บันทึกผู้จัดทำ อาจารย์ที่ปรึกษา และรายละเอียดโปรเจค</p>
+          </header>
+          <div class="fx-window">
+            <div class="fx-window__chrome"><span></span><span></span><span></span></div>
+            <div class="fx-chips">
+              <span class="chip">ชื่อโครงงาน</span>
+              <span class="chip">ชื่ออาจารย์ที่ปรึกษา</span>
+              <span class="chip good"><i class="fas fa-check"></i> บันทึกแล้ว</span>
+            </div>
+            <div class="fx-form-ghost">
+              <div class="ghost-row"></div>
+              <div class="ghost-row w-70"></div>
+              <div class="ghost-row w-50"></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="fx-panel fx-green">
+          <header class="fx-header">
+            <span class="fx-badge">ดาวน์โหลดไฟล์ DOCX ได้ทันที</span>
+            <h3>แปลงเป็นไฟล์ .docx พร้อมจัดรูปแบบ</h3>
+            <p>จัดหัวข้อ ระยะขอบ ฟอนต์ เลขหน้าและส่วนอื่นๆของเล่มอัตโนมัติ</p>
+          </header>
+          <div class="fx-window">
+            <div class="fx-window__chrome"><span></span><span></span><span></span></div>
+            <div class="fx-download">
+              <div class="fx-doc-icon"><i class="fas fa-file-word"></i></div>
+              <div class="fx-progress"><span></span></div>
+              <button class="fx-btn"><i class="fas fa-download"></i> สร้างไฟล์ .docx</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="fx-panel fx-yellow">
+          <header class="fx-header">
+            <span class="fx-badge">🛡️ บันทึกข้อมูลเพียงคลิกเดียว</span>
+            <h3>ไม่ต้องกลัวข้อมูลสูญหาย</h3>
+            <p>บันทึกข้อมูลในฐานข้อมูล MySQL ได้อย่างมีประสิทธิภาพ</p>
+          </header>
+          <div class="fx-window">
+            <div class="fx-window__chrome"><span></span><span></span><span></span></div>
+            <div class="fx-safe">
+              <div class="safe-item"><i class="fas fa-database"></i>ระบบจัดการเอกสาร</div>
+              <div class="safe-item"><i class="fas fa-link"></i> ข้อมูลเอกสาร → ข้อมูลผู้ใช้งาน</div>
+              <div class="safe-item ok"><i class="fas fa-shield-alt"></i> บันทึกสำเร็จ</div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== STATS (ริบบอนเต็มจอ + count-up) ============== -->
+  <section id="stats" class="stats stats-animated">
+    <div class="container">
+      <div class="ribbon">
+        <div class="ribbon-track">
+          <span class="ribbon-chip">จัดหัวข้ออัตโนมัติ (บทที่ 1-5)</span>
+          <span class="ribbon-chip">แทรกเลขหัวข้อตามมาตรฐานมหาวิทยาลัย</span>
+          <span class="ribbon-chip">บันทึกข้อมูลลงฐานข้อมูล MySQL</span>
+          <span class="ribbon-chip">ดึงข้อมูลกลับมาแก้ไขได้ทุกเมื่อ</span>
+          <span class="ribbon-chip">สร้างเอกสารไฟล์ .docx เพียงคลิกเดียว</span>
+          <span class="ribbon-chip">สร้างสารบัญพร้อมเลขหัวข้ออัตโนมัติ</span>
+          <span class="ribbon-chip">เอกสารมีรูปแบบตาม คณะ/ภาควิชา 90% </span>
+          <span class="ribbon-chip">ใช้งานง่าย สะดวก</span>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-item"><div class="stat-number" data-count="100">0</div><div class="stat-label">เอกสารที่จัดการ</div></div>
+        <div class="stat-item"><div class="stat-number" data-count="100">0</div><div class="stat-label">ผู้ใช้งาน</div></div>
+        <div class="stat-item"><div class="stat-number" data-count="90" data-suffix="%">0%</div><div class="stat-label">ความถูกต้องของการจัดรูปแบบ</div></div>
+        <div class="stat-item"><div class="stat-number" data-text="24/7">0</div><div class="stat-label">พร้อมใช้งาน</div></div>
+        <div class="stat-item"><div class="stat-number" data-count="10+">0</div><div class="stat-label">เทมเพลตมาตรฐาน</div></div>
+        <div class="stat-item"><div class="stat-number" data-count="70" data-suffix="%">0%</div><div class="stat-label">เวลาที่ประหยัดโดยเฉลี่ย</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== ABOUT ============== -->
+  <section id="about" class="about">
+    <div class="container">
+      <div class="about-content">
+        <div class="about-text">
+          <h2 class="about-title">เกี่ยวกับระบบ</h2>
+          <p class="about-description">
+            ระบบนี้พัฒนาขึ้นเพื่อช่วยให้นักศึกษาและบุคลากรของมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ สามารถจัดการเอกสารรูปเล่มปริญญานิพนธ์ได้อย่างมีประสิทธิภาพ
+          </p>
+          <div class="about-features">
+            <div class="about-feature"><i class="fas fa-check"></i><span>ใช้งานง่าย ไม่ซับซ้อน</span></div>
+            <div class="about-feature"><i class="fas fa-check"></i><span>ปลอดภัย ข้อมูลไม่รั่วไหล</span></div>
+            <div class="about-feature"><i class="fas fa-check"></i><span>อัปเดตและปรับปรุงอย่างต่อเนื่อง</span></div>
+          </div>
+        </div>
+
+        <figure class="about-image">
+          <div class="logo-card">
+            <div class="logo-halo" aria-hidden="true"></div>
+            <img src="{% static 'img/kmutnb_logo_cover.png' %}" alt="ตรา มจพ." class="logo-center">
+          </div>
+          <figcaption class="logo-caption">มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ (KMUTNB)</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== CTA (ปุ่มเดียว) ============== -->
+  <section class="cta">
+    <div class="container">
+      <div class="cta-content">
+        <h2 class="cta-title">พร้อมเริ่มใช้งานแล้วหรือยัง?</h2>
+        <p class="cta-description">เข้าร่วมกับผู้ใช้งานหลายร้อยคนที่ไว้วางใจระบบของเรา</p>
+        <div class="cta-buttons">
+          <a href="{% url 'register' %}" class="btn btn-primary btn-large">
+            <i class="fas fa-play"></i> เริ่มต้นใช้งานฟรี
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== FOOTER ============== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-logo">
+            <img src="{% static 'img/kmutnb_logo.png' %}" alt="KMUTNB">
+            <span>ระบบจัดการเอกสาร</span>
+          </div>
+          <p class="footer-description">ระบบจัดการเอกสารสำหรับมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ</p>
+        </div>
+        <div class="footer-section">
+          <h4 class="footer-title">ติดต่อเรา</h4>
+          <div class="contact-info">
+            <p><i class="fas fa-envelope"></i> singlaboss@gmail.com</p>
+            <p><i class="fas fa-phone"></i> 02-555-2000</p>
+            <p><i class="fas fa-map-marker-alt"></i> กรุงเทพมหานคร</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ. สงวนลิขสิทธิ์.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{% static 'js/landing.js' %}"></script>
+</body>
+</html>

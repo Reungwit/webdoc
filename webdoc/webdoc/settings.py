@@ -26,9 +26,12 @@ SECRET_KEY = 'django-insecure-rnla5_+u+y^(hb4_9x&zlhqg7!*cj)*(xa-_1l*xwvus-iz)s4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 # การเพิ่มตารางลงใน ฐานข้อมูล
 AUTH_USER_MODEL = 'backend.CustomUser'
+# ให้หน้าเดียวกัน (self) ฝัง iframe ได้
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+CSP_FRAME_ANCESTORS = ("'self'",) 
 
 AUTHENTICATION_BACKENDS = [
     'backend.auth_backends.EmailBackend',

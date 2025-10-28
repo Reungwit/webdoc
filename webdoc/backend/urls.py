@@ -1,6 +1,6 @@
-# urls.py
 from django.urls import path
 from . import views
+
 
 urlpatterns = [
     path('project-setup/', views.project_setup_view, name='project_setup'),
@@ -27,3 +27,4 @@ urlpatterns = [
 
     
 ]
+

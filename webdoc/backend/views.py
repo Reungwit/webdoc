@@ -1,5 +1,4 @@
 # backend/views.py
-
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -34,12 +33,12 @@ from man_doc.doc_chapter1 import doc_chapter1
 from man_doc.doc_certificate import doc_certificate
 
 # ====== imports from man_views (helpers ที่แยกออก) ======
-from man_views.views_current_user_id import current_user_id as _current_user_id
+from man_views.views_current_user_id import current_user_id as current_user_id
 from man_views.views_is_intro_ok_check import is_intro_ok_check
 from man_views.views_authors_from_intro import authors_from_intro as _authors_from_intro
 
 # รวม helper อ้างอิง (ตามไฟล์ที่คุณรวม)
-from webdoc.webdoc.man_views.views_save_refs import save_websites_from_refs, save_books_from_refs
+from man_views.views_save_refs import save_websites_from_refs, save_books_from_refs
 from man_views.views_initial_refs import initial_refs_web_from_db, initial_books_from_db
 
 from man_views.views_format_dates_for_doc import format_dates_for_doc

@@ -5,6 +5,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from man_doc.doc_function import *
+import os
 
 # หน้าปกไทย
 def doc_cover_th(project_name_th, project_name_en,

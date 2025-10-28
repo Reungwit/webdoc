@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 import json
-from .models import SpProject, SpProjectAuthor
+from backend.models import SpProject, SpProjectAuthor
 from man_doc.doc_sp_01 import doc_sp_01
 from man_doc.doc_cover import doc_cover_th, doc_cover_en, doc_cover_sec  
 from man_doc.doc_abstract_ack import doc_abstract_ack  

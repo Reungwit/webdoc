@@ -134,3 +134,49 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     p.addEventListener('mouseleave', () => { p.style.transform = 'translateY(-2px)'; });
   });
 })();
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  const typingElement = document.getElementById("typing-text");
+  
+  // ถ้าอยากให้หมุนหลายข้อความ ใส่เพิ่มใน array นี้
+  const texts = [
+    "FITM - Faculty of Industrial Technology and Management",
+    "จัดรูปแบบตามเท็มเพลตตามที่มหาวิทยาลัยกำหนดอัตโนมัติ"
+  ];
+
+  let textIndex = 0;  // ข้อความที่กำลังใช้
+  let charIndex = 0;  // ตัวอักษรปัจจุบัน
+  let isDeleting = false; // สถานะพิมพ์/ลบ
+  const typingSpeed = 80;  // ms ต่ออักษร
+  const deletingSpeed = 80; // ms ตอนลบ
+  const pauseDelay = 500;  // หยุดก่อนลบ (ms)
+
+  function typeEffect() {
+    const currentText = texts[textIndex];
+    
+    if (!isDeleting && charIndex <= currentText.length) {
+      typingElement.textContent = currentText.substring(0, charIndex++);
+      setTimeout(typeEffect, typingSpeed);
+    } 
+    else if (isDeleting && charIndex >= 0) {
+      typingElement.textContent = currentText.substring(0, charIndex--);
+      setTimeout(typeEffect, deletingSpeed);
+    } 
+    else {
+      // สลับโหมด
+      if (!isDeleting) {
+        isDeleting = true;
+        setTimeout(typeEffect, pauseDelay); // รอแล้วค่อยลบ
+      } else {
+        isDeleting = false;
+        textIndex = (textIndex + 1) % texts.length;
+        setTimeout(typeEffect, typingSpeed);
+      }
+    }
+  }
+
+  typeEffect();
+});
+

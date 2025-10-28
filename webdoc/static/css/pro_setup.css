@@ -249,3 +249,114 @@ input[type="text"]:focus {
         gap: 24px 0; /* เปลี่ยน gap ให้อยู่ระหว่างแถวแทน */
     }
 }
+
+/* ========================
+   Department UI (scoped)
+   ======================== */
+
+/* Grid 2 คอลัมน์ (ยุบเป็น 1 คอลัมน์เมื่อจอแคบ) */
+.dep-scope.form-grid-2{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 768px){
+  .dep-scope.form-grid-2{ grid-template-columns: 1fr; }
+}
+
+/* Label */
+.dep-scope > div > label{
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+  
+}
+
+/* Base input/select look */
+.dep-scope select#dep_selector,
+.dep-scope #dep_en_display{
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--card-border, #e5e7eb);
+  border-radius: 10px;
+  background: var(--bg-soft, #f8fafc);
+  color: var(--ink-2, #0f172a);
+  font-family: 'Kanit', sans-serif;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+  box-shadow: 0 1px 0 rgba(0,0,0,.02);
+  -webkit-transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+  -moz-transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+  -ms-transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+  -o-transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+/* Readonly look */
+.dep-scope #dep_en_display[readonly]{
+  background: var(--bg-soft-2, #f4f7ff);
+  cursor: default;
+  opacity: .98;
+}
+
+/* Hover */
+.dep-scope select#dep_selector:hover,
+.dep-scope #dep_en_display:hover{
+  border-color: var(--hover-border, #d1dceb);
+}
+
+/* Focus ring */
+.dep-scope select#dep_selector:focus,
+.dep-scope #dep_en_display:focus{
+  border-color: var(--primary, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.2);
+}
+
+/* Custom arrow ของ <select> */
+.dep-scope select#dep_selector{
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted, #64748b) 50%),
+    linear-gradient(135deg, var(--muted, #64748b) 50%, transparent 50%),
+    linear-gradient(to right, transparent, transparent);
+  background-position:
+    calc(100% - 22px) calc(50% - 4px),
+    calc(100% - 16px) calc(50% - 4px),
+    100% 0;
+  background-size: 6px 6px, 6px 6px, 2.75rem 100%;
+  background-repeat: no-repeat;
+  padding-right: 2.75rem;
+}
+
+/* State helpers (ถ้าต้องการ ใส่คลาสผ่าน JS) */
+.dep-scope .is-invalid{
+  border-color: #fecaca !important;
+  background-color: #fff5f5 !important;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, .15) !important;
+}
+.dep-scope .is-success{
+  border-color: #86efac !important;
+  background-color: #f0fff4 !important;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, .15) !important;
+}
+
+/* Dark mode (ตาม system) */
+@media (prefers-color-scheme: dark){
+  .dep-scope > div > label{
+    color: var(--muted, #94a3b8);
+  }
+  .dep-scope select#dep_selector,
+  .dep-scope #dep_en_display{
+    background: var(--bg-soft, #0f172a);
+    color: var(--ink-2, #e5e7eb);
+    border-color: var(--card-border, #243041);
+  }
+  .dep-scope #dep_en_display[readonly]{
+    background: var(--bg-soft-2, #0b1220);
+  }
+  .dep-scope select#dep_selector:focus,
+  .dep-scope #dep_en_display:focus{
+    border-color: var(--primary, #60a5fa);
+    box-shadow: 0 0 0 3px rgba(32, 132, 255, 0.25);
+  }
+}

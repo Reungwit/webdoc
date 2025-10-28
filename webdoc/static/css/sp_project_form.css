@@ -6,7 +6,7 @@
 }
 
 body {
-  font-family: 'Inter', 'Segoe UI', Geneva, Verdana, sans-serif;
+  font-family: "Kanit", ui-sans-serif, Roboto, Inter, "Noto Sans Thai";
   background: #f0f2f5;
   min-height: 100vh;
   padding: 20px;

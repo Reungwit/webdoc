@@ -1307,8 +1307,10 @@ def project_setup_view(request):
                 return redirect(reverse('project_setup'))
 
             messages.success(request, 'บันทึกข้อมูล Project Setup สำเร็จ')
-            return redirect(reverse('index'))
-
+            return redirect(reverse('project_setup'))
+        elif action == 'go_index': # เพิ่มเงื่อนไขตรวจสอบถ้าอยู่หน้า index อยู่แล้วไม่ต้องทำอะไร
+            return render(request, 'index.html')
+            
     # GET ปกติ
     initial = {}
     if intro:
@@ -1349,6 +1351,8 @@ def project_setup_view(request):
             'authors_th': [],
             'authors_en': [],
         })
+        
+        
     return render(request, 'project_setup.html', {'initial': initial})
 
 @login_required

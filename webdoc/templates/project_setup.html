@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Setup</title>
     <link rel="stylesheet" href="{% static 'css/pro_setup.css' %}">
+    <!-- <link rel="stylesheet" href="{% static 'css/dep.css' %}"> -->
 </head>
 <body>
 
@@ -30,19 +31,7 @@
                 <input type="text" id="name_pro_en" name="name_pro_en" value="{{ initial.name_pro_en|default_if_none:'' }}">
             </div>
         </div>
-
-        <!-- <div class="form-grid-2">
-            <div>
-                <label for="dep_th">คณะ (ไทย)</label>
-                <input type="text" id="dep_th" name="dep_th" value="{{ initial.dep_th|default_if_none:'' }}">
-            </div>
-            <div>
-                <label for="dep_en">คณะ (อังกฤษ)</label>
-                <input type="text" id="dep_en" name="dep_en" value="{{ initial.dep_en|default_if_none:'' }}">
-            </div>
-        </div> -->
-
-        <div class="form-grid-2">
+        <div class="form-grid-2 dep-scope">
     <div>
         <label for="dep_selector">คณะ (ไทย)</label>
         
@@ -50,33 +39,32 @@
             <option value="">--- เลือกคณะ ---</option>
             
             <option 
-                value="คณะวิศวกรรมศาสตร์" 
-                data-en="Faculty of Engineering" 
-                {% if initial.dep_th == 'คณะวิศวกรรมศาสตร์' %}selected{% endif %}>
-                คณะวิศวกรรมศาสตร์
-            </option>
-            
-            <option 
-                value="คณะเทคโนโลยีสารสนเทศ" 
-                data-en="Faculty of Information Technology" 
-                {% if initial.dep_th == 'คณะเทคโนโลยีสารสนเทศ' %}selected{% endif %}>
-                คณะเทคโนโลยีสารสนเทศ
+                value="คณะเทคโนโลยีและการจัดการอุตสาหกรรม" 
+                data-en="FACULTY OF INDUSTRIAL TECHNOLOGY AND MANAGEMENT" 
+                {% if initial.dep_th == 'คณะเทคโนโลยีและการจัดการอุตสาหกรรม' %}selected{% endif %}>
+                คณะเทคโนโลยีและการจัดการอุตสาหกรรม
             </option>
 
             <option 
-                value="คณะวิทยาศาสตร์ประยุกต์" 
-                data-en="Faculty of Applied Science" 
-                {% if initial.dep_th == 'คณะวิทยาศาสตร์ประยุกต์' %}selected{% endif %}>
-                คณะวิทยาศาสตร์ประยุกต์
+                value="คณะอุตสาหกรรมเกษตร" 
+                data-en="FACULTY OF AGRO INDUSTRY" 
+                {% if initial.dep_th == 'คณะอุตสาหกรรมเกษตร' %}selected{% endif %}>
+                คณะอุตสาหกรรมเกษตร
             </option>
             
+            <option 
+                value="คณะบริหารธุรกิจและอุตสาหกรรมบริการ" 
+                data-en="FACULTY OF BUSINESS ADMINISTRATION AND SERVICE INDUSTRY" 
+                {% if initial.dep_th == 'คณะบริหารธุรกิจและอุตสาหกรรมบริการ' %}selected{% endif %}>
+                คณะบริหารธุรกิจและอุตสาหกรรมบริการ
+            </option>
             </select>
         
         <input type="hidden" id="dep_en" name="dep_en" value="{{ initial.dep_en|default_if_none:'' }}">
     </div>
     
     <div>
-        <label for="dep_en_display">คณะ (อังกฤษ) (อัตโนมัติ)</label>
+        <label for="dep_en_display">คณะ (อังกฤษ) </label>
         <input type="text" id="dep_en_display" value="{{ initial.dep_en|default_if_none:'' }}" readonly>
     </div>
 </div>
@@ -155,6 +143,7 @@
         <div class="btn-row">
             <button type="submit" class="btn btn-primary" onclick="document.getElementById('actionField').value='save_setup'">บันทึกข้อมูล</button>
             <button type="submit" name="action" value="get_data" class="btn btn-secondary">โหลดข้อมูลเดิม</button>
+            <button type="submit" name="action" value="go_index" class="btn btn-secondary">ไปยังหน้าหลัก</button>
         </div>
     </form>
 </div>

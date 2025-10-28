@@ -1,132 +1,157 @@
-/* ===== Reset & Base ===== */
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
-body {
-  font-family: "Tahoma", "Sarabun", "TH SarabunPSK", system-ui, -apple-system, sans-serif;
-  color: #1f2937;
-  background: #ffffff;
-}
+:root {
+     --bg: #ffffff;
+     --ink: #0f172a;
+     /* slate-900 */
+     --muted: #475569;
+     /* slate-600 */
+     --card: #ffffff;
+     --card-border: #e5e7eb;
+     --primary: #1f6feb;
+ }
 
-h1 { font-size: 28px; margin: 0 0 16px 0; font-weight: 700; color: #111827; }
-.mb-4 { margin-bottom: 24px; }
-.text-center { text-align: center; }
-.me-2 { margin-right: 8px; }
+ @media (prefers-color-scheme: dark) {
+     :root {
+         --bg: #0b1220;
+         --ink: #e5e7eb;
+         --muted: #94a3b8;
+         --card: #0f172a;
+         --card-border: #243041;
+         --primary: #60a5fa;
+     }
+ }
 
-/* ===== Layout ===== */
-.container {
-  max-width: 1100px;
-  margin: 28px auto 40px;
-  padding: 0 16px;
-}
+ html,
+ body {
+     background: var(--bg);
+     color: var(--ink);
+     font-family: "Kanit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Noto Sans Thai";
+     line-height: 1.55;
+     margin: 0;
+ }
 
-/* ===== Card ===== */
-.card {
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  background: #fff;
-  margin-bottom: 18px;
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0,0,0,.04);
-}
+ .container {
+     max-width: 920px;
+     margin: 24px auto;
+     padding: 0 16px;
+     
+ }
 
-.card-header {
-  padding: 12px 16px;
-  font-weight: 600;
-  color: #fff;
-}
+ /* ===== Card base (ไม่พึ่ง Bootstrap) ===== */
+ .card {
+     background: var(--card);
+     border: 1px solid var(--card-border);
+     border-radius: 14px;
+     box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+     overflow: hidden;
+ }
 
-.bg-primary { background: #1f6feb; }      /* น้ำเงินเข้ม */
-.bg-info    { background: #0ea5e9; }      /* ฟ้า */
-.bg-warning { background: #f59e0b; }      /* เหลืองส้ม */
+ .card-header {
+     padding: 14px 16px;
+     font-weight: 700;
+     border-bottom: 1px solid var(--card-border);
+ }
 
-.card-body {
-  padding: 16px;
-}
+ .bg-warning {
+     background: #5aaee6;
+     /* เหลืองส้มอ่านชัด */
+     color: #111827;
+ }
 
-/* ===== Grid ===== */
-.row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.col-12 { grid-column: 1 / -1; }
+ @media (prefers-color-scheme: dark) {
+     .bg-warning {
+         background: #f59e0b;
+         color: #0b1220;
+     }
+ }
 
-@media (min-width: 768px) {
-  .row { grid-template-columns: repeat(12, 1fr); }
-  .col-md-6 { grid-column: span 6; }
-}
+ .card-body {
+     padding: 16px;
+ }
 
-/* ===== Form Controls ===== */
-.form-label {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 6px;
-  color: #374151;
-}
+ /* ===== Grid layout: 2 คอลัมน์บนจอกว้าง, 1 คอลัมน์บนจอเล็ก ===== */
+ @media (min-width: 768px) {
+     .card .card-body {
+         display: grid;
+         grid-template-columns: 1fr 1fr;
+         gap: 14px 16px;
+     }
 
-.form-control {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #cfd6df;
-  border-radius: 8px;
-  font-size: 15px;
-  outline: none;
-  transition: border-color .2s, box-shadow .2s;
-  background-color: #fff;
-}
+     .card .card-body>div {
+         margin-bottom: 0;
+     }
+ }
 
-.form-control:focus {
-  border-color: #1f6feb;
-  box-shadow: 0 0 0 3px rgba(31,111,235,0.12);
-}
+ @media (max-width: 767.98px) {
+     .card .card-body {
+         display: block;
+     }
+ }
 
-/* ===== Buttons ===== */
-.btn {
-  display: inline-block;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-size: 15px;
-  cursor: pointer;
-  text-decoration: none;
-  line-height: 1.25;
-  transition: transform .05s ease, box-shadow .15s ease, background .2s, color .2s, border-color .2s;
-  user-select: none;
-}
+ /* ===== Fields ===== */
+ .card .card-body>div {
+     margin-bottom: 12px;
+ }
 
-.btn:active { transform: translateY(1px); }
-.btn-lg { padding: 12px 18px; font-size: 16px; }
+ .card .card-body>div>label {
+     display: inline-block;
+     margin-bottom: 6px;
+     font-size: 14px;
+     color: var(--muted);
+ }
 
-.btn-primary { background: #1f6feb; color: #fff; }
-.btn-primary:hover { background: #1a5dcb; }
+ .card .card-body input[type="text"] {
+     width: 100%;
+     padding: 10px 12px;
+     border: 1px solid #cfd6df;
+     border-radius: 8px;
+     font-size: 15px;
+     background-color: #fff;
+     color: #111827;
+     outline: none;
+     transition: border-color .2s, box-shadow .2s, background-color .2s;
+     box-shadow: 0 1px 0 rgba(0, 0, 0, .02);
+ }
 
-.btn-info { background: #0ea5e9; color: #fff; }
-.btn-info:hover { background: #0b8ec7; }
+ .card .card-body input[type="text"]:hover {
+     border-color: #d1dceb;
+ }
 
-.btn-success { background: #22c55e; color: #fff; }
-.btn-success:hover { background: #1ea653; }
+ .card .card-body input[type="text"]:focus {
+     border-color: var(--primary);
+     box-shadow: 0 0 0 3px rgba(31, 111, 235, .12);
+ }
 
-.btn-outline-info {
-  background: #fff; color: #0ea5e9; border: 1px solid #0ea5e9;
-}
-.btn-outline-info:hover { background: rgba(14,165,233,.08); }
+ /* ===== States (ใส่คลาสผ่าน JS ได้) ===== */
+ .card .card-body input.is-invalid {
+     border-color: #fecaca !important;
+     background-color: #fff5f5 !important;
+     box-shadow: 0 0 0 3px rgba(225, 29, 72, .14) !important;
+ }
 
-.btn-outline-warning {
-  background: #fff; color: #f59e0b; border: 1px solid #f59e0b;
-}
-.btn-outline-warning:hover { background: rgba(245,158,11,.1); }
+ .card .card-body input.is-success {
+     border-color: #86efac !important;
+     background-color: #f0fff4 !important;
+     box-shadow: 0 0 0 3px rgba(22, 163, 74, .14) !important;
+ }
 
-/* ===== Actions area ===== */
-.actions { margin: 22px 0 36px; }
+ /* ===== Dark mode tune ===== */
+ @media (prefers-color-scheme: dark) {
+     .card .card-body>div>label {
+         color: var(--muted);
+     }
 
-/* ===== Messages ===== */
-.messages {
-  list-style: none; padding: 0; margin: 0 0 16px 0;
-}
-.messages li {
-  padding: 10px 12px; border-radius: 8px; margin-bottom: 8px;
-  background: #f3f4f6; color: #111827; border: 1px solid #e5e7eb;
-}
-.messages li.success { background: #ecfdf5; border-color: #bbf7d0; color: #065f46; }
-.messages li.error   { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+     .card .card-body input[type="text"] {
+         background: #0b1220;
+         color: #e5e7eb;
+         border-color: #243041;
+     }
+
+     .card .card-body input[type="text"]:hover {
+         border-color: #334155;
+     }
+
+     .card .card-body input[type="text"]:focus {
+         border-color: var(--primary);
+         box-shadow: 0 0 0 3px rgba(96, 165, 250, .22);
+     }
+ }

@@ -1,10 +1,17 @@
+{% load static %}
 <!doctype html>
 <html lang="th">
-{% load static %}
+
 <head>
   <meta charset="utf-8">
   <title>ใบรับรองปริญญานิพนธ์</title>
+  
   <link rel="stylesheet" href="{% static 'css/certificate.css' %}">
+
+  <style>
+   /* ===== Page base ===== */
+   
+  </style>
 </head>
 <body>
   <div class="container">
@@ -22,9 +29,7 @@
     <form id="certForm" method="post" action="{% url 'certificate' %}">
       {% csrf_token %}
 
-      <!-- ===== ข้อมูลใบรับรอง ===== -->
-     
-      <!-- ===== คณะกรรมการสอบปริญญานิพนธ์ ===== -->
+   
 <div class="card">
   <div class="card-header bg-warning">คณะกรรมการสอบปริญญานิพนธ์</div>
   <div class="card-body">

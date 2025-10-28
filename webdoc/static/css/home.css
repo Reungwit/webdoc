@@ -1060,6 +1060,8 @@ button,
     color: #c0d3ff
 }
 
+
+
 /* ================= Responsive ================= */
 @media (max-width:1024px) {
     .hero-left .hero-title {
@@ -1151,3 +1153,4 @@ button,
 .feature-card {
     animation: fadeInUp .5s ease both
 }
+

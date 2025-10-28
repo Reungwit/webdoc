@@ -59,7 +59,7 @@ def doc_cover_th(project_name_th, project_name_en,
     doc.add_paragraph("\n\n\n")
     doc.add_paragraph("ปริญญานิพนธ์นี้เป็นส่วนหนึ่งของการศึกษาตามหลักสูตรอุตสาหกรรมศาสตรบัณฑิต").alignment = 1
     doc.add_paragraph("สาขาวิชาเทคโนโลยีสารสนเทศ ภาควิชาเทคโนโลยีสารสนเทศ").alignment = 1
-    doc.add_paragraph(f"คณะ{dep_th}").alignment = 1
+    doc.add_paragraph(f"{dep_th}").alignment = 1
     doc.add_paragraph("มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
     doc.add_paragraph(f"ปีการศึกษา {academic_year_be}").alignment = 1
     doc.add_paragraph("ลิขสิทธิ์ของมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
@@ -95,13 +95,13 @@ def doc_cover_sec( project_name_th, project_name_en,
     doc.add_paragraph(project_name_en).alignment = 1
 
 
-    doc.add_paragraph("\n\n\n\n\n\n\n\n")
+    doc.add_paragraph("\n\n\n\n\n\n\n")
     doc.add_paragraph(f" {author1_th}").alignment = 1
     doc.add_paragraph(f" {author2_th}").alignment = 1
-    doc.add_paragraph("\n\n\n\n\n\n\n\n")
+    doc.add_paragraph("\n\n\n\n\n\n\n")
     doc.add_paragraph("ปริญญานิพนธ์นี้เป็นส่วนหนึ่งของการศึกษาตามหลักสูตรอุตสาหกรรมศาสตรบัณฑิต").alignment = 1
     doc.add_paragraph("สาขาวิชาเทคโนโลยีสารสนเทศ ภาควิชาเทคโนโลยีสารสนเทศ").alignment = 1
-    doc.add_paragraph(f"คณะ {dep_th}").alignment = 1
+    doc.add_paragraph(f"{dep_th}").alignment = 1
     doc.add_paragraph("มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
     doc.add_paragraph(f"ปีการศึกษา {academic_year}").alignment = 1
     doc.add_paragraph("ลิขสิทธิ์ของมหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ").alignment = 1
@@ -133,15 +133,15 @@ def doc_cover_en(project_name_th, project_name_en,
     title = doc.add_paragraph(project_name_en)
     title.alignment = 1
 
-    doc.add_paragraph("\n\n\n\n\n\n\n\n")
+    doc.add_paragraph("\n\n\n\n\n\n\n")
     doc.add_paragraph(f"{author1_en}").alignment = 1
     doc.add_paragraph(f"{author2_en}").alignment = 1
-    doc.add_paragraph("\n\n\n\n\n\n\n\n")
+    doc.add_paragraph("\n\n\n\n\n\n\n")
     doc.add_paragraph("PROJECT REPORT SUBMITTED IN PARTIAL FULFILLMENT OF THE REQUIREMENTS").alignment = 1
     doc.add_paragraph("FOR THE BACHELOR’S DEGREE OF INDUSTRIAL TECHNOLOGY").alignment = 1
     doc.add_paragraph("PROGRAM IN INFORMATION TECHNOLOGY").alignment = 1
     doc.add_paragraph("DEPARTMENT OF INFORMATION TECHNOLOGY").alignment = 1
-    doc.add_paragraph(f"FACULTY OF {dep_en}").alignment = 1
+    doc.add_paragraph(f"{dep_en}").alignment = 1
     doc.add_paragraph("KING MONGKUT'S UNIVERSITY OF TECHNOLOGY NORTH BANGKOK").alignment = 1
 
     # ✅ แปลงปี พ.ศ. → ค.ศ. ด้วยการลด 543

@@ -4,14 +4,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ระบบจัดการเอกสารรูปเล่มปริญญานิพนธ์</title>
+  <title>ระบบจัดการเล่มปริญญานิพนธ์</title>
 
   <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
 </head>
 <body>
 
@@ -20,12 +20,12 @@
     <div class="nav-container">
       <div class="nav-logo">
         <img src="{% static 'img/kmutnb_logo_cover.png' %}" alt="KMUTNB" class="logo-img">
-        <span class="logo-text">ระบบจัดการเอกสาร</span>
+        <span class="logo-text">ระบบจัดการเล่มปริญญานิพนธ์</span>
       </div>
 
       <div class="nav-menu">
         <a href="#home" class="nav-link">หน้าแรก</a>
-        <a href="#features" class="nav-link">ฟีเจอร์</a>
+        <a href="#features" class="nav-link">คุณสมบัติ</a>
         <a href="#stats" class="nav-link">สถิติ</a>
         <a href="#about" class="nav-link">เกี่ยวกับระบบ</a>
         {% if user.is_authenticated %}
@@ -47,11 +47,12 @@
       <!-- LEFT -->
       <div class="hero-left">
         <h1 class="hero-title">
-          ระบบจัดการเอกสารรูปเล่มปริญญานิพนธ์<br>
-          <span class="highlight">มจพ.ปราจีนบุรี</span>
+          ระบบจัดการ<br>เล่มปริญญานิพนธ์<br>
+          <span class="highlight" id="typing-text"></span>
+
         </h1>
         <p class="hero-description">
-          จัดการเอกสารเล่มปริญญานิพนธ์ ด้วยระบบที่ง่าย รวดเร็ว และปลอดภัย
+          จัดการเล่มปริญญานิพนธ์ ด้วยระบบที่ง่าย รวดเร็ว และปลอดภัย
         </p>
         <div class="hero-buttons">
           {% if user.is_authenticated %}
@@ -60,7 +61,7 @@
             </a>
           {% else %}
             <a href="{% url 'register' %}" class="btn btn-primary">
-              <i class="fas fa-rocket"></i> เริ่มใช้งานทันที
+              <i class="fas fa-rocket"></i> สมัครสมาชิก
             </a>
           {% endif %}
         </div>
@@ -71,7 +72,7 @@
         <div class="cluster">
           <div class="card lg"><i class="fas fa-file-word"></i></div>
           <div class="card md card-2"><i class="fas fa-file-alt"></i></div>
-          <div class="card md card-3"><i class="fas fa-file-pdf"></i></div>
+          
           <div class="pill pill-1"><i class="fas fa-check-circle"></i></div>
           <div class="pill pill-2"><i class="fas fa-clock"></i></div>
           <div class="pill pill-3"><i class="fas fa-shield-alt"></i></div>
@@ -84,15 +85,15 @@
   <section id="features" class="features features-showcase">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">ฟีเจอร์หลัก</h2>
+        <h2 class="section-title">คุณสมบัติหลัก</h2>
         <p class="section-description">ระบบจัดการเอกสารที่ครบครันและใช้งานง่าย</p>
       </div>
 
       <div class="fx-grid">
         <article class="fx-panel fx-purple">
           <header class="fx-header">
-            <span class="fx-badge">📄 จัดการเอกสาร บทที่ 1–5</span>
-            <h3>ตัวอย่างการพิมพ์/จัดรูปแบบอัตโนมัติ</h3>
+            <span class="fx-badge">📄 จัดการเล่มปริญญานิพนธ์</span>
+            <h3>จัดรูปแบบอัตโนมัติ</h3>
             <p>พิมพ์ แทรกหัวข้อ/รายการ และจัดรูปแบบตามมาตรฐานได้ทันที</p>
           </header>
           <div class="fx-window">
@@ -101,7 +102,7 @@
               <div class="fx-line dim"></div>
               <div class="fx-line dim short"></div>
               <div class="fx-line"></div>
-              <div class="fx-typing" data-strings='["บทที่ 1 บทนำ","บทที่ 2 เอกสารที่เกี่ยวข้อง","บทที่ 3 วิธีการดำเนินงาน","บทที่ 4 สรุปผลการวิจัย","บทที่ 5 สรุป อภิปรายผล"]'>
+              <div class="fx-typing" data-strings='["บทที่ 1 บทนำ","บทที่ 2 เอกสารที่เกี่ยวข้อง","บทที่ 3 วิธีการดำเนินงาน","บทที่ 4 สรุปผลการวิจัย","บทที่ 5 สรุป อภิปรายผล","บรรณานุกรม (Vancouver)"]'>
                 <span class="fx-typing__text"></span><span class="fx-caret"></span>
               </div>
               <div class="fx-list">
@@ -136,9 +137,9 @@
 
         <article class="fx-panel fx-green">
           <header class="fx-header">
-            <span class="fx-badge">⬇️ ดาวน์โหลด DOCX</span>
-            <h3>แปลงเป็นไฟล์ .docx พร้อมรูปแบบ</h3>
-            <p>รองรับ python-docx จัดหัวข้อ ระยะขอบ ฟอนต์ และสารบัญอัตโนมัติ</p>
+            <span class="fx-badge">ดาวน์โหลดไฟล์ DOCX ได้ทันที</span>
+            <h3>แปลงเป็นไฟล์ .docx พร้อมจัดรูปแบบ</h3>
+            <p>จัดหัวข้อ ระยะขอบ ฟอนต์ เลขหน้าและส่วนอื่นๆของเล่มอัตโนมัติ</p>
           </header>
           <div class="fx-window">
             <div class="fx-window__chrome"><span></span><span></span><span></span></div>

@@ -6,9 +6,9 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 import os
 
-
+# Doc_cert เอา _ ออก
 # -------------------- Page Border --------------------
-def _add_page_border(doc, line_size_halfpt=12, space_pt=8, color="000000"):
+def add_page_border(doc, line_size_halfpt=12, space_pt=8, color="000000"):
     """
     ใส่กรอบรอบหน้ากระดาษ (Page Border) แบบเส้นตรง
     line_size_halfpt: ความหนา (หน่วย half-point) เช่น 12 = 6pt
@@ -117,7 +117,7 @@ def doc_certificate(topic, author1, author2, comm_dean, prathan, comm_first, com
     sec.bottom_margin = Inches(1.0)
 
     # page border
-    _add_page_border(doc)
+    add_page_border(doc)
 
     # ---------- LOGO ----------
     logo_path = os.path.join('static', 'img', 'kmutnb_logo_cover.png')

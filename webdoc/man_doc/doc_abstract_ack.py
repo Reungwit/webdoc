@@ -90,7 +90,7 @@ def add_right_paragraph(doc, text, space_before=12):
 
 
 
-def _set_tabstops(p):
+def set_tabstops(p):
     """ตั้งค่า Tab Stops ให้ทุกบรรทัดของหัวข้อวาง Label, ':' และค่า ได้ตรงตำแหน่งเดียวกัน"""
     ts = p.paragraph_format.tab_stops
     for t in list(ts):
@@ -98,20 +98,20 @@ def _set_tabstops(p):
     ts.add_tab_stop(Cm(LABEL_TAB_CM))
     ts.add_tab_stop(Cm(COLON_TAB_CM))
 
-def _add_info_line(doc, label, first_value_line):
+def add_info_line(doc, label, first_value_line):
     """บรรทัดแรกของหัวข้อ: 'Label<TAB>:<TAB>Value'"""
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    _set_tabstops(p)
+    set_tabstops(p)
     r = p.add_run(f"{label}\t:\t{first_value_line}")
     r.font.name = "TH SarabunPSK"
     r.font.size = Pt(16)
 
-def _add_cont_line(doc, value_line):
+def add_cont_line(doc, value_line):
     """บรรทัดถัดไปของหัวข้อ: ไม่มี ':' และเยื้องไปคอลัมน์ค่าโดยกดแท็บ 2 ครั้ง"""
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    _set_tabstops(p)
+    set_tabstops(p)
     r = p.add_run(f"\t\t{value_line}")
     r.font.name = "TH SarabunPSK"
     r.font.size = Pt(16)
@@ -125,20 +125,20 @@ def add_info_block_with_tabs(doc, pairs: List[tuple]):
     """
     for label, lines in pairs:
         lines = lines or [""]
-        _add_info_line(doc, label, lines[0].strip())
+        add_info_line(doc, label, lines[0].strip())
         for cont in lines[1:]:
-            _add_cont_line(doc, cont.strip())
+            add_cont_line(doc, cont.strip())
 
 
 # ==================================================
 # 🔹 วาง "ลายเซ็น" ที่ก้นหน้ากระดาษ (ส่วนเนื้อหา) ด้วย framePr
 # ==================================================
 
-def _emu_from_pt(pt_val: float) -> int:
+def emu_from_pt(pt_val: float) -> int:
     """แปลงจุด (pt) เป็น EMU (1 pt = 12700 EMU)"""
     return int(round(pt_val * 12700))
 
-def _twips_from_pt(pt_val: float) -> int:
+def twips_from_pt(pt_val: float) -> int:
     """แปลงจุด (pt) เป็น twips (1 pt = 20 twips)"""
     return int(round(pt_val * 20))
 

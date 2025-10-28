@@ -228,18 +228,3 @@ def add_paragraph_indent(doc, text, bold=False):
     else : p.runs[0].bold = False
     return p
 
-def add_wrapped_paragraph(doc, label, text, n=16):
-    lines = split_text_newline_every_n_words(text, n)
-
-    p = doc.add_paragraph()
-    run = p.add_run(label)
-    run.bold = True
-
-    # ต่อข้อความแบบขึ้นบรรทัดใหม่ทีละ run
-    for i, line in enumerate(lines):
-        if i == 0:
-            p.add_run(line)
-        else:
-            p.add_run().add_break()         # บรรทัดใหม่จริง
-            p.add_run(line)
-    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY

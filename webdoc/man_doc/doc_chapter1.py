@@ -71,7 +71,7 @@ def doc_chapter1(intro_body: str, sections_json: List[Dict[str, Any]]) -> Docume
     add_center_paragraph(doc, "บทนำ", bold=True, font_size=TITLE_PT)
 
     # ปรับ margin หน้าถัดไป
-    apply_rest_page_margin(doc, top_inch=1.0)
+    apply_rest_page_margin(doc, top_inch=1.5)
 
     # ----- บทนำ (ไม่ใส่เลข) -----
     add_left_paragraph(doc, "", bold=True)

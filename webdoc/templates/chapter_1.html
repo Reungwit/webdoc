@@ -3,638 +3,370 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>บทที่ 1</title>
-  <link rel="stylesheet" href="{% static 'css/chapter_1.css' %}">
+  <link rel="stylesheet" href="{% static 'css/chapter_5.css' %}">
+  <style>
+    .card{border:1px solid #e5e7eb;border-radius:8px;margin-bottom:24px;background:#fff}
+    .card-header{padding:12px 16px;font-weight:700;border-bottom:1px solid #e5e7eb}
+    .card-body{padding:16px}
+    .btn{padding:10px 16px;border-radius:6px;cursor:pointer;border:none}
+    .btn-outline-secondary{border:2px solid #6c757d;background:transparent;color:#6c757d}
+    .btn-outline-warning{border:2px solid #ffc107;background:transparent;color:#c28700}
+    .text-center{text-align:center}
+    .legend-flex{display:flex;align-items:center;gap:10px}
+    .number{font-weight:800;background:#eef4ff;color:#274690;border-radius:999px;min-width:42px;height:26px;display:inline-flex;align-items:center;justify-content:center;padding:0 10px}
+    .main-block{border:1px dashed #e5e7eb;border-left:4px solid #0d6efd;border-radius:8px;padding:12px;margin-top:12px;background:#fafbff}
+    .sub-label{display:inline-block;font-weight:700;margin:10px 0 6px}
+    .sub-input,.main-input,.title-input,.form-control{width:100%;padding:10px 12px;border:1px solid #cfd5de;border-radius:6px;box-sizing:border-box}
+    .button-group{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    /* ▼ เฉพาะหัวข้อ 1.1 (ย่อหน้า) */
+    .para-item{border:1px dashed #e5e7eb;border-left:4px solid #0d6efd;border-radius:8px;padding:12px;margin-top:12px;background:#fafbff}
+    .para-input{width:100%;padding:10px 12px;border:1px solid #cfd5de;border-radius:6px;box-sizing:border-box}
+  </style>
 </head>
 <body>
+  <div class="container">
+    <form id="chapter1Form" method="POST" action="{% url 'chapter_1' %}">
+      {% csrf_token %}
 
-  <form id="myForm" method="POST" action="{% url 'chapter_1' %}">
-    {% csrf_token %}
-<center><h1>บทที่ 1</h1></center>
-    <fieldset>
-      <legend>1.1 ความเป็นมาและความสำคัญของปัญหา</legend>
-      <label for="sec11_p1">ย่อหน้าที่ 1</label>
-      <textarea class="form-control" id="sec11_p1" name="sec11_p1" rows="4">{{ initial.sec11_p1|default:'' }}</textarea>
+      <div class="text-center"><h1>บทที่ 1</h1></div>
 
-      <label for="sec11_p2">ย่อหน้าที่ 2</label>
-      <textarea class="form-control" id="sec11_p2" name="sec11_p2" rows="4">{{ initial.sec11_p2|default:'' }}</textarea>
-
-      <label for="sec11_p3">ย่อหน้าที่ 3</label>
-      <textarea class="form-control" id="sec11_p3" name="sec11_p3" rows="4">{{ initial.sec11_p3|default:'' }}</textarea>
-    </fieldset>
-
-    <fieldset>
-      <legend>1.2 วัตถุประสงค์ของการวิจัย</legend>
-      <div id="purpose_container" class="subblock"></div>
-      <div class="controls">
-        <button type="button" id="add-button" class="btn" onclick="addPurpose()">เพิ่มวัตถุประสงค์</button>
-        <button type="button" class="btn" onclick="removePurpose()">ลบวัตถุประสงค์ (ข้อล่าสุด)</button>
-      </div>
-      <input type="hidden" id="purpose_count" name="purpose_count" value="1">
-    </fieldset>
-
-    <fieldset>
-      <legend>1.3 สมมติฐานของการวิจัย</legend>
-      <div class="subblock">
-        <label for="hypo_paragraph">ย่อหน้า (สูงสุด 1 ย่อหน้า)</label>
-        <textarea class="form-control" id="hypo_paragraph" name="hypo_paragraph" rows="4">{{ initial.hypo_paragraph|default:'' }}</textarea>
-        <div class="controls">
-          <button type="button" class="btn" onclick="clearSingleParagraph('hypo_paragraph')">ลบย่อหน้า</button>
+      <div class="card">
+        <div class="card-header bg-success">บทนำ</div>
+        <div class="card-body">
+          <label for="intro_body" class="form-label">บทนำ</label>
+          <textarea class="form-control" id="intro_body" name="intro_body" rows="6">{{ initial.intro_body|default:'' }}</textarea>
         </div>
       </div>
 
-      <div class="subblock" id="hypo_items_block">
-        <h4>หัวข้อย่อย 1.3.x</h4>
-        <div id="hypo_items_container"></div>
-        <div class="controls">
-          <button type="button" class="btn" onclick="addHypoItem()">เพิ่มหัวข้อย่อย</button>
-          <button type="button" class="btn" onclick="removeHypoItem()">ลบหัวข้อย่อย (ข้อล่าสุด)</button>
+      <div id="root_sections"></div>
+
+      <input type="hidden" id="chapter1_json" name="chapter1_json" value="" />
+
+      <div class="button-group">
+        <button class="btn btn-primary" type="submit" name="action" value="save">บันทึกข้อมูล</button>
+        <button class="btn btn-info" type="submit" name="action" value="get_data">ดึงข้อมูล</button>
+        <button class="btn btn-success" type="submit" name="action" value="generate_docx">สร้างเอกสาร</button>
+      </div>
+    </form>
+  </div>
+
+  {% if initial.chapter1_json|default:None %}{{ initial.chapter1_json|json_script:"chapter1-data" }}{% endif %}
+
+  <!-- เทมเพลตของหัวข้อใหญ่ -->
+  <template id="tmpl-section">
+    <div class="card section">
+      <div class="card-header legend-flex">
+        <span class="number" aria-hidden="true"></span>
+        <input type="text" class="title-input" placeholder="ชื่อหัวข้อใหญ่" />
+      </div>
+
+      <div class="card-body">
+        <!-- ▼ โหมดย่อหน้า: ใช้เฉพาะหัวข้อ 1.1 -->
+        <div class="para-mode" hidden>
+          <div class="para-wrap"></div>
+          <div class="row" style="gap:8px;margin:8px 0 12px;">
+            <button type="button" class="btn btn-outline-secondary me-2" data-cmd="add-para">+ เพิ่มย่อหน้า</button>
+            <button type="button" class="btn btn-outline-warning" data-cmd="remove-para">ลบย่อหน้า (ล่าสุด)</button>
+          </div>
         </div>
-        <input type="hidden" id="hypo_items_count" name="hypo_items_count" value="0">
-      </div>
-    </fieldset>
 
-    <fieldset>
-      <legend>1.4 ขอบเขตของการวิจัย</legend>
-      <div id="scope_container" class="subblock"></div>
-      <div class="controls">
-        <button type="button" class="btn" onclick="addScopeB()">เพิ่มหัวข้อหลัก (1.4.x)</button>
-        <button type="button" class="btn" onclick="removeScopeB()">ลบหัวข้อหลัก (ข้อล่าสุด)</button>
-      </div>
-      <input type="hidden" id="scope_count" name="scope_count" value="1">
-    </fieldset>
+        <!-- ▼ โหมดเนื้อหา/หัวข้อย่อย: ใช้กับหัวข้อ 1.2+ (เดิม) -->
+        <label class="form-label body-label">เนื้อหา (ย่อหน้า)</label>
+        <textarea class="form-control body-input" rows="5" placeholder="พิมพ์เนื้อหาโดยสรุปของหัวข้อนี้..."></textarea>
 
-    <fieldset>
-      <legend>1.5 ข้อตกลงเบื้องต้น</legend>
-      <label for="p_agreement">อธิบายข้อตกลงเบื้องต้น</label>
-      <textarea class="form-control" id="p_agreement" name="para_premise" rows="4">{{ initial.para_premise|default:'' }}</textarea>
-
-      <div id="premise_container" class="subblock"></div>
-      
-      <div class="controls">
-        <button type="button" class="btn" onclick="addPremiseB()">เพิ่มหัวข้อหลัก (1.5.x)</button>
-        <button type="button" class="btn" onclick="removePremiseB()">ลบหัวข้อหลัก (ข้อล่าสุด)</button>
-      </div>
-      <input type="hidden" id="premise_count" name="premise_count" value="1">
-    </fieldset>
-
-    <fieldset>
-      <legend>1.6 นิยามศัพท์เฉพาะ</legend>
-      <div class="subblock">
-        <h4>หัวข้อย่อย 1.6.x</h4>
-        <div id="def_items_container"></div>
-        <div class="controls">
-          <button type="button" class="btn" onclick="addDefItem()">เพิ่มหัวข้อย่อย</button>
-          <button type="button" class="btn" onclick="removeDefItem()">ลบหัวข้อย่อย (ข้อล่าสุด)</button>
+        <div class="subblock">
+          <div class="row" style="gap:8px;margin:8px 0 12px;">
+            <button type="button" class="btn btn-outline-secondary me-2" data-cmd="add-main">+ เพิ่มหัวข้อหลัก (1.x.y)</button>
+            <button type="button" class="btn btn-outline-warning" data-cmd="remove-main">ลบหัวข้อหลัก (ข้อล่าสุด)</button>
+          </div>
+          <input type="hidden" class="main-count" value="0">
+          <div class="mains-wrap"></div>
         </div>
-        <input type="hidden" id="def_items_count" name="def_items_count" value="0">
-      </div>
-    </fieldset>
 
-    <fieldset>
-      <legend>1.7 ประโยชน์ที่คาดว่าจะได้รับ</legend>
-      <div class="subblock">
-        <h4>หัวข้อย่อย 1.7.x</h4>
-        <div id="benefit_items_container"></div>
-        <div class="controls">
-          <button type="button" class="btn" onclick="addBenefitItem()">เพิ่มหัวข้อย่อย</button>
-          <button type="button" class="btn" onclick="removeBenefitItem()">ลบหัวข้อย่อย (ข้อล่าสุด)</button>
+        <div class="controls row" style="margin-top:8px;">
+          <button type="button" class="btn btn-outline-warning" data-cmd="remove-section" hidden>ลบหัวข้อใหญ่</button>
         </div>
-        <input type="hidden" id="benefit_items_count" name="benefit_items_count" value="0">
       </div>
-    </fieldset>
-
-    <input type="hidden" id="hypo_items_json" name="hypo_items_json" value="">
-    <input type="hidden" id="scope_json" name="scope_json" value="">
-    <input type="hidden" id="premise_json" name="premise_json" value="">
-    <input type="hidden" id="def_items_json" name="def_items_json" value="">
-    <input type="hidden" id="benefit_items_json" name="benefit_items_json" value="">
-
-    <div class="button-group">
-      <button class="btn btn-primary" type="submit" name="action" value="save">บันทึกข้อมูล</button>
-      <button class="btn btn-info" type="submit" name="action" value="get_data">ดึงข้อมูล</button>
-      <button class="btn btn-success" type="submit" name="action" value="generate">สร้างเอกสาร</button>
     </div>
-  </form>
+  </template>
 
-{% if initial.purpose|default:None %}{{ initial.purpose|json_script:"purpose-data" }}{% endif %}
-{% if initial.scope_json|default:None %}{{ initial.scope_json|json_script:"scope-data" }}{% endif %}
-{% if initial.hypo_items_json|default:None %}{{ initial.hypo_items_json|json_script:"hypo-items-data" }}{% endif %}
-{% if initial.premise_json|default:None %}{{ initial.premise_json|json_script:"premise-data" }}{% endif %}
-{% if initial.def_items_json|default:None %}{{ initial.def_items_json|json_script:"def-items-data" }}{% endif %}
-{% if initial.benefit_items_json|default:None %}{{ initial.benefit_items_json|json_script:"benefit-items-data" }}{% endif %}
+  <script>
+    const $  = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
 
-<script>
-/* ============== CLEAN TEXTAREA ก่อน submit ============== */
-function cleanTextareas() {
-    const textareas = document.querySelectorAll(".clean-textarea");
-    textareas.forEach(textarea => {
-        const rawText = textarea.value;
-        const cleanedText = rawText
-            .replace(/\r?\n/g, "")
-            .replace(/\s+/g, " ")
-            .trim();
-        textarea.value = cleanedText;
-    });
-}
-
-/* ====== Helper: อ่าน json_script ถ้ามี ====== */
-function getJsonScript(id){
-  const el = document.getElementById(id);
-  if(!el) return null;
-  try { return JSON.parse(el.textContent); } catch{ return null; }
-}
-
-/* ==================== 1.2 PURPOSE ==================== */
-let purposeCount = 1;
-const maxPurpose = 3;
-const purposeContainer = document.getElementById('purpose_container');
-
-function createpurposeInput(index, purpose = '') {
-  const label = document.createElement('label');
-  label.setAttribute('for', `purpose_${index}`);
-  label.textContent = `วัตถุประสงค์ ข้อที่ ${index}`;
-
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.id = `purpose_${index}`;
-  input.name = `purpose_${index}`;
-  input.value = purpose;
-
-  purposeContainer.appendChild(label);
-  purposeContainer.appendChild(input);
-}
-
-function renderpurposeFromData() {
-  purposeContainer.innerHTML = '';
-  // Check if initial.purpose exists. If not, use purpose_1, purpose_2, purpose_3
-  let data = [];
-  if (getJsonScript('purpose-data')) {
-    data = getJsonScript('purpose-data');
-  } else {
-    // Collect purpose values from initial data
-    const initialPurpose1 = "{{ initial.purpose_1|default:'' }}";
-    const initialPurpose2 = "{{ initial.purpose_2|default:'' }}";
-    const initialPurpose3 = "{{ initial.purpose_3|default:'' }}";
-    if (initialPurpose1) data.push(initialPurpose1);
-    if (initialPurpose2) data.push(initialPurpose2);
-    if (initialPurpose3) data.push(initialPurpose3);
-  }
-
-  if (!data.length) {
-    createpurposeInput(1);
-    purposeCount = 1;
-  } else {
-    purposeCount = 0;
-    data.forEach((p, index) => {
-      createpurposeInput(index + 1, p);
-      purposeCount++;
-    });
-  }
-  document.getElementById('add-button').disabled = purposeCount >= maxPurpose;
-  document.getElementById('purpose_count').value = purposeCount;
-}
-
-function addPurpose() {
-  if (purposeCount >= maxPurpose) return;
-  purposeCount++;
-  createpurposeInput(purposeCount);
-  document.getElementById('add-button').disabled = purposeCount >= maxPurpose;
-  document.getElementById('purpose_count').value = purposeCount;
-}
-
-function removePurpose() {
-  if (purposeCount > 1) {
-    const inputs = purposeContainer.querySelectorAll('input');
-    const labels = purposeContainer.querySelectorAll('label');
-    purposeContainer.removeChild(inputs[inputs.length-1]);
-    purposeContainer.removeChild(labels[labels.length-1]);
-    purposeCount--;
-    document.getElementById('add-button').disabled = false;
-    document.getElementById('purpose_count').value = purposeCount;
-  }
-}
-
-/* ==================== 1.3 สมมติฐาน: รายการ 1.3.x ==================== */
-let hypoCount = 0;
-const hypoWrap = document.getElementById('hypo_items_container');
-
-function renderHypoFromData(){
-  const data = getJsonScript('hypo-items-data') || [];
-  hypoWrap.innerHTML = '';
-  hypoCount = 0;
-  data.forEach(v => addHypoItem(v));
-}
-
-function addHypoItem(val = ''){
-  hypoCount++;
-  const label = document.createElement('label');
-  label.setAttribute('for', `hypo_${hypoCount}`);
-  label.textContent = `1.3.${hypoCount}`;
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.id = `hypo_${hypoCount}`;
-  input.name = `hypo_${hypoCount}`;
-  input.value = val || '';
-  hypoWrap.appendChild(label);
-  hypoWrap.appendChild(input);
-  document.getElementById('hypo_items_count').value = hypoCount;
-}
-function removeHypoItem(){
-  if(hypoCount>0){
-    hypoWrap.removeChild(hypoWrap.lastElementChild); // input
-    hypoWrap.removeChild(hypoWrap.lastElementChild); // label
-    hypoCount--;
-    document.getElementById('hypo_items_count').value = hypoCount;
-  }
-}
-
-/* ==================== 1.4 SCOPE: 1.4.x และ 1.4.x.x ==================== */
-let scopeCount = 1;
-let subCounts = {1: 0};
-let scopeValues = {};
-
-function initScopeFromData() {
-  const data = getJsonScript('scope-data') || [];
-  scopeCount = data.length || 1;
-  subCounts = {};
-  scopeValues = {};
-
-  for (let i = 0; i < scopeCount; i++) {
-    const idx = i + 1;
-    const item = data[i] || {};
-    scopeValues[`scope_b_${idx}`] = item.main || "";
-    const ln = Array.isArray(item.subs) ? item.subs.length : 0;
-    subCounts[idx] = ln;
-    for (let j = 0; j < ln; j++) {
-      scopeValues[`scope_s_${idx}_${j + 1}`] = item.subs[j] || "";
+    function getJsonScript(id){
+      const el = document.getElementById(id);
+      if(!el) return null;
+      try { return JSON.parse(el.textContent); } catch(e){ console.error('JSON Script Error:', e); return null; }
     }
-  }
-  if (scopeCount === 1 && subCounts[1] === undefined) subCounts[1] = 0;
-}
 
-function saveScopeValues() {
-  const container = document.getElementById('scope_container');
-  for (let i = 1; i <= scopeCount; i++) {
-    const mainEl = container.querySelector(`#scope_b_${i}`);
-    scopeValues[`scope_b_${i}`] = mainEl ? mainEl.value : "";
-    const subCount = subCounts[i] || 0;
-    for (let j = 1; j <= subCount; j++) {
-      const subEl = container.querySelector(`#scope_s_${i}_${j}`);
-      scopeValues[`scope_s_${i}_${j}`] = subEl ? subEl.value : "";
+    // ====== โครงเริ่มต้น (หัวข้อคงที่) ======
+    function defaultSections(){
+      return [
+        { title: 'ความเป็นมาและความสำคัญของปัญหา', paragraphs: [], mains: [] }, // 1.1 → paragraphs mode
+        { title: 'วัตถุประสงค์',           body: '', points: [] },
+        { title: 'สมมุติฐาน',                 body: '', points: [] },
+        { title: 'ขอบเขตการทำโครงงาน',                  body: '', points: [] },
+        { title: 'ข้อตกลงเบื้องต้น',                   body: '', points: [] },
+        { title: 'นิยามศัพท์เฉพาะ',                    body: '', points: [] },
+        { title: 'ประโยชน์ที่คาดว่าจะได้รับ',          body: '', points: [] },
+      ];
     }
-  }
-}
 
-function renderScopeInputs() {
-  const container = document.getElementById('scope_container');
-  container.innerHTML = '';
+    let secAutoId = 0;
 
-  for (let i = 1; i <= scopeCount; i++) {
-    const mainVal = scopeValues[`scope_b_${i}`] || "";
-    const mainBlock = document.createElement('div');
-    mainBlock.className = 'subblock';
+    // ====== ย่อหน้า 1 กล่อง (เฉพาะ 1.1) ======
+    function createParagraphItem(idx, text=''){
+      const box = document.createElement('div');
+      box.className = 'para-item';
+      const label = document.createElement('label');
+      label.className = 'form-label';
+      label.textContent = `ย่อหน้าใหญ่ที่ ${idx}`;
+      const ta = document.createElement('textarea');
+      ta.className = 'para-input';
+      ta.rows = 4;
+      ta.placeholder = 'พิมพ์ย่อหน้าใหญ่...';
+      ta.value = text || '';
+      box.appendChild(label);
+      box.appendChild(ta);
+      return box;
+    }
 
-    const mainLbl = document.createElement('label');
-    mainLbl.textContent = `1.4.${i} ขอบเขตหัวข้อหลัก ข้อที่ ${i}`;
-    const mainInput = document.createElement('input');
-    mainInput.type = 'text';
-    mainInput.id = `scope_b_${i}`;
-    mainInput.name = `scope_b_${i}`;
-    mainInput.value = mainVal;
-
-    const subControls = document.createElement('div');
-    subControls.className = 'controls';
-    subControls.innerHTML = `
-      <button type="button" class="btn" onclick="addScopeS(${i})">เพิ่มหัวข้อย่อย (1.4.${i}.x)</button>
-      <button type="button" class="btn" onclick="removeScopeS(${i})">ลบหัวข้อย่อย (ข้อล่าสุด)</button>
-    `;
-
-    const hiddenSubCount = document.createElement('input');
-    hiddenSubCount.type = 'hidden';
-    hiddenSubCount.name = `scope_subcount_${i}`;
-    hiddenSubCount.id = `scope_subcount_${i}`;
-    hiddenSubCount.value = subCounts[i] || 0;
-
-    mainBlock.appendChild(mainLbl);
-    mainBlock.appendChild(mainInput);
-    mainBlock.appendChild(subControls);
-    mainBlock.appendChild(hiddenSubCount);
-
-    const subs = document.createElement('div');
-    subs.id = `scope_subs_wrap_${i}`;
-
-    const subCount = subCounts[i] || 0;
-    for (let j = 1; j <= subCount; j++) {
+    function createSubItem(sectionEl, mainIdx, subIdx, val=''){
       const subLbl = document.createElement('label');
-      subLbl.textContent = `1.4.${i}.${j} ขอบเขตหัวข้อย่อย ข้อที่ ${j}`;
+      subLbl.className = 'form-label sub-label';
+      subLbl.textContent = `1.${getRootIndex(sectionEl)}.${mainIdx}.${subIdx}`;
+
       const subInput = document.createElement('input');
       subInput.type = 'text';
-      subInput.id = `scope_s_${i}_${j}`;
-      subInput.name = `scope_s_${i}_${j}`;
-      subInput.value = scopeValues[`scope_s_${i}_${j}`] || "";
-      subs.appendChild(subLbl);
-      subs.appendChild(subInput);
+      subInput.className = 'sub-input';
+      subInput.id = `sub_${sectionEl.dataset.sid}_${mainIdx}_${subIdx}`;
+      subInput.value = val;
+
+      return [subLbl, subInput];
     }
 
-    mainBlock.appendChild(subs);
-    container.appendChild(mainBlock);
-  }
-  document.getElementById('scope_count').value = scopeCount;
-}
+    function createMainBlock(index, mainVal='', subsList=[], sectionEl){
+      const wrap = document.createElement('div');
+      wrap.className = 'main-block';
+      const rootIdx = getRootIndex(sectionEl);
 
-function addScopeB() {
-  saveScopeValues();
-  scopeCount++;
-  subCounts[scopeCount] = 0;
-  renderScopeInputs();
-}
-function removeScopeB() {
-  if (scopeCount > 1) {
-    saveScopeValues();
-    const last = scopeCount;
-    const sc = subCounts[last] || 0;
-    delete scopeValues[`scope_b_${last}`];
-    for (let j = 1; j <= sc; j++) delete scopeValues[`scope_s_${last}_${j}`];
-    delete subCounts[last];
-    scopeCount--;
-    renderScopeInputs();
-  }
-}
-function addScopeS(bi) {
-  saveScopeValues();
-  subCounts[bi] = (subCounts[bi] || 0) + 1;
-  renderScopeInputs();
-}
-function removeScopeS(bi) {
-  const cur = subCounts[bi] || 0;
-  if (cur > 0) {
-    saveScopeValues();
-    delete scopeValues[`scope_s_${bi}_${cur}`];
-    subCounts[bi] = cur - 1;
-    renderScopeInputs();
-  }
-}
+      const lbl = document.createElement('label');
+      lbl.className = 'form-label';
+      lbl.textContent = `1.${rootIdx}.${index}`;
 
-/* ==================== 1.5 ข้อตกลงเบื้องต้น: โครงเดียวกับ 1.4 ==================== */
-let premiseCount = 0;
-let premiseSubCounts = {1: 0};
-let premiseValues = {};
-const premiseContainer = document.getElementById('premise_container');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'main-input';
+      input.id = `main_${sectionEl.dataset.sid}_${index}`;
+      input.value = mainVal;
 
-function initPremiseFromData(){
-  const data = getJsonScript('premise-data') || [];
-  premiseCount = data.length || 0;
-  premiseSubCounts = {};
-  premiseValues = {};
-  for (let i = 0; i < premiseCount; i++) {
-    const idx = i + 1;
-    const item = data[i] || {};
-    premiseValues[`premise_b_${idx}`] = item.main || "";
-    const ln = Array.isArray(item.subs) ? item.subs.length : 0;
-    premiseSubCounts[idx] = ln;
-    for (let j = 0; j < ln; j++) {
-      premiseValues[`premise_s_${idx}_${j+1}`] = item.subs[j] || "";
-    }
-  }
-  if (premiseCount === 1 && premiseSubCounts[1] === undefined) premiseSubCounts[1] = 0;
-}
+      const controls = document.createElement('div');
+      controls.className = 'row';
+      const mainNumStr = `1.${rootIdx}.${index}`;
+      controls.innerHTML = `
+        <button type="button" class="btn btn-outline-secondary me-2" data-subcmd="add" data-main="${index}">+ เพิ่มหัวข้อย่อย (${mainNumStr}.x)</button>
+        <button type="button" class="btn btn-outline-warning" data-subcmd="remove" data-main="${index}">ลบหัวข้อย่อย (ข้อล่าสุด)</button>
+      `;
 
-function savePremiseValues(){
-  for (let i = 1; i <= premiseCount; i++) {
-    const mainEl = premiseContainer.querySelector(`#premise_b_${i}`);
-    premiseValues[`premise_b_${i}`] = mainEl ? mainEl.value : "";
-    const subCount = premiseSubCounts[i] || 0;
-    for (let j = 1; j <= subCount; j++) {
-      const subEl = premiseContainer.querySelector(`#premise_s_${i}_${j}`);
-      premiseValues[`premise_s_${i}_${j}`] = subEl ? subEl.value : "";
-    }
-  }
-}
+      const subCount = document.createElement('input');
+      subCount.type = 'hidden';
+      subCount.className = 'sub-count';
+      subCount.dataset.main = index.toString();
+      subCount.value = Array.isArray(subsList) ? subsList.length : 0;
 
-function renderPremiseInputs(){
-  premiseContainer.innerHTML = '';
-  for (let i = 1; i <= premiseCount; i++) {
-    const mainVal = premiseValues[`premise_b_${i}`] || "";
-    const mainBlock = document.createElement('div');
-    mainBlock.className = 'subblock';
+      const subsWrap = document.createElement('div');
+      subsWrap.className = 'subs-wrap';
+      subsWrap.id = `subs_${sectionEl.dataset.sid}_${index}`;
 
-    const mainLbl = document.createElement('label');
-    mainLbl.textContent = `1.5.${i} ข้อตกลงเบื้องต้น (หัวข้อหลัก) ข้อที่ ${i}`;
-    const mainInput = document.createElement('input');
-    mainInput.type = 'text';
-    mainInput.id = `premise_b_${i}`;
-    mainInput.name = `premise_b_${i}`;
-    mainInput.value = mainVal;
+      (subsList || []).forEach((sv, j) => {
+        const subIdx = j + 1;
+        const [label, inputSub] = createSubItem(sectionEl, index, subIdx, sv);
+        subsWrap.appendChild(label);
+        subsWrap.appendChild(inputSub);
+      });
+      subCount.value = (subsList || []).length;
 
-    const subControls = document.createElement('div');
-    subControls.className = 'controls';
-    subControls.innerHTML = `
-      <button type="button" class="btn" onclick="addPremiseS(${i})">เพิ่มหัวข้อย่อย (1.5.${i}.x)</button>
-      <button type="button" class="btn" onclick="removePremiseS(${i})">ลบหัวข้อย่อย (ข้อล่าสุด)</button>
-    `;
-
-    const hiddenSubCount = document.createElement('input');
-    hiddenSubCount.type = 'hidden';
-    hiddenSubCount.name = `premise_subcount_${i}`;
-    hiddenSubCount.id = `premise_subcount_${i}`;
-    hiddenSubCount.value = premiseSubCounts[i] || 0;
-
-    mainBlock.appendChild(mainLbl);
-    mainBlock.appendChild(mainInput);
-    mainBlock.appendChild(subControls);
-    mainBlock.appendChild(hiddenSubCount);
-
-    const subs = document.createElement('div');
-    subs.id = `premise_subs_wrap_${i}`;
-
-    const subCount = premiseSubCounts[i] || 0;
-    for (let j = 1; j <= subCount; j++) {
-      const subLbl = document.createElement('label');
-      subLbl.textContent = `1.5.${i}.${j} ข้อที่ ${j}`;
-      const subInput = document.createElement('input');
-      subInput.type = 'text';
-      subInput.id = `premise_s_${i}_${j}`;
-      subInput.name = `premise_s_${i}_${j}`;
-      subInput.value = premiseValues[`premise_s_${i}_${j}`] || "";
-      subs.appendChild(subLbl);
-      subs.appendChild(subInput);
+      wrap.appendChild(lbl);
+      wrap.appendChild(input);
+      wrap.appendChild(controls);
+      wrap.appendChild(subCount);
+      wrap.appendChild(subsWrap);
+      return wrap;
     }
 
-    mainBlock.appendChild(subs);
-    premiseContainer.appendChild(mainBlock);
-  }
-  document.getElementById('premise_count').value = premiseCount;
-}
+    // ====== สร้างหัวข้อ (index เริ่มที่ 1) ======
+    function createSectionNode(data={title:'', body:'', points:[]}, index=1){
+      const node = document.getElementById('tmpl-section').content.firstElementChild.cloneNode(true);
+      node.dataset.sid = (++secAutoId).toString();
 
-function addPremiseB(){
-  savePremiseValues();
-  premiseCount++;
-  premiseSubCounts[premiseCount] = 0;
-  renderPremiseInputs();
-}
-function removePremiseB(){
-  if (premiseCount > 0) {
-    savePremiseValues();
-    const last = premiseCount;
-    const sc = premiseSubCounts[last] || 0;
-    delete premiseValues[`premise_b_${last}`];
-    for (let j = 1; j <= sc; j++) delete premiseValues[`premise_s_${last}_${j}`];
-    delete premiseSubCounts[last];
-    premiseCount--;
-    renderPremiseInputs();
-  }
-}
-function addPremiseS(bi){
-  savePremiseValues();
-  premiseSubCounts[bi] = (premiseSubCounts[bi] || 0) + 1;
-  renderPremiseInputs();
-}
-function removePremiseS(bi){
-  const cur = premiseSubCounts[bi] || 0;
-  if (cur > 0) {
-    savePremiseValues();
-    delete premiseValues[`premise_s_${bi}_${cur}`];
-    premiseSubCounts[bi] = cur - 1;
-    renderPremiseInputs();
-  }
-}
+      $('.title-input', node).value = data.title || '';
+      $('.body-input',  node).value = data.body  || '';
 
-/* ==================== 1.6 นิยามศัพท์เฉพาะ: รายการ 1.6.x ==================== */
-let defCount = 0;
-const defWrap = document.getElementById('def_items_container');
+      const paraMode = $('.para-mode', node);
+      const paraWrap = $('.para-wrap', node);
 
-function renderDefFromData(){
-  const data = getJsonScript('def-items-data') || [];
-  defWrap.innerHTML = '';
-  defCount = 0;
-  data.forEach(v => addDefItem(v));
-}
+      // ----- เฉพาะหัวข้อ 1.1: โหมดย่อหน้า -----
+      if (index === 1) {
+        paraMode.hidden = false;                                // แสดงโหมดย่อหน้า
+        $('.body-label', node).hidden = true;                   // ซ่อน body label
+        $('.body-input', node).hidden = true;                   // ซ่อน textarea body
+        $('.subblock', node).hidden = true;                     // ซ่อนหัวข้อหลัก/ย่อย
 
-function addDefItem(val=''){
-  defCount++;
-  const label = document.createElement('label');
-  label.setAttribute('for', `def_${defCount}`);
-  label.textContent = `1.6.${defCount}`;
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.id = `def_${defCount}`;
-  input.name = `def_${defCount}`;
-  input.value = val || '';
-  defWrap.appendChild(label);
-  defWrap.appendChild(input);
-  document.getElementById('def_items_count').value = defCount;
-}
-function removeDefItem(){
-  if(defCount>0){
-    defWrap.removeChild(defWrap.lastElementChild);
-    defWrap.removeChild(defWrap.lastElementChild);
-    defCount--;
-    document.getElementById('def_items_count').value = defCount;
-  }
-}
+        let paras = Array.isArray(data.paragraphs) ? data.paragraphs.slice() : [];
+        if (!paras.length && (data.body || '').trim()) {
+          paras = (data.body || '').replace(/\r\n/g, '\n').split(/\n\n+/).map(s=>s.trim()).filter(Boolean);
+        }
+        if (!paras.length) paras = [''];
+        paraWrap.innerHTML = '';
+        paras.forEach((p,i)=> paraWrap.appendChild(createParagraphItem(i+1, p)));
 
-/* ==================== 1.7 ประโยชน์ที่คาดว่าจะได้รับ: รายการ 1.7.x ==================== */
-let benefitCount = 0;
-const benefitWrap = document.getElementById('benefit_items_container');
+        node.addEventListener('click', (e)=>{
+          const btn = e.target.closest('button');
+          if(!btn) return;
+          if(btn.dataset.cmd === 'add-para'){
+            const count = $$('.para-item', node).length + 1;
+            paraWrap.appendChild(createParagraphItem(count, ''));
+          } else if (btn.dataset.cmd === 'remove-para'){
+            const last = paraWrap.lastElementChild;
+            if(last) paraWrap.removeChild(last);
+          }
+        });
 
-function renderBenefitFromData(){
-  const data = getJsonScript('benefit-items-data') || [];
-  benefitWrap.innerHTML = '';
-  benefitCount = 0;
-  data.forEach(v => addBenefitItem(v));
-}
+        return node; // ไม่ต้องผูก event อื่นๆ
+      }
 
-function addBenefitItem(val=''){
-  benefitCount++;
-  const label = document.createElement('label');
-  label.setAttribute('for', `benefit_${benefitCount}`);
-  label.textContent = `1.7.${benefitCount}`;
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.id = `benefit_${benefitCount}`;
-  input.name = `benefit_${benefitCount}`;
-  input.value = val || '';
-  benefitWrap.appendChild(label);
-  benefitWrap.appendChild(input);
-  document.getElementById('benefit_items_count').value = benefitCount;
-}
-function removeBenefitItem(){
-  if(benefitCount>0){
-    benefitWrap.removeChild(benefitWrap.lastElementChild);
-    benefitWrap.removeChild(benefitWrap.lastElementChild);
-    benefitCount--;
-    document.getElementById('benefit_items_count').value = benefitCount;
-  }
-}
+      // ----- หัวข้ออื่น: ใช้ logic เดิม -----
+      const mainsWrap = $('.mains-wrap', node);
+      const mainCountInput = $('.main-count', node);
 
-/* ==================== Function สำหรับเตรียมข้อมูล JSON ก่อน Submit ==================== */
-function prepareFormData() {
-  // 1.3 Hypo
-  const hypoItems = Array.from(hypoWrap.querySelectorAll('input')).map(input => input.value.trim()).filter(Boolean);
-  document.getElementById('hypo_items_json').value = JSON.stringify(hypoItems);
+      function renderMainsFromData(list){
+        mainsWrap.innerHTML = '';
+        let count = 0;
+        (list || []).forEach(item => {
+          count++;
+          mainsWrap.appendChild(createMainBlock(count, item.main || '', item.subs || [], node));
+        });
+        mainCountInput.value = count;
+      }
+      renderMainsFromData(data.points || []);
 
-  // 1.4 Scope
-  const scopeData = [];
-  for (let i = 1; i <= scopeCount; i++) {
-    const mainVal = document.getElementById(`scope_b_${i}`).value.trim();
-    const subs = [];
-    const subCount = parseInt(document.getElementById(`scope_subcount_${i}`).value, 10);
-    for (let j = 1; j <= subCount; j++) {
-      const subInput = document.getElementById(`scope_s_${i}_${j}`);
-      if (subInput) subs.push(subInput.value.trim());
+      node.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button');
+        if(!btn) return;
+
+        if(btn.dataset.cmd){
+          const cmd = btn.dataset.cmd;
+          const parent = node.parentElement;
+          if(cmd==='remove-section'){ parent.removeChild(node); renumber(); }
+          else if(cmd==='add-main'){
+            const cur = (mainCountInput.value|0) + 1;
+            mainCountInput.value = cur;
+            mainsWrap.appendChild(createMainBlock(cur, '', [], node));
+            renumber();
+          } else if(cmd==='remove-main'){
+            const cur = (mainCountInput.value|0);
+            if(cur>0){ mainsWrap.removeChild(mainsWrap.lastElementChild); mainCountInput.value = cur-1; renumber(); }
+          }
+          return;
+        }
+
+        if(btn.dataset.subcmd){
+          const subcmd = btn.dataset.subcmd;
+          const mainIdx = parseInt(btn.dataset.main,10);
+          const subCountInput = $(`.sub-count[data-main="${mainIdx}"]`, node);
+          const subsWrap = $(`#subs_${node.dataset.sid}_${mainIdx}`, node);
+          let cur = (subCountInput.value|0);
+          if(subcmd==='add'){
+            cur++; subCountInput.value = cur;
+            const [label, input] = createSubItem(node, mainIdx, cur, '');
+            subsWrap.appendChild(label);
+            subsWrap.appendChild(input);
+            renumber();
+          }else if(subcmd==='remove' && cur>0){
+            subsWrap.removeChild(subsWrap.lastElementChild);
+            subsWrap.removeChild(subsWrap.lastElementChild);
+            subCountInput.value = cur-1;
+            renumber();
+          }
+        }
+      });
+
+      return node;
     }
-    if (mainVal || subs.length > 0) {
-      scopeData.push({ main: mainVal, subs: subs.filter(Boolean) });
+
+    function getRootIndex(sectionEl){
+      const parent = sectionEl.parentElement;
+      if (!parent || parent.id !== 'root_sections') return 1;
+      return Array.from(parent.children).indexOf(sectionEl) + 1;
     }
-  }
-  document.getElementById('scope_json').value = JSON.stringify(scopeData);
 
-  // 1.5 Premise
-  const premiseData = [];
-  for (let i = 1; i <= premiseCount; i++) {
-    const mainVal = document.getElementById(`premise_b_${i}`).value.trim();
-    const subs = [];
-    const subCount = parseInt(document.getElementById(`premise_subcount_${i}`).value, 10);
-    for (let j = 1; j <= subCount; j++) {
-      const subInput = document.getElementById(`premise_s_${i}_${j}`);
-      if (subInput) subs.push(subInput.value.trim());
+    function deserialize(arr){
+      const root = document.getElementById('root_sections');
+      root.innerHTML = '';
+      (arr || []).forEach((s, idx) => root.appendChild(createSectionNode(s, idx+1)));
+      renumber();
     }
-    if (mainVal || subs.length > 0) {
-      premiseData.push({ main: mainVal, subs: subs.filter(Boolean) });
+
+    function serialize(){
+      function sectionToObj(sectionEl, idx){
+        const title = $('.title-input', sectionEl).value.trim();
+
+        if (idx === 1) {
+          // หัวข้อ 1.1 → เก็บเป็น paragraphs
+          const paras = $$('.para-item .para-input', sectionEl).map(t => t.value.trim()).filter(Boolean);
+          return { title, paragraphs: paras, mains: [] };
+        }
+
+        const body  = $('.body-input',  sectionEl).value.trim();
+        const points = [];
+        $$('.main-block', sectionEl).forEach((blk)=>{
+          const mainVal = $('input.main-input', blk).value.trim();
+          const subs = [];
+          $$('.subs-wrap > input.sub-input', blk).forEach(inp => subs.push(inp.value.trim()));
+          if(mainVal || subs.some(Boolean)) points.push({ main: mainVal, subs: subs.filter(Boolean) });
+        });
+        return { title, body, points };
+      }
+      const list  = $$('#root_sections > .section').map((sec, i) => sectionToObj(sec, i+1));
+      return JSON.stringify(list);
     }
-  }
-  document.getElementById('premise_json').value = JSON.stringify(premiseData);
 
-  // 1.6 Definition
-  const defItems = Array.from(defWrap.querySelectorAll('input')).map(input => input.value.trim()).filter(Boolean);
-  document.getElementById('def_items_json').value = JSON.stringify(defItems);
+    function renumber(){
+      $$('#root_sections > .section').forEach((sec, i)=>{
+        const rootIndex = i+1;
+        $('.number', sec).textContent = '1.' + rootIndex;
 
-  // 1.7 Benefit
-  const benefitItems = Array.from(benefitWrap.querySelectorAll('input')).map(input => input.value.trim()).filter(Boolean);
-  document.getElementById('benefit_items_json').value = JSON.stringify(benefitItems);
-}
+        // อัปเดตเลขหัวข้อหลัก/ย่อยเฉพาะหัวข้อ 1.2+
+        if (rootIndex === 1) return;
 
-/* ==================== INIT & SUBMIT ==================== */
-document.addEventListener("DOMContentLoaded", function () {
-  renderpurposeFromData();
-  initScopeFromData();
-  renderScopeInputs();
-  initPremiseFromData();
-  renderPremiseInputs();
-  renderHypoFromData();
-  renderDefFromData();
-  renderBenefitFromData();
-});
+        $$('.main-block', sec).forEach((blk, mi)=>{
+          const mainIndex = mi+1;
+          const mainNumStr = `1.${rootIndex}.${mainIndex}`;
+          const mainLabel = $('label.form-label', blk);
+          if (mainLabel && !mainLabel.classList.contains('sub-label')) mainLabel.textContent = mainNumStr;
+          const subs = $$('.subs-wrap > .sub-label', blk);
+          subs.forEach((slab, sj)=> slab.textContent = `${mainNumStr}.${sj+1}`);
+          const addButton = $(`button[data-subcmd="add"]`, blk);
+          if (addButton) addButton.textContent = `+ เพิ่มหัวข้อย่อย (${mainNumStr}.x)`;
+        });
+      });
+    }
 
-document.getElementById("myForm").addEventListener("submit", function (event) {
-  const action = event.submitter.value;
-  if (action === 'save' || action === 'generate') {
-    prepareFormData();
-  }
-});
-</script>
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const pre = getJsonScript('chapter1-data');
+      const data = Array.isArray(pre) && pre.length ? pre : defaultSections();
+      deserialize(data);
 
+      document.getElementById('chapter1Form').addEventListener('submit', (e)=>{
+        const action = e.submitter && e.submitter.value;
+        if(action==='save' || action==='generate_docx'){
+          document.getElementById('chapter1_json').value = serialize();
+        }
+      });
+    });
+  </script>
 </body>
 </html>

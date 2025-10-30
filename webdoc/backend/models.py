@@ -379,10 +379,25 @@ class RefBook(models.Model):
         db_table = 'ref_book'
         managed = False
 
+class DocChapter1(models.Model):
+    doc_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.DO_NOTHING,
+        db_column='user_id',
+        to_field='user_id',
+        db_constraint=False
+    )
+    intro_body = models.TextField(null=True, blank=True)
+    sections_json = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=False, null=True)
+    updated_at = models.DateTimeField(auto_now_add=False, null=True)
 
+    class Meta:
+        managed = False
+        db_table = 'doc_chapter_1'
 
 #     Chapter 5 
-# backend/models.py
 class Chapter5(models.Model):
     """
     แมปตารางที่มีอยู่แล้ว (managed=False) ตาม DDL:

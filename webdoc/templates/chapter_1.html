@@ -27,11 +27,18 @@
 </head>
 <body>
   <div class="container">
+    
     <form id="chapter1Form" method="POST" action="{% url 'chapter_1' %}">
       {% csrf_token %}
 
       <div class="text-center"><h1>บทที่ 1</h1></div>
-
+        {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
       <div class="card">
         <div class="card-header bg-success">บทนำ</div>
         <div class="card-body">

@@ -13,11 +13,11 @@ from man_doc.doc_function import (
 )
 
 TITLE_PT = 20
-LINE_LEN = 80                 # ความยาวบรรทัดโดยประมาณสำหรับตัดคำไทย
+LINE_LEN = 85                 # ความยาวบรรทัดโดยประมาณสำหรับตัดคำไทย
 FIRSTLINE_CM = 1.00           # ระยะย่อบรรทัดแรกของ "ย่อหน้าใหญ่"
 SUB_FIRSTLINE_CM = 1.50       # ระยะย่อของหัวข้อย่อย
 
-def apply_rest_page_margin(doc: Document, top_inch: float = 1.0):
+def apply_rest_page_margin(doc: Document, top_inch: float = 1.5):
     """ปรับ top margin ของหน้าถัดไป (ต่อเนื่อง ไม่ขึ้นหน้าใหม่)"""
     sec = doc.add_section(WD_SECTION.CONTINUOUS)
     base = doc.sections[0]

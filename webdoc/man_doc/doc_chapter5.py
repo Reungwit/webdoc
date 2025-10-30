@@ -20,7 +20,7 @@ FIRSTLINE_CM = 1.00
 SUB_FIRSTLINE_CM = 1.50
 
 # ========================= ตัวช่วยเพิ่มเติม (เฉพาะจัดระยะ) =========================
-def apply_rest_page_margin(doc, top_inch: float = 1.0):
+def apply_rest_page_margin(doc, top_inch: float = 1.5):
     """
     เปลี่ยน top margin สำหรับหน้าถัดไปเป็น top_inch โดยไม่ขึ้นหน้าใหม่
     """
@@ -44,11 +44,10 @@ def doc_chapter5(intro_body: str, sections_json: List[Dict[str, Any]]):
     add_center_paragraph(doc, "บทที่ 5", bold=True, font_size=TITLE_PT)
     add_center_paragraph(doc, "สรุปผลการวิจัย อภิปรายผล และข้อเสนอแนะ", bold=True, font_size=TITLE_PT)
 
-    # ✅ ปรับ margin หน้าถัดไปเป็น 1.0" แบบไม่ขึ้นหน้าใหม่
-    apply_rest_page_margin(doc, top_inch=1.0)
+    apply_rest_page_margin(doc, top_inch=1.5)
 
     # ===== 5.1 บทนำ =====
-    add_left_paragraph(doc, "5.1  บทนำ", bold=True)
+    add_left_paragraph(doc, "", bold=True)
     if (intro_body or "").strip():
         add_wrapped_paragraph(doc, intro_body, n=LINE_LEN, disth=True, tap=True)
 
@@ -75,7 +74,6 @@ def doc_chapter5(intro_body: str, sections_json: List[Dict[str, Any]]):
                         disth=True,
                         custom_tap=SUB_FIRSTLINE_CM,
                     )
-
         doc.add_paragraph()
 
     return doc

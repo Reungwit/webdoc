@@ -17,7 +17,7 @@ LINE_LEN = 85                 # ความยาวบรรทัดโดย
 FIRSTLINE_CM = 1.00           # ระยะย่อบรรทัดแรกของ "ย่อหน้าใหญ่"
 SUB_FIRSTLINE_CM = 1.50       # ระยะย่อของหัวข้อย่อย
 
-def apply_rest_page_margin(doc: Document, top_inch: float = 1.0):
+def apply_rest_page_margin(doc: Document, top_inch: float = 1.5):
     """ปรับ top margin ของหน้าถัดไป (ต่อเนื่อง ไม่ขึ้นหน้าใหม่)"""
     sec = doc.add_section(WD_SECTION.CONTINUOUS)
     base = doc.sections[0]
@@ -71,7 +71,7 @@ def doc_chapter1(intro_body: str, sections_json: List[Dict[str, Any]]) -> Docume
     add_center_paragraph(doc, "บทนำ", bold=True, font_size=TITLE_PT)
 
     # ปรับ margin หน้าถัดไป
-    apply_rest_page_margin(doc, top_inch=1.0)
+    apply_rest_page_margin(doc, top_inch=1.5)
 
     # ----- บทนำ (ไม่ใส่เลข) -----
     add_left_paragraph(doc, "", bold=True)

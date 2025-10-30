@@ -45,9 +45,6 @@ from man_views.views_format_dates_for_doc import format_dates_for_doc
 from man_views.views_collect_references import collect_references_from_post
 # ========================================================
 
-# >>>>>>> นี่คืออันใหม่: import view ของบทที่ 1 จากไฟล์ใหม่ <<<<<<<
-from man_views.views_chapter1 import chapter_1_view
-
 
 # ---------------- Basic pages ----------------
 def register_view(request):
@@ -96,7 +93,8 @@ def sp_project_form_view(request):
 def intro_view(request):
     return render(request, 'intro.html')
 
-# chapter_1_view ถูก import มาจาก man_doc.views_chapter1 แล้ว ด้านบน
+def chapter_1_view(request):
+    return render(request, 'chapter_1.html')
 
 def chapter_2_view(request):
     return render(request, 'chapter_2.html')
@@ -118,6 +116,10 @@ def terms_view(request):
 
 def privacy_view(request):
     return render(request, "legal/privacy_policy.html")
+
+
+
+    
 
 
 
@@ -310,6 +312,10 @@ def refer_view(request):
     return render(request, 'refer.html')
 
 
+# ---------------- บทที่ 1 ----------------
+from man_views.views_chapter_1 import chapter_1_view
+
+
 # ---------------- บทที่ 5 ----------------
 DEFAULT_TITLES = ['สรุปผลการดำเนินงาน', 'อภิปรายผล', 'ข้อเสนอแนะ']
 DEFAULT_SECTIONS = [
@@ -381,7 +387,7 @@ def _normalize_and_order(sections, intro_body, prev=None):
         body = _get_body(sec)
         mains = _to_mains_list(sec)
 
-        for j, m in enumerate(mains, start=1):
+        for j, m in enumerate(mains):
             m['main_order'] = j + 1
 
         norm_list.append({

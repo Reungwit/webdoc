@@ -407,3 +407,33 @@ class Chapter5(models.Model):
     def __str__(self):
         return f'Chapter5(doc_id={self.doc_id}, user_id={self.user_id})'
 
+
+
+class DocChapter1(models.Model):
+    doc_id = models.BigAutoField(primary_key=True)
+
+    # ผูกกับผู้ใช้ (ตาราง backend_customuser)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_column='user_id',
+        related_name='fk_user_doc_ch1',
+    )
+
+    # บทนำบทที่ 1 (ข้อความยาวได้)
+    intro_th = models.TextField(null=True, blank=True)
+
+    # เก็บโครงหัวข้อทั้งหมดของบทที่ 1 เป็น JSON (แต่ใน DB เป็น LONGTEXT)
+    # เราจะจัดการแปลง JSON ที่ view เอง
+    sections_json = models.TextField(null=True, blank=True)
+
+    # timestamps ที่เรามีใน DB
+    created_at = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = 'doc_chapter_1'
+
+    def __str__(self):
+        return f'DocChapter1(doc_id={self.doc_id}, user_id={self.user_id})'

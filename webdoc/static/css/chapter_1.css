@@ -1,76 +1,228 @@
-.container {
+/* wrapper ทั้งหน้า */
+.ch1-wrapper {
   max-width: 1200px;
-  margin: 50px auto;
-  padding: 0 20px;
+  padding: 1.5rem 1rem 4rem;
+  color: #1e293b;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Inter", sans-serif;
 }
 
-.card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+/* หัวเรื่องบนสุด */
+.ch1-page-head {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1rem;
 }
-.card-header {
-  padding: 15px 20px;
-  font-size: 18px;
-  font-weight: bold;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+
+.ch1-title-row {
   display: flex;
-  gap: 10px;
-  align-items: center;
+  flex-wrap: wrap;
+  row-gap: .75rem;
+  justify-content: space-between;
+  align-items: flex-start;
 }
-.bg-success { background: #198754; color: #fff; }
-.bg-info    { background: #0dcaf0; color: #fff; }
-.bg-warning { background: #ffc107; color: #000; }
-.bg-secondary { background: #6c757d; color: #fff; }
-.card-body { padding: 20px; }
 
-.form-label { display: block; font-weight: bold; margin-bottom: 8px; }
-.form-control {
-  width: 100%; padding: 10px 12px; font-size: 16px;
-  border: 1px solid #ccc; border-radius: 5px; margin-bottom: 15px; box-sizing: border-box;
+.ch1-title {
+  font-size: 1.8rem;
+  line-height: 1.25;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 .25rem 0;
 }
-textarea.form-control { resize: vertical; }
 
-.row { display: flex; flex-wrap: wrap; gap: 20px; }
-.btn {
-  display: inline-block; padding: 10px 18px; font-size: 16px;
-  border: none; border-radius: 6px; cursor: pointer; transition: .2s ease;
+.ch1-subtitle {
+  font-size: .9rem;
+  line-height: 1.4;
+  color: #64748b;
 }
-.btn-primary { background: #0d6efd; color: #fff; }
-.btn-info    { background: #0dcaf0; color: #fff; }
-.btn-success { background: #198754; color: #fff; }
-.btn-outline-secondary { background: transparent; border: 2px solid #6c757d; color: #6c757d; }
-.btn-outline-secondary:hover { background: #6c757d; color: #fff; }
-.btn-outline-warning { background: transparent; border: 2px solid #ffc107; color: #ffc107; }
-.btn-outline-warning:hover { background: #ffc107; color: #000; }
 
-.text-center { text-align: center; }
-.me-2 { margin-right: 10px; }
-
-.number {
-  font-weight: 700; background: #eef2ff; color: #3730a3;
-  border: 1px solid #c7d2fe; padding: 2px 10px; border-radius: 999px;
-  font-variant-numeric: tabular-nums;
+/* ปุ่มดึงข้อมูลล่าสุด */
+.ch1-inline-form {
+  margin: 0;
+  padding: 0;
 }
-.title-input {
-  flex: 1; min-width: 200px; border: 1px solid #ccc; border-radius: 6px; padding: 8px 10px; font-size: 16px;
+
+/* card หลักใหญ่แต่ละส่วน */
+.ch1-card {
+  border-radius: .75rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 60px rgba(15,23,42,.05);
+  overflow: hidden;
 }
-.title-input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13,110,253,.1); }
 
-.controls { margin-top: 10px; padding-top: 10px; border-top: 1px solid #dee2e6; flex-wrap: wrap; }
+/* ส่วนหัวการ์ด */
+.ch1-card-head {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: .9rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  row-gap: .75rem;
+}
 
-.section[data-collapsed="true"] .card-body > .form-label,
-.section[data-collapsed="true"] .card-body > .body-input,
-.section[data-collapsed="true"] .card-body > .controls { display: none; }
+.ch1-card-head-2row {
+  align-items: flex-start;
+}
 
-.button-group { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; }
+.ch1-card-head-main {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: .75rem;
+}
 
-.note { color:#555; margin-top:10px; font-size:14px; }
+.ch1-card-head-side {
+  flex-shrink: 0;
+}
 
-@media (max-width: 768px) {
-  .row { flex-direction: column; }
-  .btn { width: 100%; }
+.ch1-card-head-icon {
+  min-width: 2rem;
+  min-height: 2rem;
+  font-size: .8rem;
+  font-weight: 600;
+  line-height: 2rem;
+  text-align: center;
+  border-radius: .6rem;
+  color: #fff;
+  box-shadow: 0 16px 30px rgba(0,0,0,.08);
+}
+.ch1-icon-blue {
+  background: linear-gradient(135deg,#0ea5e9 0%,#0369a1 100%);
+}
+.ch1-icon-green {
+  background: linear-gradient(135deg,#10b981 0%,#047857 100%);
+}
+
+.ch1-card-head-title {
+  font-size: .95rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.4;
+}
+.ch1-card-head-desc {
+  font-size: .8rem;
+  color: #64748b;
+  line-height: 1.4;
+  max-width: 70ch;
+}
+
+/* เนื้อในการ์ด */
+.ch1-card-body {
+  padding: 1rem 1rem 1.25rem;
+}
+
+.ch1-label {
+  font-size: .8rem;
+  font-weight: 500;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.ch1-textarea {
+  font-size: .85rem;
+  line-height: 1.5;
+}
+
+/* list ของหัวข้อ 1.x (sections_container) */
+.ch1-section-list {
+  display: grid;
+  row-gap: 1rem;
+}
+
+/* การ์ดของหัวข้อระดับ 1.x */
+.ch1-subcard {
+  border-radius: .6rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 30px rgba(15,23,42,.05);
+  overflow: hidden;
+}
+.ch1-subcard-head {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: .9rem 1rem;
+}
+.ch1-subcard-body {
+  background: #fff;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* โซน bullet (1.x.1, 1.x.2...) */
+.ch1-points {
+  background: #f9fafb;
+  padding: 1rem;
+}
+
+/* card ของหัวข้อหลักระดับ 1.x.1 */
+.ch1-pointcard {
+  border-radius: .6rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px rgba(15,23,42,.04);
+  overflow: hidden;
+}
+
+.ch1-pointcard .card-header {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: .9rem 1rem;
+}
+.ch1-pointcard .card-body {
+  background: #fff;
+  padding: 1rem;
+}
+
+.ch1-pointcard label,
+.ch1-subcard-head label {
+  font-size: .8rem;
+  font-weight: 500;
+  color: #475569;
+  line-height: 1.4;
+}
+
+/* ช่องกรอกข้อความภายใน bullet */
+.ch1-pointcard input.form-control,
+.ch1-pointcard textarea.form-control,
+.ch1-subcard-body textarea.form-control {
+  font-size: .8rem;
+  line-height: 1.4;
+}
+
+/* spacing ใน bullet ย่อยสุด */
+.ch1-pointcard .d-flex.flex-wrap.gap-2 {
+  row-gap: .5rem;
+}
+
+/* ปุ่ม danger outline ดูนุ่มขึ้น */
+.btn-outline-danger.btn-sm {
+  font-size: .75rem;
+  line-height: 1.2;
+  border-radius: .5rem;
+}
+.btn-outline-danger.btn-sm:hover {
+  box-shadow: 0 4px 12px rgba(220,38,38,.25);
+}
+
+.btn-success.btn-sm,
+.btn-primary.btn-sm,
+.btn-dark.btn-sm,
+.btn-danger.btn-sm,
+.btn-outline-secondary.btn-sm {
+  border-radius: .5rem;
+  font-size: .8rem;
+  line-height: 1.2;
+  font-weight: 500;
+  padding: .45rem .6rem;
+}
+
+/* ปุ่มในส่วนหัว (เพิ่มหัวข้อใหม่ ฯลฯ) */
+.ch1-card-head-side .btn {
+  box-shadow: 0 12px 24px rgba(16,185,129,.25);
+}
+.ch1-card-head-side .btn:hover {
+  box-shadow: 0 16px 32px rgba(16,185,129,.4);
+}
+
+/* ลดความชิดขอบบนสุดของหน้าในเนื้อหลัก (ถ้าหน้าคุณยังมีกรอบครอบทั้งหมด) */
+.ch1-wrapper > .ch1-page-head:first-child {
+  margin-top: .5rem;
 }

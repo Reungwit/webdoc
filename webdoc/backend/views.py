@@ -45,6 +45,9 @@ from man_views.views_format_dates_for_doc import format_dates_for_doc
 from man_views.views_collect_references import collect_references_from_post
 # ========================================================
 
+# >>>>>>> นี่คืออันใหม่: import view ของบทที่ 1 จากไฟล์ใหม่ <<<<<<<
+from man_views.views_chapter1 import chapter_1_view
+
 
 # ---------------- Basic pages ----------------
 def register_view(request):
@@ -93,8 +96,7 @@ def sp_project_form_view(request):
 def intro_view(request):
     return render(request, 'intro.html')
 
-def chapter_1_view(request):
-    return render(request, 'chapter_1.html')
+# chapter_1_view ถูก import มาจาก man_doc.views_chapter1 แล้ว ด้านบน
 
 def chapter_2_view(request):
     return render(request, 'chapter_2.html')
@@ -116,10 +118,6 @@ def terms_view(request):
 
 def privacy_view(request):
     return render(request, "legal/privacy_policy.html")
-
-
-
-    
 
 
 
@@ -312,114 +310,6 @@ def refer_view(request):
     return render(request, 'refer.html')
 
 
-# ---------------- บทที่ 1 ----------------
-@login_required
-def chapter_1_view(request):
-    user = request.user
-    initial = {}
-    status_message = None
-
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'get_data':
-            try:
-                chapter1_data = Chapter1.objects.get(user=user)
-                initial = {
-                    'sec11_p1': chapter1_data.sec11_p1,
-                    'sec11_p2': chapter1_data.sec11_p2,
-                    'sec11_p3': chapter1_data.sec11_p3,
-                    'purpose_count': chapter1_data.purpose_count,
-                    'purpose_1': chapter1_data.purpose_1,
-                    'purpose_2': chapter1_data.purpose_2,
-                    'purpose_3': chapter1_data.purpose_3,
-                    'hypo_paragraph': chapter1_data.hypo_paragraph,
-                    'hypo_items_json': chapter1_data.hypo_items_json,
-                    'scope_json': chapter1_data.scope_json,
-                    'para_premise': chapter1_data.para_premise,
-                    'premise_json': chapter1_data.premise_json,
-                    'def_items_json': chapter1_data.def_items_json,
-                    'benefit_items_json': chapter1_data.benefit_items_json,
-                }
-                status_message = {'message': '✅ ดึงข้อมูลสำเร็จแล้ว!', 'type': 'success'}
-            except Chapter1.DoesNotExist:
-                initial = {}
-                status_message = {'message': 'ไม่มีข้อมูลอยู่ กรุณากรอกข้อมูลแล้วบันทึก!', 'type': 'warning'}
-
-        elif action in ('save', 'generate'):
-            sec11_p1 = request.POST.get('sec11_p1', '')
-            sec11_p2 = request.POST.get('sec11_p2', '')
-            sec11_p3 = request.POST.get('sec11_p3', '')
-
-            try:
-                purpose_count = int(request.POST.get('purpose_count', 0))
-            except Exception:
-                purpose_count = 0
-
-            purpose_1 = request.POST.get('purpose_1', '')
-            purpose_2 = request.POST.get('purpose_2', '')
-            purpose_3 = request.POST.get('purpose_3', '')
-
-            hypo_paragraph = request.POST.get('hypo_paragraph', '')
-            hypo_items     = json.loads(request.POST.get('hypo_items_json', '[]'))
-            scope_data     = json.loads(request.POST.get('scope_json', '[]'))
-            para_premise_str = request.POST.get('para_premise', '')
-            premise_data   = json.loads(request.POST.get('premise_json', '[]'))
-            def_items      = json.loads(request.POST.get('def_items_json', '[]'))
-            benefit_items  = json.loads(request.POST.get('benefit_items_json', '[]'))
-
-            if action == 'save':
-                Chapter1.objects.update_or_create(
-                    user=user,
-                    defaults={
-                        'sec11_p1': sec11_p1,
-                        'sec11_p2': sec11_p2,
-                        'sec11_p3': sec11_p3,
-                        'purpose_count': purpose_count,
-                        'purpose_1': purpose_1,
-                        'purpose_2': purpose_2,
-                        'purpose_3': purpose_3,
-                        'hypo_paragraph': hypo_paragraph,
-                        'hypo_items_json': hypo_items,
-                        'scope_json': scope_data,
-                        'para_premise': para_premise_str,
-                        'premise_json': premise_data,
-                        'def_items_json': def_items,
-                        'benefit_items_json': benefit_items,
-                    }
-                )
-                status_message = {'message': '✅ บันทึกข้อมูลสำเร็จแล้ว!', 'type': 'success'}
-
-            elif action == 'generate':
-                doc = doc_chapter1(
-                    sec11_p1, sec11_p2, sec11_p3, purpose_count, purpose_1, purpose_2, purpose_3,
-                    hypo_paragraph, hypo_items, scope_data, para_premise_str, premise_data, def_items, benefit_items
-                )
-                response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-                response['Content-Disposition'] = 'attachment; filename=chapter1.docx'
-                doc.save(response)
-                return response
-
-            initial = {
-                'sec11_p1': sec11_p1,
-                'sec11_p2': sec11_p2,
-                'sec11_p3': sec11_p3,
-                'purpose_count': purpose_count,
-                'purpose_1': purpose_1,
-                'purpose_2': purpose_2,
-                'purpose_3': purpose_3,
-                'hypo_paragraph': hypo_paragraph,
-                'hypo_items_json': hypo_items,
-                'scope_json': scope_data,
-                'para_premise': para_premise_str,
-                'premise_json': premise_data,
-                'def_items_json': def_items,
-                'benefit_items_json': benefit_items,
-            }
-
-    context = {'initial': initial, 'status_message': status_message}
-    return render(request, 'chapter_1.html', context)
-
-
 # ---------------- บทที่ 5 ----------------
 DEFAULT_TITLES = ['สรุปผลการดำเนินงาน', 'อภิปรายผล', 'ข้อเสนอแนะ']
 DEFAULT_SECTIONS = [
@@ -491,7 +381,7 @@ def _normalize_and_order(sections, intro_body, prev=None):
         body = _get_body(sec)
         mains = _to_mains_list(sec)
 
-        for j, m in enumerate(mains):
+        for j, m in enumerate(mains, start=1):
             m['main_order'] = j + 1
 
         norm_list.append({

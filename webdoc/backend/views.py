@@ -1,5 +1,4 @@
 # backend/views.py
-
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -34,12 +33,12 @@ from man_doc.doc_chapter1 import doc_chapter1
 from man_doc.doc_certificate import doc_certificate
 
 # ====== imports from man_views (helpers ที่แยกออก) ======
-from man_views.views_current_user_id import current_user_id as _current_user_id
+from man_views.views_current_user_id import current_user_id as current_user_id
 from man_views.views_is_intro_ok_check import is_intro_ok_check
 from man_views.views_authors_from_intro import authors_from_intro as _authors_from_intro
 
 # รวม helper อ้างอิง (ตามไฟล์ที่คุณรวม)
-from webdoc.webdoc.man_views.views_save_refs import save_websites_from_refs, save_books_from_refs
+from man_views.views_save_refs import save_websites_from_refs, save_books_from_refs
 from man_views.views_initial_refs import initial_refs_web_from_db, initial_books_from_db
 
 from man_views.views_format_dates_for_doc import format_dates_for_doc
@@ -119,141 +118,9 @@ def privacy_view(request):
     return render(request, "legal/privacy_policy.html")
 
 
-# ---------------- แบบฟอร์ม ทก.01 ----------------
-@login_required
-def sp_project_form_view(request):
-    user = request.user
-    initial = {}
-    status_message = None
 
-    if request.method == 'POST':
-        action = request.POST.get('action')
+    
 
-        if action == 'get_data':
-            try:
-                project = SpProject.objects.get(user=user)
-                initial = {
-                    'name_pro_th': project.name_pro_th,
-                    'name_pro_en': project.name_pro_en,
-                    'case_stu': project.case_stu,
-                    'term': project.term,
-                    'school_y': project.school_y,
-                    'adviser': project.adviser,
-                    'co_advisor': project.co_advisor,
-                    'strategic': project.strategic,
-                    'plan': project.plan,
-                    'key_result': project.key_result,
-                    'bg_and_sig_para1': project.bg_and_sig_para1,
-                    'bg_and_sig_para2': project.bg_and_sig_para2,
-                    'bg_and_sig_para3': project.bg_and_sig_para3,
-                    'purpose_1': project.purpose_1,
-                    'purpose_2': project.purpose_2,
-                    'purpose_3': project.purpose_3,
-                    'authors': list(
-                        SpProjectAuthor.objects.filter(user=user, project=project)
-                        .values_list('name', flat=True)
-                    ),
-                }
-                authors = list(
-                    SpProjectAuthor.objects.filter(userid=user.user_id, project=project)
-                    .values_list('name', flat=True)
-                )
-                initial['authors'] = authors
-                status_message = {'message': '✅ ดึงข้อมูลสำเร็จแล้ว!', 'type': 'success'}
-            except SpProject.DoesNotExist:
-                initial = {}
-                status_message = {'message': 'ยังไม่มีข้อมูล', 'type': 'info'}
-
-        elif action in ('save', 'generate'):
-            # อ่านค่าจากฟอร์ม
-            name_pro_th   = request.POST.get('name_pro_th', '')
-            name_pro_en   = request.POST.get('name_pro_en', '')
-            case_stu      = request.POST.get('case_stu', '')
-            term          = request.POST.get('term', '')
-            school_y      = request.POST.get('school_y', '')
-            adviser       = request.POST.get('adviser', '')
-            co_advisor    = request.POST.get('co_advisor', '')
-            strategic     = request.POST.get('strategic', '')
-            plan          = request.POST.get('plan', '')
-            key_result    = request.POST.get('key_result', '')
-            bg_and_sig_para1 = request.POST.get('bg_and_sig_para1', '')
-            bg_and_sig_para2 = request.POST.get('bg_and_sig_para2', '')
-            bg_and_sig_para3 = request.POST.get('bg_and_sig_para3', '')
-            purpose_1 = request.POST.get('purpose_1', '')
-            purpose_2 = request.POST.get('purpose_2', '')
-            purpose_3 = request.POST.get('purpose_3', '')
-            # authors list
-            authors = []
-            try:
-                authors = json.loads(request.POST.get('authors_json', '[]'))
-            except Exception:
-                pass
-
-            if action == 'save':
-                project, created = SpProject.objects.update_or_create(
-                    user=user,
-                    defaults={
-                        'name_pro_th': name_pro_th,
-                        'name_pro_en': name_pro_en,
-                        'case_stu': case_stu,
-                        'term': term,
-                        'school_y': school_y,
-                        'adviser': adviser,
-                        'co_advisor': co_advisor,
-                        'strategic': strategic,
-                        'plan': plan,
-                        'key_result': key_result,
-                        'bg_and_sig_para1': bg_and_sig_para1,
-                        'bg_and_sig_para2': bg_and_sig_para2,
-                        'bg_and_sig_para3': bg_and_sig_para3,
-                        'purpose_1': purpose_1,
-                        'purpose_2': purpose_2,
-                        'purpose_3': purpose_3,
-                    }
-                )
-                SpProjectAuthor.objects.filter(user=user, project=project).delete()
-                for name in authors:
-                    SpProjectAuthor.objects.create(user=user, name=name, project=project)
-
-                initial = {
-                    'name_pro_th': name_pro_th,
-                    'name_pro_en': name_pro_en,
-                    'case_stu': case_stu,
-                    'term': term,
-                    'school_y': school_y,
-                    'adviser': adviser,
-                    'co_advisor': co_advisor,
-                    'strategic': strategic,
-                    'plan': plan,
-                    'key_result': key_result,
-                    'bg_and_sig_para1': bg_and_sig_para1,
-                    'bg_and_sig_para2': bg_and_sig_para2,
-                    'bg_and_sig_para3': bg_and_sig_para3,
-                    'purpose_1': purpose_1,
-                    'purpose_2': purpose_2,
-                    'purpose_3': purpose_3,
-                    'authors': authors,
-                }
-                status_message = {'message': '✅ บันทึกข้อมูลสำเร็จแล้ว!', 'type': 'success'}
-
-            elif action == 'generate':
-                doc = doc_sp_01(
-                    name_pro_th, name_pro_en, authors,
-                    case_stu, term, school_y,
-                    adviser, co_advisor,
-                    strategic, plan, key_result,
-                    bg_and_sig_para1, bg_and_sig_para2, bg_and_sig_para3,
-                    purpose_1, purpose_2, purpose_3,
-                )
-                response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-                response['Content-Disposition'] = 'attachment; filename=sp_project_form.docx'
-                doc.save(response)
-                return response
-
-    if request.path.endswith('/sp_project_form_2/'):
-        return render(request, 'sp_project_form_2.html', {'initial': initial, 'status_message': status_message})
-    else:
-        return render(request, 'sp_project_form.html', {'initial': initial, 'status_message': status_message})
 
 
 # ---------------- บทคัดย่อ + กิตติกรรมประกาศ ----------------
@@ -355,7 +222,7 @@ def abstract_ack_view(request):
 @login_required
 def certificate_view(request):
     user = request.user
-    uid = _current_user_id(request)
+    uid = current_user_id(request)
     intro = DocIntroduction.objects.filter(user_id=uid).first()
     if not intro:
         messages.error(request, "ยังไม่มีข้อมูล Project Setup กรุณากรอกก่อน")
@@ -777,7 +644,7 @@ def _parse_lines_to_list(text):
 
 @transaction.atomic
 def project_setup_view(request):
-    uid = _current_user_id(request)
+    uid = current_user_id(request)
     if not uid:
         return render(request, 'project_setup.html', {
             'initial': {'error': 'ไม่พบ user_id กรุณาเข้าสู่ระบบหรือลองใหม่'}

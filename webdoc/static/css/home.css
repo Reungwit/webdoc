@@ -1061,7 +1061,67 @@ button,
 }
 
 
+/* ===== Fixed width for typing boxes (no layout shift) ===== */
+:root{
+  /* กำหนดความกว้างขั้นต่ำเป็นจำนวนตัวอักษร (หน่วย ch) */
+  --typing-hero-ch: 24;   /* กล่องใน Hero */
+  --typing-demo-ch: 28;   /* กล่องเดโม .fx-typing */
+}
 
+/* 1) กล่องพิมพ์ใน HERO */
+.hero-left #typing-text{
+  display: inline-block;               /* ให้กำหนดความกว้างได้ */
+  min-width: calc(var(--typing-hero-ch) * 1ch);
+  white-space: nowrap;                 /* ไม่ห่อบรรทัด เพื่อไม่ทำให้สูง/ต่ำเปลี่ยน */
+}
+
+/* 2) กล่องพิมพ์ในเดโมฟีเจอร์ */
+.fx-typing{ width: fit-content; }      /* ให้กล่องพอดีเนื้อหา แต่เราจะตรึงเนื้อหาไว้ */
+.fx-typing__text{
+  display: block;
+  min-width: calc(var(--typing-demo-ch) * 1ch);
+  white-space: nowrap;
+}
+
+/* ป้องกันการสั่นจาก caret ดันข้อความ */
+.fx-caret{
+  display: inline-block;
+  width: 10px;                         /* มีอยู่แล้วในไฟล์เดิม แต่ย้ำให้คงที่ */
+}
+
+/* ปรับค่า min-width สำหรับจอเล็ก เพื่อไม่ให้หลุดขอบ */
+@media (max-width: 640px){
+  :root{
+    --typing-hero-ch: 18;
+    --typing-demo-ch: 22;
+  }
+}
+
+/* กล่องพิมพ์ข้อความใน Hero */
+.hero-left #typing-text {
+  display: inline-block;
+  width: 100%;               /* ให้เต็มบรรทัด เพื่อให้ตัดคำได้ตามปกติ */
+  min-height: 1.2em;         /* สูงเท่าข้อความ 1 บรรทัด เพื่อไม่ให้ขยับขึ้นลง */
+  vertical-align: baseline;
+  white-space: normal;       /* ✅ อนุญาตให้ตัดคำ */
+      /* ✅ ตัดคำภาษาไทยได้ */
+}
+
+/* ถ้าใช้เอฟเฟกต์เคอร์เซอร์กระพริบ */
+.hero-left #typing-text::after {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 1em;
+  background: var(--primary);
+  margin-left: 3px;
+  animation: blink 1s infinite;
+  vertical-align: middle;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
 /* ================= Responsive ================= */
 @media (max-width:1024px) {
     .hero-left .hero-title {

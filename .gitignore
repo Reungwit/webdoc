@@ -1,29 +1,61 @@
-certificate.docx
-/webdoc/backend/__pycache__
-webdoc/backend/__pycache__/urls.cpython-310.pyc
-webdoc/backend/__pycache__/views.cpython-310.pyc
-webdoc/backend/__pycache__/views.cpython-310.pyc
-*.pyc
-*.pyc
-*.pyc
-webdoc/man_doc/__pycache__/doc_refer.cpython-310.pyc
-webdoc/man_doc/__pycache__/doc_refer.cpython-310.pyc
-db/certificate.sql
-*.pyc
-*.pyc
-webdoc/backend/__pycache__/admin.cpython-310.pyc
-/webdoc/backend/__pycache__
-*.pyc
-*.pyc
-<<<<<<< HEAD
-/webdoc/man_doc/__pycache__
-=======
-*.pyc
-*.pyc
->>>>>>> 5b0ae3c32a75f21c66ca2da050f2ac23f8d8ee8e
-<<<<<<< Updated upstream
-=======
-*.pyc
-/webdoc/man_doc/__pycache__
->>>>>>> Stashed changes
-*.pyc
+# ---- Python / Django ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+
+# keep migration files but ignore their caches
+migrations/**/__pycache__/
+migrations/**/*.pyc
+
+# Local settings / secrets
+.env
+.env.*
+*.env
+*.pem
+*.key
+
+# ---- Virtual Envs ----
+.venv/
+venv/
+ENV/
+env/
+
+# ---- Django static/media (deploy/build output) ----
+staticfiles/
+static_root/
+media/
+media_root/
+
+# ---- DB (you use MySQL; keep dumps out of git) ----
+db/*.sql
+*.sql
+db/*.db
+db/*.sqlite3
+db.sqlite3
+
+# ---- Office/python-docx artifacts ----
+~$*.docx           # temp lock files from Word
+# ถ้ามีโฟลเดอร์เก็บไฟล์ที่ระบบสร้างอัตโนมัติ ให้ ignore แบบเจาะจง เช่น:
+generated_docs/
+exports/
+output/
+
+# ---- Docker ----
+.docker/
+.dockerignore
+docker-data/
+tmp/
+*.pid
+
+# ---- Editors/OS ----
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# ---- Node/Front-end (ถ้าไม่ใช้ ลบทิ้งได้) ----
+node_modules/
+dist/
+build/

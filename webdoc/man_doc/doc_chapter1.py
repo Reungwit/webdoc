@@ -121,7 +121,12 @@ def doc_chapter1(
         else:
             txt = (item or "").strip()
         if txt:
-            add_paragraph_indent(doc, f"1.7.{i}  {txt}", custom_tap=0.8)
-
+            add_paragraph_indent(doc, f"1.7.{i}  {txt}",custom_tap=0.8)
+            
+            
+            
+            
+            
+            
     return doc
 

@@ -151,7 +151,7 @@ def add_signature_at_page_bottom(doc, section, caption: str, underline_len: int 
     bottom_margin_pt = section.bottom_margin.pt
     line_pt = 16.0
     y_pt = page_height_pt - bottom_margin_pt - bottom_gap_pt - line_pt
-    y_tw = _twips_from_pt(y_pt)
+    y_tw = twips_from_pt(y_pt)
 
     # --- สร้างย่อหน้าและปรับ framePr ---
     p = doc.add_paragraph()

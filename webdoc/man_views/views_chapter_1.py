@@ -10,7 +10,10 @@ from django.http import FileResponse, HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 
-from backend.models import DocChapter1 as Chapter1
+try:
+    from backend.models import DocChapter1 as Chapter1
+except Exception:
+    from backend.models import SpChapter1 as Chapter1
 
 from man_doc.doc_chapter1 import doc_chapter1
 
@@ -23,6 +26,110 @@ DEFAULT_TITLES = [
     "นิยามศัพท์เฉพาะ",
     "ประโยชน์ที่คาดว่าจะได้รับ",
 ]
+
+
+def _sections_doc_safe(sections_any: Any) -> List[Dict[str, Any]]:
+    """
+    ปรับโครงสร้าง sections ให้ปลอดภัยสำหรับ doc_chapter1 เสมอ
+    - บังคับให้มีครบเท่าจำนวน DEFAULT_TITLES
+    - index 0 ต้องมี paragraphs (list[str]); ถ้าไม่มีให้แตกจาก body หรือจาก mains
+    - index อื่น ๆ ต้องมี mains (list[{'text': str, 'subs': list[str]}])
+    - title/ body ต้องเป็น string เสมอ
+    """
+    raw = _safe_parse_list(sections_any, [])
+    want_n = len(DEFAULT_TITLES)
+
+    # สร้างโครงว่างครบทุกหัวข้อก่อน
+    out: List[Dict[str, Any]] = []
+    for i, t in enumerate(DEFAULT_TITLES):
+        if i == 0:
+            out.append({"title": t, "body": "", "paragraphs": [], "mains": []})
+        else:
+            out.append({"title": t, "body": "", "mains": []})
+
+    # อัดค่าที่มีอยู่ลงโครง พร้อมแปลงชนิดข้อมูลให้ถูกต้อง
+    for i in range(min(len(raw), want_n)):
+        src = raw[i] if isinstance(raw[i], dict) else {}
+        title = _t(src.get("title") or (DEFAULT_TITLES[i] if i < want_n else ""))
+
+        # ---- หัวข้อ 1.1: ต้องได้ paragraphs เสมอ ----
+        if i == 0:
+            # 1) ถ้ามี paragraphs มาอยู่แล้ว
+            paras = []
+            paras_in = src.get("paragraphs")
+            if isinstance(paras_in, list):
+                for p in paras_in:
+                    txt = _t(p if isinstance(p, str) else (p.get("text") if isinstance(p, dict) else ""))
+                    if txt:
+                        paras.append(txt)
+
+            # 2) ถ้าไม่มี paragraphs ลองแตกจาก body
+            if not paras:
+                body = _t(src.get("body"))
+                if body:
+                    paras = [p.strip() for p in body.replace("\r\n", "\n").split("\n\n") if p.strip()]
+
+            # 3) ถ้ายังว่าง ลองแปลงจาก mains->paragraphs (ใช้เฉพาะ text/subs รวมเป็นย่อหน้า)
+            if not paras and isinstance(src.get("mains"), list):
+                tmp = []
+                for m in src["mains"]:
+                    if not isinstance(m, dict):
+                        continue
+                    main_txt = _t(m.get("text") or m.get("title") or m.get("name"))
+                    subs = m.get("subs") if isinstance(m.get("subs"), list) else []
+                    subs_txt = [ _t(s if isinstance(s, str) else (s.get("text") if isinstance(s, dict) else "")) for s in subs ]
+                    chunk = "\n".join([x for x in [main_txt, *subs_txt] if x])
+                    if chunk:
+                        tmp.append(chunk)
+                if tmp:
+                    paras = tmp
+
+            out[0].update({
+                "title": title,
+                "body": _t(src.get("body")),
+                "paragraphs": paras,
+                "mains": [],   # 1.1 ไม่ใช้ mains
+            })
+            continue
+
+        # ---- หัวข้อ 1.2+ : ต้องได้ mains เสมอ ----
+        body = _t(src.get("body"))
+        mains_out = []
+
+        # 1) ถ้ามี mains มาอยู่แล้ว
+        if isinstance(src.get("mains"), list):
+            for m in src["mains"]:
+                if not isinstance(m, dict):
+                    continue
+                text = _t(m.get("text") or m.get("title") or m.get("name"))
+                subs_in = m.get("subs") if isinstance(m.get("subs"), list) else []
+                subs = [ _t(s if isinstance(s, str) else (s.get("text") if isinstance(s, dict) else "")) for s in subs_in ]
+                mains_out.append({"text": text, "subs": [s for s in subs if s]})
+
+        # 2) เผื่อกรอกมาแบบ points (จาก UI)
+        elif isinstance(src.get("points"), list):
+            for p in src["points"]:
+                if isinstance(p, dict):
+                    text = _t(p.get("main") or p.get("text") or p.get("title"))
+                    subs_in = p.get("subs") if isinstance(p.get("subs"), list) else []
+                    subs = [ _t(s if isinstance(s, str) else (s.get("text") if isinstance(s, dict) else "")) for s in subs_in ]
+                    mains_out.append({"text": text, "subs": [s for s in subs if s]})
+                elif isinstance(p, str):
+                    txt = _t(p)
+                    if txt:
+                        mains_out.append({"text": txt, "subs": []})
+
+        # 3) ไม่มีอะไรเลย ก็ให้เป็นลิสต์ว่าง
+        out[i].update({
+            "title": title,
+            "body": body,
+            "mains": mains_out,
+        })
+
+    return out
+
+
+
 
 def _safe_parse_list(raw: Any, fallback: list) -> list:
     # รับได้ทั้ง str/list จากฟอร์มหรือ DB
@@ -200,7 +307,11 @@ def chapter_1_view(request: HttpRequest) -> HttpResponse:
 
             elif action == "generate_docx":
                 ui_in = _safe_parse_list(raw_json, [])
+                # ถ้ามีอินพุตจากฟอร์ม แปลง UI->DB; ถ้าไม่มีก็ใช้ของเดิมจาก DB
                 sections_for_doc = _sections_db_from_ui(ui_in) if ui_in else db_sections
+                # ค้ำประกันโครงสร้างให้ปลอดภัยต่อการ index ภายใน doc_chapter1
+                sections_for_doc = _sections_doc_safe(sections_for_doc)
+
                 if not intro_body:
                     intro_body = db_intro
 
@@ -214,6 +325,8 @@ def chapter_1_view(request: HttpRequest) -> HttpResponse:
                     filename="chapter1.docx",
                     content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 )
+
+
 
             else:
                 messages.info(request, "ยังไม่รองรับการทำงานนี้")

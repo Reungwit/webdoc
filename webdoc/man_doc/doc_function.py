@@ -26,56 +26,47 @@ def doc_setup():
     style.paragraph_format.space_after = Pt(0)
     style.paragraph_format.line_spacing = 1.0
 
-    # ตั้งค่าขอบกระดาษ
-    section = doc.sections[0]
-    section.top_margin = Inches(2.0)  # กำหนด margin หน้าแรก
+    # ✅ ใช้ first section แบบปลอดภัย (กัน edge-case)
+    section = doc.sections[0] if getattr(doc, "sections", None) and len(doc.sections) > 0 \
+              else doc.add_section(WD_SECTION.NEW_PAGE)
+
+    section.top_margin    = Inches(2.0)  # กำหนด margin หน้าแรก
     section.bottom_margin = Inches(1)
-    section.left_margin = Inches(1.5)
-    section.right_margin = Inches(1)
+    section.left_margin   = Inches(1.5)
+    section.right_margin  = Inches(1)
 
     return doc
 
-def add_center_paragraph(doc, text, bold=False ,font_size=16):
-    p = doc.add_paragraph(text)
+def add_center_paragraph(doc, text, bold=False, font_size=16):
+    p = doc.add_paragraph()
+    r = p.add_run(text or "")
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    if bold and p.runs:
-        p.runs[0].bold = True
-    else:
-        p.runs[0].bold = False
-    if p.runs:
-        p.runs[0].font.size = Pt(font_size)  # ตั้งค่าขนาดฟอนต์ในพารากราฟ    
-    
+    r.bold = bool(bold)
+    r.font.size = Pt(font_size)
     return p
 
 def add_left_paragraph(doc, text, bold=False):
-    p = doc.add_paragraph(text)
+    p = doc.add_paragraph()
+    r = p.add_run(text or "")
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    if bold and p.runs:
-        p.runs[0].bold = True
-    else:
-        p.runs[0].bold = False
+    r.bold = bool(bold)
     return p
-
 
 def add_right_paragraph(doc, text, bold=False):
-    p = doc.add_paragraph(text)
+    p = doc.add_paragraph()
+    r = p.add_run(text or "")
     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    if bold and p.runs:
-        p.runs[0].bold = True
-    else : p.runs[0].bold = False
+    r.bold = bool(bold)
     return p
 
+
 def add_paragraph_indent(doc, text, bold=False, custom_tap: float = 0.0):
-    p = doc.add_paragraph(text)
-    if bold and p.runs:
-        p.runs[0].bold = True
-    else : p.runs[0].bold = False
-    
-    if custom_tap:
-        p.paragraph_format.first_line_indent = Cm(custom_tap)
-    else:
-        p.paragraph_format.first_line_indent = Cm(1.00)
+    p = doc.add_paragraph()
+    r = p.add_run(text or "")
+    r.bold = bool(bold)
+    p.paragraph_format.first_line_indent = Cm(custom_tap if custom_tap else 1.00)
     return p
+
 
 def add_wrapped_paragraph(p_or_doc, text: str, n: int, disth: bool = False ,extap: bool = False,tap: bool = False , custom_tap: float = 0.0):
     """
@@ -168,10 +159,6 @@ def add_page_break(doc, top_margin_inch=1.5):
     
 # ฟังก์ชัน จัดหัวข้อ หลัก/ย่อย รูปแบบข้อมูลJSON 
 def iter_sections(sections: List[Dict[str, Any]]) -> Iterable[Tuple[str, str, List[Dict[str, Any]]]]:
-    """
-    รองรับ schema จากหน้า chapter_5.html
-      [{ title, body, points:[{ main, subs:[str] }] }, ...]
-    """
     sections = sections if isinstance(sections, list) else []
     for sec in sections:
         if not isinstance(sec, dict):
@@ -185,11 +172,8 @@ def iter_sections(sections: List[Dict[str, Any]]) -> Iterable[Tuple[str, str, Li
                 if isinstance(p, dict):
                     mains.append({
                         "text": (p.get("main") or p.get("text") or p.get("title") or "").strip(),
-                        "subs": [
-                            (s if isinstance(s, str) else
-                             (s.get("text") or s.get("title") or s.get("name") or "")
-                            ) for s in (p.get("subs") or [])
-                        ]
+                        "subs": [ (s if isinstance(s, str) else (s.get("text") or s.get("title") or s.get("name") or ""))
+                                  for s in (p.get("subs") or []) ]
                     })
                 elif isinstance(p, str):
                     mains.append({"text": p.strip(), "subs": []})

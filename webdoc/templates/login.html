@@ -6,20 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เข้าสู่ระบบ - ระบบจัดการเอกสาร</title>
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
-    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-<<<<<<< HEAD
-  <form method="post">
-    {% csrf_token %}
-    <img class ="img_logo" src="{% static 'img/kmutnb_logo.png' %}" alt="logo" width ="200" >
-    {{ form.as_p }}
-    <button type="submit">เข้าสู่ระบบ</button>
-    ยังไม่มีบัญชี <a href="{% url 'webdoc:register' %}">สมัครสมาชิก</a>
-  </form>
-=======
    
 
     <!-- Main Login Container -->
@@ -157,6 +148,6 @@
             }
         });
     </script>
->>>>>>> master
+
 </body>
 </html>

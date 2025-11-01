@@ -8,7 +8,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
-
+from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 class CustomUser(AbstractUser):
     user_id = models.AutoField(primary_key=True)
@@ -423,3 +424,87 @@ class Chapter5(models.Model):
         return f'Chapter5(doc_id={self.doc_id}, user_id={self.user_id})'
 
 
+# =========================================================
+# ตารางบท (tb_chap)
+# =========================================================
+class TbChap(models.Model):
+    chap_id = models.AutoField(primary_key=True)
+    chap_name = models.CharField(max_length=255, blank=True, null=True)
+    chap_no = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tb_chap'
+
+    def __str__(self):
+        return f"บทที่ {self.chap_no or '?'} - {self.chap_name or ''}"
+
+
+# =========================================================
+# ตารางรูปภาพ (tb_picture)
+# =========================================================
+class TbPicture(models.Model):
+    pic_id = models.AutoField(primary_key=True)
+    pic_data_json = models.JSONField()  # {"pic_no":"2-1","pic_name":"...","pic_path":"..."}
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.DO_NOTHING,
+        db_column='user_id',
+        related_name='pictures'
+    )
+    chap = models.ForeignKey(
+        TbChap,
+        on_delete=models.DO_NOTHING,
+        db_column='chap_id',
+        related_name='pictures'
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'tb_picture'
+
+    def __str__(self):
+        data = self.pic_data_json or {}
+        return f"ภาพที่ {data.get('pic_no','')} {data.get('pic_name','')}"
+
+
+# =========================================================
+# ตารางเนื้อหาบทที่ 2 (doc_chapter_2)
+# =========================================================
+class DocChapter2(models.Model):
+    doc_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.DO_NOTHING,
+        db_column='user_id',
+        related_name='chapter2_docs'
+    )
+    intro_body = models.TextField(blank=True, null=True)
+    sections_json = models.JSONField(blank=True, null=True)
+
+    chap = models.ForeignKey(
+        TbChap,
+        on_delete=models.DO_NOTHING,
+        db_column='chap_id',
+        related_name='chapter2_docs'
+    )
+
+    # FK ไป tb_picture (ภาพหลัก ถ้าใช้)
+    pic = models.ForeignKey(
+        TbPicture,
+        on_delete=models.DO_NOTHING,
+        db_column='pic_id',
+        related_name='chapter2_docs',
+        blank=True,
+        null=True
+    )
+
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'doc_chapter_2'
+
+    def __str__(self):
+        return f"บทที่ 2 ของ {self.user.full_name or self.user.email}"

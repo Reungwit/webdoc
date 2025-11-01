@@ -14,6 +14,8 @@
       {% csrf_token %}
 
       <div class="text-center"><h1>บทที่ 1</h1></div>
+      <!-- Anchor for chapter outline main item (section-0) -->
+      <div id="section-0"></div>
         {% if messages %}
     <ul class="messages">
         {% for message in messages %}
@@ -50,32 +52,33 @@
         <span class="number" aria-hidden="true"></span>
         <input type="text" class="title-input" placeholder="ชื่อหัวข้อใหญ่" />
       </div>
-
+      <label class="form-label body-label">เนื้อหา (ย่อหน้า)</label>
       <div class="card-body">
         <!-- ▼ โหมดย่อหน้า: ใช้เฉพาะหัวข้อ 1.1 -->
         <div class="para-mode" hidden>
           <div class="para-wrap"></div>
           <div class="row" style="gap:8px;margin:8px 0 12px;">
+            
             <button type="button" class="btn btn-outline-secondary me-2" data-cmd="add-para">+ เพิ่มย่อหน้า</button>
-            <button type="button" class="btn btn-outline-warning" data-cmd="remove-para">ลบย่อหน้า (ล่าสุด)</button>
+            <button type="button" class="btn btn-outline-danger" data-cmd="remove-para">ลบย่อหน้า (ล่าสุด)</button>
           </div>
         </div>
 
         <!-- ▼ โหมดเนื้อหา/หัวข้อย่อย: ใช้กับหัวข้อ 1.2+ (เดิม) -->
-        <label class="form-label body-label">เนื้อหา (ย่อหน้า)</label>
+        
         <textarea class="form-control body-input" rows="5" placeholder="พิมพ์เนื้อหาโดยสรุปของหัวข้อนี้..."></textarea>
 
         <div class="subblock">
           <div class="row" style="gap:8px;margin:8px 0 12px;">
             <button type="button" class="btn btn-outline-secondary me-2" data-cmd="add-main">+ เพิ่มหัวข้อหลัก (1.x.y)</button>
-            <button type="button" class="btn btn-outline-warning" data-cmd="remove-main">ลบหัวข้อหลัก (ข้อล่าสุด)</button>
+            <button type="button" class="btn btn-outline-danger" data-cmd="remove-main">ลบหัวข้อหลัก (ข้อล่าสุด)</button>
           </div>
           <input type="hidden" class="main-count" value="0">
           <div class="mains-wrap"></div>
         </div>
 
         <div class="controls row" style="margin-top:8px;">
-          <button type="button" class="btn btn-outline-warning" data-cmd="remove-section" hidden>ลบหัวข้อใหญ่</button>
+          <button type="button" class="btn btn-outline-danger" data-cmd="remove-section" hidden>ลบหัวข้อใหญ่</button>
         </div>
       </div>
     </div>
@@ -157,7 +160,7 @@
       const mainNumStr = `1.${rootIdx}.${index}`;
       controls.innerHTML = `
         <button type="button" class="btn btn-outline-secondary me-2" data-subcmd="add" data-main="${index}">+ เพิ่มหัวข้อย่อย (${mainNumStr}.x)</button>
-        <button type="button" class="btn btn-outline-warning" data-subcmd="remove" data-main="${index}">ลบหัวข้อย่อย (ข้อล่าสุด)</button>
+        <button type="button" class="btn btn-outline-danger" data-subcmd="remove" data-main="${index}">ลบหัวข้อย่อย (ข้อล่าสุด)</button>
       `;
 
       const subCount = document.createElement('input');
@@ -190,6 +193,8 @@
     function createSectionNode(data={title:'', body:'', points:[]}, index=1){
       const node = document.getElementById('tmpl-section').content.firstElementChild.cloneNode(true);
       node.dataset.sid = (++secAutoId).toString();
+      // Assign an id used by the index page outline scrolling
+      node.id = `section-${index}`;
 
       $('.title-input', node).value = data.title || '';
       $('.body-input',  node).value = data.body  || '';

@@ -436,8 +436,7 @@ class DocChapter2(models.Model):
     )
     intro_body = models.TextField(blank=True, null=True)
     sections_json = models.JSONField(blank=True, null=True)
-    pic_data_json = models.JSONField(default=list)  # ใน DB เป็น NOT NULL -> ให้ default เป็น []
-    chap_no = models.IntegerField(blank=True, null=True)
+    chap_id = models.IntegerField(blank=True, null=True)
 
     # คอลัมน์เวลาใช้ค่าใน DB ที่เป็น DEFAULT CURRENT_TIMESTAMP / ON UPDATE CURRENT_TIMESTAMP
     created_at = models.DateTimeField(blank=True, null=True)

@@ -4,10 +4,6 @@ python manage.py runserver
 python manage.py makemigrations
 python manage.py migrate
 
-
-=======
-=======
->>>>>>> Stashed changes
 พรอม
 ตอนนี้ฉันทำโปรเจค จัดรูปเล่มเอกสารอัตโนมัติ ใช้งานผ่านเว็บไซต์ ใช้ django สร้างเว็บไซต์ และใช้ python docx 
 ในการจัดรูปแบบเอกสาร และใช้ database เป็น Mysql ร่วมกับ phpMyadmin และมีdocker ในอนาคต 

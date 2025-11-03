@@ -102,7 +102,10 @@ def chapter_2_view(request):
             status=400
         )
 
-    # ---------- GET (แสดงหน้า) ----------
-    return render(request, 'chapter_2.html', {
-        'page_title': 'บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง'
+        # ----------------- unknown action -----------------
+        return JsonResponse({"status": "error", "message": f"ไม่รู้จัก action: {action}"})
+
+    # GET: render หน้า
+    return render(request, "chapter_2.html", {
+        "page_title": "บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง"
     })

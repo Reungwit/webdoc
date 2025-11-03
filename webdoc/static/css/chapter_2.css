@@ -17,7 +17,7 @@
   --font-stack:     "Prompt","Noto Sans Thai",system-ui,-apple-system,"Segoe UI",Roboto,"TH SarabunPSK",sans-serif;
 }
 
-/* ----- Layout / Page Shell ----- */
+/* ----- Page shell ----- */
 body {
   background: var(--bg-page);
   font-family: var(--font-stack);
@@ -51,32 +51,34 @@ body {
   color: #000;
 }
 
-/* ----- Alert Box ----- */
-#alert-box {
-  font-size: 14px;
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
-  border: 1px solid var(--line-accent);
-  background: #eef2ff;
-  color: #1d2a73;
-  display: none;
-  margin-bottom: 20px;
+/* ----- Alert box ----- */
+#alert-box{
+  font-size:14px;
+  border-radius:var(--radius-md);
+  padding:10px 12px;
+  border:1px solid var(--line-accent);
+  background:#eef2ff;
+  color:#1d2a73;
+  display:none;
+  margin-bottom:20px;
 }
-#alert-box.show { display: block; }
-#alert-box.success {
-  background: #ecfdf5;
-  border-color: #a7f3d0;
-  color: #065f46;
+#alert-box.show{
+  display:block;
 }
-#alert-box.error {
-  background: #fef2f2;
-  border-color: #fecaca;
-  color: #7f1d1d;
+#alert-box.success{
+  background:#ecfdf5;
+  border-color:#a7f3d0;
+  color:#065f46;
 }
-#alert-box.warning {
-  background: #fffbeb;
-  border-color: #fde68a;
-  color: #78350f;
+#alert-box.error{
+  background:#fef2f2;
+  border-color:#fecaca;
+  color:#7f1d1d;
+}
+#alert-box.warning{
+  background:#fffbeb;
+  border-color:#fde68a;
+  color:#78350f;
 }
 
 /* ----- Card Section Wrapper ----- */
@@ -99,29 +101,37 @@ body {
 .section-desc {
   font-size: 13px;
   color: var(--txt-soft);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
-/* ----- Textarea ----- */
-textarea {
-  width: 100%;
-  min-height: 100px;
-  background: var(--bg-card);
+/* ----- textarea-block : ป้องกัน textarea ล้นกรอบ ----- */
+.textarea-block {
+  background: #fff;
   border: 1px solid var(--line-soft);
   border-radius: var(--radius-md);
   padding: 12px;
+  box-sizing: border-box;
+  margin-top: 12px;
+}
+.textarea-block textarea {
+  width: 100%;
+  min-height: 100px;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: vertical;
   font-family: var(--font-stack);
   font-size: 15px;
   line-height: 1.5;
   color: #111;
-  outline: none;
+  box-sizing: border-box;
 }
-textarea:focus {
+.textarea-block:focus-within {
   border-color: var(--line-accent);
   box-shadow: 0 0 0 3px rgba(141,148,252,.25);
 }
 
-/* ----- Sections Container (2.x) ----- */
+/* ----- Sections Container (2.x list) ----- */
 .chapter2-sections-wrapper {
   background: var(--bg-card);
   border: 1px solid var(--line-soft);
@@ -130,7 +140,7 @@ textarea:focus {
   padding: 16px;
 }
 
-/* ----- การ์ดของหัวข้อหลัก (2.1, 2.2 ...) ----- */
+/* ----- การ์ดหัวข้อใหญ่ (2.1,2.2,...) ----- */
 .chapter-section-card {
   border: 1px solid rgba(141,148,252,.4);
   background: var(--bg-inner);
@@ -172,7 +182,7 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(141,148,252,.25);
 }
 
-/* ----- Overview (ย่อหน้าอธิบายหัวข้อใหญ่) ----- */
+/* ----- Overview block ของหัวข้อใหญ่ ----- */
 .overview-block {
   background: #fff;
   border: 1px solid var(--line-soft);
@@ -236,7 +246,7 @@ textarea:focus {
   gap: 6px;
 }
 
-/* ----- Buttons Mini (ใน Node / ย่อหน้า / เพิ่มรูป) ----- */
+/* ----- ปุ่มจิ๋วใน node / paragraphs / รูป ----- */
 .mini-btn {
   background: #fff;
   border: 1px solid var(--line-accent);
@@ -251,7 +261,7 @@ textarea:focus {
   background: #eef2ff;
 }
 
-/* ----- Paragraph editor per node ----- */
+/* ----- Paragraph editor ----- */
 .para-row {
   display: flex;
   align-items: flex-start;
@@ -262,7 +272,20 @@ textarea:focus {
   flex: 1;
   min-height: 70px;
   font-size: 14px;
+  font-family: var(--font-stack);
+  line-height: 1.4;
+  background: #fff;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  box-sizing: border-box;
 }
+.para-row textarea:focus {
+  outline: none;
+  border-color: var(--line-accent);
+  box-shadow: 0 0 0 3px rgba(141,148,252,.25);
+}
+
 .del-para-btn {
   background: #fff;
   border: 1px solid #fca5a5;
@@ -273,7 +296,10 @@ textarea:focus {
   padding: 6px 8px;
   cursor: pointer;
 }
-.del-para-btn:hover { background: #fef2f2; }
+.del-para-btn:hover {
+  background: #fef2f2;
+}
+
 .add-para-btn {
   background: #fff;
   border: 1px solid var(--line-accent);
@@ -285,7 +311,9 @@ textarea:focus {
   cursor: pointer;
   margin-top: 4px;
 }
-.add-para-btn:hover { background: #eef2ff; }
+.add-para-btn:hover {
+  background: #eef2ff;
+}
 
 /* ----- Picture box ----- */
 .pics-box {
@@ -315,13 +343,16 @@ textarea:focus {
   border-radius: var(--radius-sm);
   font-size: 13px;
   padding: 8px 10px;
+  font-family: var(--font-stack);
 }
 .pic-caption-input:focus {
   outline: none;
   border-color: var(--line-accent);
   box-shadow: 0 0 0 3px rgba(141,148,252,.25);
 }
-.pic-list { margin-top: 6px; }
+.pic-list {
+  margin-top: 6px;
+}
 .pic-item {
   background: #fff;
   border: 1px solid var(--line-soft);
@@ -338,7 +369,14 @@ textarea:focus {
   word-break: break-all;
 }
 
-/* ----- Footer Action Bar (ปุ่มล่างสุด) ----- */
+/* children block (หัวข้อย่อยระดับถัดไป) */
+.children-block {
+  border-left: 2px dotted var(--line-soft);
+  padding-left: 12px;
+  margin-top: 8px;
+}
+
+/* ----- Footer action bar ----- */
 .footer-action-bar {
   display: flex;
   flex-wrap: wrap;
@@ -349,7 +387,7 @@ textarea:focus {
   border-top: 1px solid var(--line-soft);
 }
 
-/* ----- ปุ่มหลัก 4 สี ----- */
+/* ----- main buttons (ล่างสุด + ปุ่มเพิ่มหัวข้อใหญ่) ----- */
 .main-btn {
   display: inline-flex;
   align-items: center;
@@ -367,6 +405,7 @@ textarea:focus {
 }
 .main-btn span.emoji {
   font-size: 15px;
+  line-height: 1;
 }
 
 /* น้ำเงิน (ดึงข้อมูล) */
@@ -375,7 +414,9 @@ textarea:focus {
   color: #fff;
   box-shadow: 0 8px 18px rgba(0,91,255,.35);
 }
-.main-btn-info:hover { background: #0046d4; }
+.main-btn-info:hover {
+  background: #0046d4;
+}
 
 /* เขียว (บันทึกข้อมูล) */
 .main-btn-success {
@@ -383,24 +424,32 @@ textarea:focus {
   color: #fff;
   box-shadow: 0 8px 18px rgba(0,166,106,.35);
 }
-.main-btn-success:hover { background: #008d59; }
+.main-btn-success:hover {
+  background: #008d59;
+}
 
-/* ม่วง/เทาอ่อน (สร้างเอกสาร) */
+/* ม่วง/indigo (สร้างเอกสาร) */
 .main-btn-doc {
   background: #4f46e5;
   color: #fff;
   box-shadow: 0 8px 18px rgba(79,70,229,.35);
 }
-.main-btn-doc:hover { background: #4338ca; }
+.main-btn-doc:hover {
+  background: #4338ca;
+}
 
-/* ขาวขอบม่วง (เพิ่มหัวข้อใหญ่) */
+/* ปุ่มเพิ่มหัวข้อใหญ่ (โทนขาว/ขอบม่วง) */
 .main-btn-neutral {
   background: #ffffff;
   color: #1f2937;
   border: 1px solid var(--line-accent);
   box-shadow: 0 4px 10px rgba(141,148,252,.25);
 }
-.main-btn-neutral:hover { background: #eef2ff; }
+.main-btn-neutral:hover {
+  background: #eef2ff;
+}
 
-/* hide hidden input visually */
-#sections_json { display: none; }
+/* ซ่อน hidden input ที่เก็บ JSON */
+#sections_json {
+  display: none;
+}

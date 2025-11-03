@@ -4,43 +4,82 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{{ page_title }}</title>
+  <title>{{ page_title|default:"บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง" }}</title>
 
   <meta name="csrf-token" content="{{ csrf_token }}">
 
+  <!-- ฟอนต์ไทยอ่านง่าย -->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- สไตล์หลัก -->
   <link rel="stylesheet" href="{% static 'css/chapter_2.css' %}">
 </head>
+
 <body>
-  <div class="ch2-container">
-    <!-- HEADER -->
-    <header class="ch2-header">
+<div class="page-shell">
+
+  <!-- HEADER (ตอนนี้ไม่มีปุ่มแล้ว) -->
+  <div class="header-row">
+    <div class="header-left">
       <h1>บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง</h1>
-      <div class="ch2-buttons">
-        <button id="btnGetData"   type="button">🔄 ดึงข้อมูล</button>
-        <button id="btnSave"      type="button">💾 บันทึกข้อมูล</button>
-        <button id="btnGenerate"  type="button">📄 สร้างเอกสาร</button>
-      </div>
-    </header>
-
-    <!-- ALERT -->
-    <div id="alert-box" class="alert-box"></div>
-
-    <!-- INTRO -->
-    <section class="ch2-section">
-      <h2>คำนำบทที่ 2</h2>
-      <textarea id="intro_body" name="intro_body" placeholder="พิมพ์เนื้อหาคำนำบทที่ 2..." rows="6"></textarea>
-    </section>
-
-    <!-- SECTIONS -->
-    <section class="ch2-section">
-      <h2>หัวข้อ 2.1 และ 2.2 (คงที่)</h2>
-      <div id="sections-container" class="sections-container"></div>
-
-      <!-- hidden เก็บ JSON เมื่อกดบันทึก -->
-      <input type="hidden" id="sections_json" name="sections_json" value="[]">
-    </section>
+    </div>
   </div>
 
-  <script src="{% static 'js/chapter_2.js' %}"></script>
+  <!-- ALERT -->
+  <div id="alert-box"></div>
+
+  <!-- INTRO CARD -->
+  <section class="section-card-outer">
+    <div class="section-title-head">
+      <div>คำนำบทที่ 2</div>
+    </div>
+    <div class="section-desc">
+      พิมพ์คำนำรวมของบทนี้ ก่อนเข้าสู่หัวข้อย่อย
+      (เช่น ภาพรวมแนวคิด ทฤษฎี และงานวิจัย)
+    </div>
+
+    <textarea id="intro_body"
+              name="intro_body"
+              placeholder="พิมพ์เนื้อหาคำนำบทที่ 2 . . ."
+              rows="5"></textarea>
+  </section>
+
+  <!-- SECTIONS (2.x) -->
+  <section class="section-card-outer">
+    <div class="section-title-head">
+      <div>หัวข้อ 2.x + กล่องเพิ่มรูปต่อหัวข้อ + หัวข้อย่อยหลายระดับ</div>
+    </div>
+
+    <div id="sections-container" class="chapter2-sections-wrapper"></div>
+
+    <!-- ปุ่มเพิ่มหัวข้อใหญ่ -->
+    <div style="margin-top:12px;">
+      <button id="btnAddSection" class="main-btn main-btn-neutral" type="button" style="box-shadow:none;">
+        <span class="emoji">➕</span><span>เพิ่มหัวข้อใหญ่ (2.x ใหม่)</span>
+      </button>
+    </div>
+
+    <input type="hidden" id="sections_json" name="sections_json" value="[]">
+  </section>
+
+  <!-- FOOTER ACTION BAR -->
+  <div class="footer-action-bar">
+    <button id="btnGetData" class="main-btn main-btn-info" type="button">
+      <span class="emoji">🔄</span><span>ดึงข้อมูล</span>
+    </button>
+
+    <button id="btnSave" class="main-btn main-btn-success" type="button">
+      <span class="emoji">💾</span><span>บันทึกข้อมูล</span>
+    </button>
+
+    <button id="btnGenerate" class="main-btn main-btn-doc" type="button">
+      <span class="emoji">📄</span><span>สร้างเอกสาร</span>
+    </button>
+  </div>
+
+</div><!-- /.page-shell -->
+
+<script src="{% static 'js/chapter_2.js' %}"></script>
 </body>
 </html>

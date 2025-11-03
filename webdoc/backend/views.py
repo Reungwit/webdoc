@@ -43,6 +43,13 @@ from man_views.views_initial_refs import initial_refs_web_from_db, initial_books
 
 from man_views.views_format_dates_for_doc import format_dates_for_doc
 from man_views.views_collect_references import collect_references_from_post
+
+# ---------------- บทที่ 1 ----------------
+from man_views.views_chapter_1 import chapter_1_view
+
+# ---------------- บทที่ 2 (แก้ import ให้ตรงกับโฟลเดอร์จริง) ----------------
+from man_views.views_chapter_2 import chapter_2_view as chapter_2_view_logic
+
 # ========================================================
 
 
@@ -97,7 +104,8 @@ def chapter_1_view(request):
     return render(request, 'chapter_1.html')
 
 def chapter_2_view(request):
-    return render(request, 'chapter_2.html')
+    return chapter_2_view_logic(request)
+
 
 def chapter_3_view(request):
     return render(request, 'chapter_3.html')
@@ -118,8 +126,6 @@ def privacy_view(request):
     return render(request, "legal/privacy_policy.html")
 
 
-
-    
 
 
 
@@ -310,10 +316,6 @@ def refer_view(request):
             return render(request, 'refer.html', ctx)
 
     return render(request, 'refer.html')
-
-
-# ---------------- บทที่ 1 ----------------
-from man_views.views_chapter_1 import chapter_1_view
 
 
 # ---------------- บทที่ 5 ----------------

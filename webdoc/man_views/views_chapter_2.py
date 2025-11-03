@@ -1,52 +1,66 @@
-from django.shortcuts import render
-from django.http import JsonResponse
+# views_chapter_2.py
+
+from django.shortcuts import render, redirect
+from django.http import JsonResponse, FileResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.db import IntegrityError, transaction
-import json
-
-from backend.models import DocChapter2  # ต้องอ้างโมเดลบทที่ 2 ของคุณจริง ๆ
-
-# 1. (เพิ่ม Import) เราต้องการตัวจัดการไฟล์ของ Django
+from django.db import IntegrityError
+from django.conf import settings
 from django.core.files.storage import default_storage
+from io import BytesIO
+import json, traceback
+from django.contrib import messages
 
+# 1. [ปรับปรุง] Import ฟังก์ชันกลางที่ใช้ร่วมกันได้
+from man_doc.doc_function import _safe_parse_list
+from backend.models import DocChapter2
+from man_doc.doc_chapter2 import generate_doc
 
 @login_required
 def chapter_2_view(request):
-    user = request.user  # CustomUser ของคุณ
+    user = request.user
+    
+    # 2. [ปรับปรุง] ย้าย logic การดึงข้อมูลมาไว้ด้านบน (เหมือน chapter_1.py)
+    # เพื่อให้ใช้ได้ทั้ง GET และเป็น context เริ่มต้นสำหรับ POST
+    row = DocChapter2.objects.filter(user=user).first()
+    db_intro = (getattr(row, "intro_body", "") or "")
+    db_sections_raw = getattr(row, "sections_json", [])
+    
+    # 3. [ปรับปรุง] เรียกใช้ฟังก์ชันกลาง _safe_parse_list (เหมือน chapter_1.py)
+    db_sections = _safe_parse_list(db_sections_raw, [])
 
+    # ===== GET (ปรับปรุงใหม่) =====
+    if request.method == "GET":
+        # 4. [ปรับปรุง] ส่ง 'initial' data ไปให้ template (เหมือน chapter_1.py)
+        # เพื่อให้ json_script ใน chapter_2.html ทำงานได้
+        return render(request, "chapter_2.html", {
+            "page_title": "บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง",
+            "initial": {
+                "intro_body": db_intro,
+                "sections": db_sections,
+            }
+        })
+
+    # ===== POST (จัดการทุก action) =====
     if request.method == 'POST':
         action = (request.POST.get('action') or '').strip()
 
-        # ---------- ดึงข้อมูล (ไม่ได้แก้ไข) ----------
-        if action == 'get_data':
-            row = DocChapter2.objects.filter(user=user).first()
-            if row:
-                return JsonResponse({
-                    'initial': {
-                        'intro_body': row.intro_body or "",
-                        'sections': row.sections_json or [],
-                    }
-                })
-            else:
-                return JsonResponse({
-                    'initial': {
-                        'intro_body': "",
-                        'sections': [],
-                    }
-                })
+        # --- [ลบ] 'get_data' แบบ AJAX ถูกลบออก ---
+        # (เพราะ chapter_2.html ใช้ Form Submit แล้ว)
 
-        # ---------- บันทึก (ไม่ได้แก้ไข) ----------
+        # 5. [ปรับปรุง] เพิ่ม 'get_data' แบบ Form Submit (เหมือน chapter_1.py)
+        if action == 'get_data':
+            # ไม่ต้องทำอะไร ปล่อยให้ redirect กลับไปหน้า GET
+            # ซึ่งหน้า GET จะดึงข้อมูลล่าสุดจาก DB มาแสดงเอง
+            return redirect(request.path)
+
+        # --- บันทึกข้อมูล (ปรับปรุงเล็กน้อย) ---
         if action == 'save':
             intro_body = request.POST.get('intro_body', '')
-
             raw_sections = request.POST.get('sections_json', '[]')
-            try:
-                sections_data = json.loads(raw_sections)
-                if not isinstance(sections_data, list):
-                    sections_data = []
-            except json.JSONDecodeError:
-                sections_data = []
+            
+            # 6. [ปรับปรุง] เรียกใช้ฟังก์ชันกลาง _safe_parse_list
+            sections_data = _safe_parse_list(raw_sections, [])
 
             try:
                 DocChapter2.objects.update_or_create(
@@ -58,102 +72,101 @@ def chapter_2_view(request):
                         'updated_at': timezone.now(),
                     }
                 )
+                messages.success(request, 'บันทึกข้อมูลสำเร็จ ✅')
             except IntegrityError as e:
-                return JsonResponse({
-                    'status': 'error',
-                    'message': f'IntegrityError: {e}'
-                }, status=400)
+                messages.error(request, f'IntegrityError: {e}')
             except Exception as e:
-                return JsonResponse({
-                    'status': 'error',
-                    'message': f'Error: {e}'
-                }, status=400)
+                messages.error(request, f'Error: {e}')
 
-            return JsonResponse({'status': 'ok'})
+            # Redirect กลับไปหน้าเดิม (หน้า GET)
+            return redirect(request.path) 
 
-        # ---------- generate_doc (ไม่ได้แก้ไข) ----------
-        if action == "generate_doc":
-            row = DocChapter2.objects.filter(user=user).first()
-            intro = row.intro_body if row else ""
-            sections = row.sections_json if row else []
-
-            _ensure_tb_picture()
-            pics = []
-            with connection.cursor() as cur:
-                cur.execute(
-                    "SELECT pic_name, pic_path FROM tb_picture WHERE user_id=%s AND chap_id=%s ORDER BY pic_id ASC",
-                    [uid, 2],
-                )
-                for name, rel in cur.fetchall():
-                    pics.append({"pic_name": name, "pic_path": rel})
-
-            doc = doc_chapter2(
-                intro_body=intro,
-                sections_json=sections,
-                pictures=pics,
-                media_root=settings.MEDIA_ROOT,
-            )
-
-            bio = BytesIO()
-            doc.save(bio)
-            bio.seek(0)
-            resp = FileResponse(bio, asattachment=True, filename=f"chapter2{username}.docx")
-            resp["Content-Type"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            return resp
-
-        # ---------- add_picture (ส่วนที่แก้ไข) ----------
+        # --- เพิ่มรูปภาพ (คงเดิม ไม่เปลี่ยนแปลง) ---
         if action == 'add_picture':
             try:
-                # 1. ดึงข้อมูลจาก request
-                pic_name  = request.POST.get('pic_name', '').strip()
-                client_pic_no = request.POST.get('pic_no', '') # เลขที่ JS ส่งมา
-                upfile    = request.FILES.get('pic_file')
-
+                pic_name = request.POST.get('pic_name', '').strip()
+                client_pic_no = request.POST.get('pic_no', '').strip()
+                upfile = request.FILES.get('pic_file')
                 if not upfile:
                     return JsonResponse({'status': 'error', 'message': 'ไม่พบไฟล์ (pic_file)'}, status=400)
-
-                # 2. สร้าง Path ที่คุณต้องการ
-                file_name = upfile.name
                 
-                # !! [แก้ไข] เปลี่ยนจาก .pk เป็น .username !!
-                # โค้ดเดิม: user_specific_path = f'img/user_{request.user.pk}/{file_name}'
-                user_specific_path = f'img/user_{request.user.username}/{file_name}'
-
-                # 3. บันทึกไฟล์ลง Storage (MEDIA_ROOT)
+                user_specific_path = f'img/user_{request.user.username}/{upfile.name}'
                 saved_relative_path = default_storage.save(user_specific_path, upfile)
-
-                # 4. (เผื่อใช้) ดึง URL เต็ม
                 saved_url = default_storage.url(saved_relative_path)
-
-                # 5. เตรียมข้อมูลส่งกลับให้ JS
+                
                 picture_block = {
                     "pic_no": client_pic_no,
                     "pic_name": pic_name,
                     "pic_path": saved_relative_path,
                     "pic_url": saved_url
                 }
+                return JsonResponse({"status": "ok", "message": "อัปโหลดรูปสำเร็จ", "picture": picture_block})
+            except Exception:
+                return JsonResponse(
+                    {'status': 'error', 'message': 'Upload failed', 'trace': traceback.format_exc()},
+                    status=500
+                )
 
-                return JsonResponse({
-                    "status": "ok",
-                    "message": "อัปโหลดรูปสำเร็จ",
-                    "picture": picture_block
-                })
+        # --- สร้างเอกสาร (ปรับปรุงเล็กน้อย) ---
+        if action == "generate_doc":
+            try:
+                intro = request.POST.get('intro_body', '')
+                raw_sections_json = request.POST.get('sections_json', '[]')
+                
+                # 7. [ปรับปรุง] เรียกใช้ฟังก์ชันกลาง _safe_parse_list
+                sections = _safe_parse_list(raw_sections_json, [])
+                
+                # (ส่วน logic ของ extractAllPictures คงเดิม เพราะเป็น logic เฉพาะของบทที่ 2)
+                def extractAllPictures(sections_list):
+                    pics = []
+                    def walkNode(node):
+                        if not isinstance(node, dict): return
+                        if isinstance(node.get("pictures"), list):
+                            pics.extend([p for p in node["pictures"] if p])
+                        if isinstance(node.get("children"), list):
+                            for ch in node["children"]:
+                                walkNode(ch)
+                    if isinstance(sections_list, list):
+                        for sec in sections_list:
+                            if not isinstance(sec, dict): continue
+                            if isinstance(sec.get("pictures"), list):
+                                pics.extend([p for p in sec["pictures"] if p])
+                            if isinstance(sec.get("items"), list):
+                                for node in sec["items"]:
+                                    walkNode(node)
+                    def seq(p):
+                        try:
+                            return int(str(p.get("pic_no","0-0")).split("-")[-1])
+                        except Exception:
+                            return 0
+                    pics.sort(key=seq)
+                    return pics
 
-            except Exception as e:
-                # 6. ดักจับข้อผิดพลาด
-                return JsonResponse({'status': 'error', 'message': f'Upload failed: {str(e)}'}, status=500)
+                all_pics = extractAllPictures(sections)
 
+                doc = generate_doc(
+                    intro_body=intro,
+                    sections_json=sections,
+                    pictures=all_pics,
+                    media_root=settings.MEDIA_ROOT,
+                )
+                
+                bio = BytesIO()
+                doc.save(bio)
+                bio.seek(0)
+                resp = FileResponse(
+                    bio,
+                    as_attachment=True,
+                    filename="chapter2.docx",
+                    content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                )
+                resp["Cache-Control"] = "no-store"
+                return resp
+                
+            except Exception:
+                messages.error(request, f'Generate failed: {traceback.format_exc()}')
+                return redirect(request.path)
 
-        # ไม่รู้จัก action (ไม่ได้แก้ไข)
-        return JsonResponse(
-            {'status': 'error', 'message': f'unknown action "{action}"'},
-            status=400
-        )
-
-        # ----------------- unknown action -----------------
-        return JsonResponse({"status": "error", "message": f"ไม่รู้จัก action: {action}"})
-
-    # GET: render หน้า (ไม่ได้แก้ไข)
-    return render(request, "chapter_2.html", {
-        "page_title": "บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง"
-    })
+        # ไม่รู้จัก action
+        messages.error(request, f'unknown action "{action}"')
+        return redirect(request.path)

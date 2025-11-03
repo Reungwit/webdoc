@@ -59,12 +59,14 @@ let sectionsState = [
 const pendingFiles = {}; // {"secIndex|path.path": File}
 
 // ========================= Utils / AJAX =========================
+// [สำคัญ] ฟังก์ชันนี้จะถูกเรียกก่อน submit ฟอร์ม
 function syncHiddenField() {
   const hidden = document.getElementById("sections_json");
   if (!hidden) return;
   hidden.value = JSON.stringify(sectionsState);
 }
 
+// [สำคัญ] ฟังก์ชันนี้ยังคงต้องใช้สำหรับ 'get_data' และ 'add_picture'
 async function postAction(action, extra = {}, fileToUpload = null) {
   const url = window.location.href;
   const fd  = new FormData();
@@ -124,6 +126,7 @@ function getNextSectionNumber() {
 }
 
 // ===== Picture numbering index (per chapter) =====
+// (ส่วนนี้เหมือนเดิม ไม่มีการเปลี่ยนแปลง)
 const picIndex = {}; // { '2': Set<number> }
 
 function normalizePicNo(pic_no) {
@@ -180,20 +183,16 @@ function nextFreePicNo(chap) {
 
 
 // ========================= Picture Numbering =========================
-// คืนลำดับจาก "2-15" -> 15 (ผิดฟอร์แม็ตคืน 0)
+// (ส่วนนี้เหมือนเดิม ไม่มีการเปลี่ยนแปลง)
 function parseSeqFromPicNo(pic_no) {
   if (!pic_no || typeof pic_no !== "string") return 0;
   const m = String(pic_no).match(/^(\d+)-(\d+)$/); // 2-15 -> 15
   return m ? parseInt(m[2], 10) : 0;
 }
 
-function normalizePicNo(anyPicNo) {
-  if (!anyPicNo) return anyPicNo;
-  const m = String(anyPicNo).match(/^(\d+)(?:\.\d+)*-(\d+)$/);
-  return m ? `${m[1]}-${m[2]}` : anyPicNo;
-}
+// (ฟังก์ชัน normalizePicNo ซ้ำกับด้านบน แต่ไม่เป็นไร)
+// function normalizePicNo(anyPicNo) { ... }
 
-// รวมเลขลำดับของรูปทั้งหมดใน "บท" (ทุกหัวข้อ ทุกชั้น) จาก state (ใช้ pic_no ที่ normalize แล้ว)
 function collectChapterPicSeqs(chapterNo) {
   const seqs = new Set();
 
@@ -211,21 +210,21 @@ function collectChapterPicSeqs(chapterNo) {
         scan(node.pictures);
         (node.children || []).forEach(walk);
       }
-      (sectionsState || []).forEach(sec => { // <-- [!] แก้ไขโดยลบ "window." ออก
+      (sectionsState || []).forEach(sec => {
         scan(sec.pictures);
         (sec.items || []).forEach(walk);
       });
       return seqs;
 }
 
-// หา "เลขว่างตัวแรก" ของบท เช่นมี {1,2,4} -> คืน "2-3"
 function computeFirstFreePicNoForChapter(chapterNo) {
   const seqs = collectChapterPicSeqs(chapterNo);
   let i = 1; while (seqs.has(i)) i += 1;
   return `${chapterNo}-${i}`;
 }
+
 // ========================= Paragraph Editor =========================
-// ปรับใหม่: แยกการพิมพ์ (ไม่ redrawSections) ออกจาก การเพิ่ม/ลบ (redrawSections)
+// (ส่วนนี้เหมือนเดิม ไม่มีการเปลี่ยนแปลง)
 function renderParagraphs(arr, onChangeContent, onAddOrRemove) {
   const wrap = document.createElement("div");
   wrap.className = "paras-wrap";
@@ -271,6 +270,7 @@ function renderParagraphs(arr, onChangeContent, onAddOrRemove) {
 }
 
 // ========================= Picture Box =========================
+// (ส่วนนี้เหมือนเดิม ไม่มีการเปลี่ยนแปลง - ยังคงใช้ postAction)
 function renderPicturesBox(sectionObj, secIndex, pathArr) {
   // ไม่ให้มีรูปในระดับหัวข้อใหญ่ (2.x)
   if (!pathArr || pathArr.length === 0) {
@@ -340,36 +340,36 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
 
     alertBox.show("กำลังอัปโหลดรูป...", "info", 0);
     try {
-  const chapterNo = String(sectionObj.title_no).split(".")[0] || "2";
-  const nextPicNo = computeFirstFreePicNoForChapter(chapterNo);
+      const chapterNo = String(sectionObj.title_no).split(".")[0] || "2";
+      const nextPicNo = computeFirstFreePicNoForChapter(chapterNo);
 
-  const data = await postAction(
-    "add_picture",
-    {
-      node_no: nodeNo,
-      pic_name: picName,
-      pic_path: f.name,
-      pic_no: nextPicNo          // << ใช้เลขนี้เสมอ
-    },
-    f
-  );
+      const data = await postAction(
+        "add_picture",
+        {
+          node_no: nodeNo,
+          pic_name: picName,
+          pic_path: f.name,
+          pic_no: nextPicNo          // << ใช้เลขนี้เสมอ
+        },
+        f
+      );
 
-  // ใช้ผลตอบกลับ ถ้ามี; แต่ "บังคับ" pic_no เป็นรูปแบบบท-ลำดับตาม nextPicNo
-  const pushed = (data && data.picture) ? { ...data.picture } : { pic_name: picName, pic_path: f.name };
-  pushed.pic_no = nextPicNo;    // << ไม่ต้องเก็บ/ใช้ server_pic_no อีก
+      // ใช้ผลตอบกลับ ถ้ามี; แต่ "บังคับ" pic_no เป็นรูปแบบบท-ลำดับตาม nextPicNo
+      const pushed = (data && data.picture) ? { ...data.picture } : { pic_name: picName, pic_path: f.name };
+      pushed.pic_no = nextPicNo;    // << ไม่ต้องเก็บ/ใช้ server_pic_no อีก
 
-  targetNode.pictures.push(pushed);
+      targetNode.pictures.push(pushed);
 
-  captionInput.value = "";
-  pendingLabel.textContent = "";
-  delete pendingFiles[keyForThisNode];
+      captionInput.value = "";
+      pendingLabel.textContent = "";
+      delete pendingFiles[keyForThisNode];
 
-  renderPicturesList();
-  alertBox.show((data && data.message) || "เพิ่มรูปสำเร็จ", "success");
-} catch (err) {
-  console.error(err);
-  alertBox.show("เพิ่มรูปผิดพลาด (" + err.message + ")", "error", 5000);
-}
+      renderPicturesList(); // <--- เรียกฟังก์ชันที่ถูกประกาศข้างล่าง
+      alertBox.show((data && data.message) || "เพิ่มรูปสำเร็จ", "success");
+    } catch (err) {
+      console.error(err);
+      alertBox.show("เพิ่มรูปผิดพลาด (" + err.message + ")", "error", 5000);
+    }
   });
 
   addRow.appendChild(captionInput);
@@ -398,7 +398,7 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
       return;
     }
 
-    // แสดงเรียงตามลำดับเลข (เผื่อมีค่า server แปลก ๆ)
+    // แสดงเรียงตามลำดับเลข
     arr.sort((a, b) => {
       const an = parseSeqFromPicNo(normalizePicNo(a.pic_no));
       const bn = parseSeqFromPicNo(normalizePicNo(b.pic_no));
@@ -437,45 +437,48 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
     if (!p) return;
 
     // ลบ
-if (btn.dataset.act === "del") {
-  const shownNo = normalizePicNo(p.pic_no);
-  if (!confirm(`ยืนยันลบรูปหมายเลข ${shownNo || "-"}`)) return;
-  try {
-    const payload = p.id ? { pic_id: p.id } : { node_no: nodeNo, pic_no: shownNo };
-    const res = await postAction("delete_picture", payload);
-    if (res && res.status === "ok") {
-      arr.splice(idx, 1);        // ลบออกจาก state
-      renderPicturesList();      // ไม่ renumber
-      alertBox.show("ลบรูปสำเร็จ", "success", 1200);
-    } else {
-      throw new Error((res && res.message) || "delete failed");
+    if (btn.dataset.act === "del") {
+      const shownNo = normalizePicNo(p.pic_no);
+      if (!confirm(`ยืนยันลบรูปหมายเลข ${shownNo || "-"}`)) return;
+      try {
+        const payload = p.id ? { pic_id: p.id } : { node_no: nodeNo, pic_no: shownNo };
+        // [!] หมายเหตุ: 'delete_picture' ไม่ได้ถูก implement ใน views_chapter_2.py ที่คุณให้มา
+        // แต่ Logic ฝั่ง JS จะยังคงเรียกไปก่อน
+        const res = await postAction("delete_picture", payload); 
+        if (res && res.status === "ok") {
+          arr.splice(idx, 1);
+          renderPicturesList();
+          alertBox.show("ลบรูปสำเร็จ", "success", 1200);
+        } else {
+          throw new Error((res && res.message) || "delete failed");
+        }
+      } catch (e2) {
+        console.error(e2);
+        alertBox.show("ลบรูปไม่สำเร็จ", "danger", 1500);
+      }
     }
-  } catch (e2) {
-    console.error(e2);
-    alertBox.show("ลบรูปไม่สำเร็จ", "danger", 1500);
-  }
-}
 
-// แก้ไข (ตัวอย่างแก้เฉพาะชื่อ)
-if (btn.dataset.act === "edit") {
-  const newName = prompt("แก้ไขคำอธิบายรูป:", p.pic_name || "");
-  if (newName === null) return;
-  try {
-    const payload = p.id ? { pic_id: p.id, pic_name: newName }
-                         : { node_no: nodeNo, pic_no: normalizePicNo(p.pic_no), pic_name: newName };
-    const res = await postAction("edit_picture", payload);
-    if (res && res.status === "ok") {
-      arr[idx].pic_name = newName; // คง pic_no เดิม
-      renderPicturesList();
-      alertBox.show("แก้ไขรูปสำเร็จ", "success", 1200);
-    } else {
-      throw new Error((res && res.message) || "edit failed");
+    // แก้ไข (ตัวอย่างแก้เฉพาะชื่อ)
+    if (btn.dataset.act === "edit") {
+      const newName = prompt("แก้ไขคำอธิบายรูป:", p.pic_name || "");
+      if (newName === null) return;
+      try {
+        const payload = p.id ? { pic_id: p.id, pic_name: newName }
+                             : { node_no: nodeNo, pic_no: normalizePicNo(p.pic_no), pic_name: newName };
+        // [!] หมายเหตุ: 'edit_picture' ไม่ได้ถูก implement ใน views_chapter_2.py
+        const res = await postAction("edit_picture", payload);
+        if (res && res.status === "ok") {
+          arr[idx].pic_name = newName;
+          renderPicturesList();
+          alertBox.show("แก้ไขรูปสำเร็จ", "success", 1200);
+        } else {
+          throw new Error((res && res.message) || "edit failed");
+        }
+      } catch (e3) {
+        console.error(e3);
+        alertBox.show("แก้ไขรูปไม่สำเร็จ", "danger", 1500);
+      }
     }
-  } catch (e3) {
-    console.error(e3);
-    alertBox.show("แก้ไขรูปไม่สำเร็จ", "danger", 1500);
-  }
-}
 
   });
 
@@ -486,6 +489,7 @@ if (btn.dataset.act === "edit") {
 }
 
 // ========================= Node Renderer (หัวข้อย่อย) =========================
+// (ส่วนนี้เหมือนเดิม ไม่มีการเปลี่ยนแปลง)
 function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   const nodeEl = document.createElement("div");
   nodeEl.className = "node-card";
@@ -517,6 +521,7 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   btnAddPara.className = "mini-btn";
   btnAddPara.textContent = "➕ ย่อหน้า";
   btnAddPara.addEventListener("click", () => {
+    if (!nodeObj.paragraphs) nodeObj.paragraphs = []; // Ensure array exists
     nodeObj.paragraphs.push("");
     redrawSections(); // การเพิ่มย่อหน้าต้อง redraw
   });
@@ -526,6 +531,7 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   btnAddChild.className = "mini-btn";
   btnAddChild.textContent = "➕ หัวข้อย่อยถัดไป";
   btnAddChild.addEventListener("click", () => {
+    if (!nodeObj.children) nodeObj.children = []; // Ensure array exists
     nodeObj.children.push(makeNode());
     redrawSections(); // เพิ่มหัวข้อย่อยใหม่ -> redraw
   });
@@ -575,6 +581,7 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
     firstParaBtn.className = "mini-btn";
     firstParaBtn.textContent = "➕ เพิ่มย่อหน้าแรก";
     firstParaBtn.addEventListener("click", () => {
+      if (!nodeObj.paragraphs) nodeObj.paragraphs = [];
       nodeObj.paragraphs.push("");
       redrawSections(); // เพิ่ม -> redraw
     });
@@ -588,19 +595,22 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   const childrenWrap = document.createElement("div");
   childrenWrap.className = "children-block";
 
-  nodeObj.children.forEach((childNode, childIdx) => {
-    const childPath = [...pathArr, childIdx];
-    childrenWrap.appendChild(
-      renderNode(sectionObj, secIndex, childNode, childPath)
-    );
-  });
+  if (nodeObj.children) { // Check if children array exists
+    nodeObj.children.forEach((childNode, childIdx) => {
+      const childPath = [...pathArr, childIdx];
+      childrenWrap.appendChild(
+        renderNode(sectionObj, secIndex, childNode, childPath)
+      );
+    });
+  }
 
-  if (nodeObj.children.length === 0) {
+  if (!nodeObj.children || nodeObj.children.length === 0) {
     const addChildInline = document.createElement("button");
     addChildInline.type = "button";
     addChildInline.className = "mini-btn";
     addChildInline.textContent = "➕ เพิ่มหัวข้อย่อยระดับถัดไป";
     addChildInline.addEventListener("click", () => {
+      if (!nodeObj.children) nodeObj.children = [];
       nodeObj.children.push(makeNode());
       redrawSections();
     });
@@ -617,18 +627,21 @@ function renderSectionTree(sectionObj, secIndex) {
   const treeWrap = document.createElement("div");
   treeWrap.className = "tree-wrap";
 
-  sectionObj.items.forEach((node, idx) => {
-    const pathArr = [idx];
-    treeWrap.appendChild(
-      renderNode(sectionObj, secIndex, node, pathArr)
-    );
-  });
+  if (sectionObj.items) { // Check if items array exists
+    sectionObj.items.forEach((node, idx) => {
+      const pathArr = [idx];
+      treeWrap.appendChild(
+        renderNode(sectionObj, secIndex, node, pathArr)
+      );
+    });
+  }
 
   const addRootBtn = document.createElement("button");
   addRootBtn.type = "button";
   addRootBtn.className = "mini-btn";
   addRootBtn.textContent = "➕ เพิ่มหัวข้อย่อยระดับแรก";
   addRootBtn.addEventListener("click", () => {
+    if (!sectionObj.items) sectionObj.items = [];
     sectionObj.items.push(makeNode());
     redrawSections();
   });
@@ -682,6 +695,9 @@ function renderSectionCard(sectionObj, secIndex) {
   overLabel.className = "overview-label";
   overLabel.textContent = "ย่อหน้าอธิบายหัวข้อนี้ (ภาพรวม):";
   overBlock.appendChild(overLabel);
+  
+  // Ensure array exists before rendering
+  if (!sectionObj.body_paragraphs) sectionObj.body_paragraphs = []; 
 
   overBlock.appendChild(
     renderParagraphs(
@@ -706,6 +722,7 @@ function renderSectionCard(sectionObj, secIndex) {
 // render ทุกหัวข้อใหญ่
 function redrawSections() {
   const container = document.getElementById("sections-container");
+  if (!container) return; // Guard clause
   container.innerHTML = "";
   sectionsState.forEach((secObj, secIndex) => {
     container.appendChild(renderSectionCard(secObj, secIndex));
@@ -713,125 +730,115 @@ function redrawSections() {
   syncHiddenField();
 }
 
-// ========================= BUTTON HANDLERS =========================
+// ========================= BUTTON HANDLERS (แก้ไข) =========================
 function wireButtons() {
   const btnGet = document.getElementById("btnGetData");
-  const btnSave = document.getElementById("btnSave");
-  const btnGen  = document.getElementById("btnGenerate");
+  // const btnSave = document.getElementById("btnSave"); // ไม่ต้องใช้ตัวแปรแล้ว
+  // const btnGen  = document.getElementById("btnGenerate"); // ไม่ต้องใช้ตัวแปรแล้ว
   const btnAddSection = document.getElementById("btnAddSection");
 
   const intro  = document.getElementById("intro_body");
-  const hidden = document.getElementById("sections_json");
+  // const hidden = document.getElementById("sections_json"); // ไม่ต้องใช้ตัวแปรแล้ว
 
-  // ดึงข้อมูล
-  btnGet.addEventListener("click", async () => {
-    alertBox.show("กำลังดึงข้อมูล...", "info", 0);
-    try {
-      const data = await postAction("get_data");
-      if (data && data.initial && Array.isArray(data.initial.sections)) {
-        intro.value = data.initial.intro_body || "";
+  // ดึงข้อมูล (ยังคงใช้ JS AJAX)
+  if (btnGet) {
+    btnGet.addEventListener("click", async () => {
+      alertBox.show("กำลังดึงข้อมูล...", "info", 0);
+      try {
+        const data = await postAction("get_data");
+        if (data && data.initial && Array.isArray(data.initial.sections)) {
+          if (intro) intro.value = data.initial.intro_body || "";
 
-        // remap + normalize รูปจาก backend
-        const remapPicture = (p) => {
-          const server_no = p.pic_no || p.server_pic_no || "";
-          return {
-            ...p,
-            pic_no: normalizePicNo(p.pic_no)
+          // remap + normalize รูปจาก backend
+          const remapPicture = (p) => {
+            const server_no = p.pic_no || p.server_pic_no || "";
+            return {
+              ...p,
+              pic_no: normalizePicNo(p.pic_no)
+            };
           };
-        };
 
-        const remapNode = (rawNode) => ({
-          text: rawNode.text || "",
-          paragraphs: Array.isArray(rawNode.paragraphs) ? rawNode.paragraphs.slice() : [],
-          pictures: Array.isArray(rawNode.pictures) ? rawNode.pictures.map(remapPicture) : [],
-          children: Array.isArray(rawNode.children)
-            ? rawNode.children.map(remapNode)
-            : []
-        });
+          const remapNode = (rawNode) => ({
+            text: rawNode.text || "",
+            paragraphs: Array.isArray(rawNode.paragraphs) ? rawNode.paragraphs.slice() : [],
+            pictures: Array.isArray(rawNode.pictures) ? rawNode.pictures.map(remapPicture) : [],
+            children: Array.isArray(rawNode.children)
+              ? rawNode.children.map(remapNode)
+              : []
+          });
 
-        sectionsState = data.initial.sections.map(sec => ({
-          title_no: sec.title_no || "",
-          title: sec.title || "",
-          body_paragraphs: Array.isArray(sec.body_paragraphs)
-            ? sec.body_paragraphs.slice()
-            : [],
-          pictures: Array.isArray(sec.pictures)
-            ? sec.pictures.map(remapPicture)
-            : [],
-          items: Array.isArray(sec.items)
-            ? sec.items.map(remapNode)
-            : []
-        }));
+          sectionsState = data.initial.sections.map(sec => ({
+            title_no: sec.title_no || "",
+            title: sec.title || "",
+            body_paragraphs: Array.isArray(sec.body_paragraphs)
+              ? sec.body_paragraphs.slice()
+              : [],
+            pictures: Array.isArray(sec.pictures)
+              ? sec.pictures.map(remapPicture)
+              : [],
+            items: Array.isArray(sec.items)
+              ? sec.items.map(remapNode)
+              : []
+          }));
 
-        redrawSections();
-        alertBox.show("ดึงข้อมูลสำเร็จ ✅", "success");
-      } else {
-        alertBox.show("โครงสร้างข้อมูลไม่ถูกต้อง", "error", 5000);
+          redrawSections();
+          alertBox.show("ดึงข้อมูลสำเร็จ ✅", "success");
+        } else {
+          alertBox.show("โครงสร้างข้อมูลไม่ถูกต้อง", "error", 5000);
+        }
+      } catch (err) {
+        console.error(err);
+        alertBox.show("ดึงข้อมูลล้มเหลว ("+err.message+")", "error", 5000);
       }
-    } catch (err) {
-      console.error(err);
-      alertBox.show("ดึงข้อมูลล้มเหลว ("+err.message+")", "error", 5000);
-    }
-  });
+    });
+  }
 
-  // บันทึก
-  btnSave.addEventListener("click", async () => {
-    alertBox.show("กำลังบันทึก...", "info", 0);
-    syncHiddenField();
-    try {
-      const data = await postAction("save", {
-        intro_body: intro.value,
-        sections_json: hidden.value
-      });
+  // บันทึก (ถูกลบออก)
+  // btnSave.addEventListener("click", ...);
 
-      if (data && data.status === "ok") {
-        alertBox.show("บันทึกเรียบร้อย 💾", "success");
-      } else {
-        alertBox.show(
-          "บันทึกผิดพลาด " + JSON.stringify(data),
-          "error",
-          5000
-        );
-      }
-    } catch (err) {
-      console.error(err);
-      alertBox.show("บันทึกล้มเหลว ("+err.message+")", "error", 5000);
-    }
-  });
+  // สร้างเอกสาร (ถูกลบออก)
+  // btnGen.addEventListener("click", ...);
 
-  // สร้างเอกสาร
-  btnGen.addEventListener("click", async () => {
-    alertBox.show("กำลังสร้างเอกสาร...", "info", 0);
-    syncHiddenField();
-    try {
-      const data = await postAction("generate_doc", {
-        intro_body: intro.value,
-        sections_json: hidden.value
-      });
-      if (data && data.status === "ok") {
-        alertBox.show(data.message || "สร้างเอกสารเสร็จ 📄", "success", 5000);
-      } else {
-        alertBox.show("สร้างเอกสารผิดพลาด", "error", 5000);
-      }
-    } catch (err) {
-      console.error(err);
-      alertBox.show("สร้างเอกสารผิดพลาด ("+err.message+")", "error", 5000);
-    }
-  });
-
-  // เพิ่มหัวข้อใหญ่ใหม่ (2.3, 2.4, ...)
-  btnAddSection.addEventListener("click", () => {
-    const nextNo = getNextSectionNumber();
-    const newSec = makeSection(nextNo, "");
-    sectionsState.push(newSec);
-    redrawSections();
-    alertBox.show(`เพิ่มหัวข้อ ${nextNo} แล้ว ✅`, "success");
-  });
+  // เพิ่มหัวข้อใหญ่ใหม่ (ยังคงอยู่)
+  if (btnAddSection) {
+    btnAddSection.addEventListener("click", () => {
+      const nextNo = getNextSectionNumber();
+      const newSec = makeSection(nextNo, "");
+      sectionsState.push(newSec);
+      redrawSections();
+      alertBox.show(`เพิ่มหัวข้อ ${nextNo} แล้ว ✅`, "success");
+    });
+  }
 }
 
-// ========================= init =========================
+// ========================= init (แก้ไข) =========================
 document.addEventListener("DOMContentLoaded", () => {
+  // 1. หา Form (ต้องมี ID นี้ใน HTML)
+  const form = document.getElementById("chapter2Form");
+
   redrawSections();
   wireButtons();
   alertBox.show("พร้อมแก้ไขบทที่ 2 ✅", "success");
+
+  // 2. [ใหม่] เพิ่ม Event Listener ให้กับ Form
+  if (form) {
+    form.addEventListener("submit", () => {
+      // หาว่าปุ่มไหน (save หรือ generate) ถูกกด
+      // document.activeElement คือปุ่มที่เพิ่งถูกคลิก
+      const action = document.activeElement ? document.activeElement.value : null;
+      
+      if (action === "save") {
+        alertBox.show("กำลังบันทึกข้อมูล...", "info", 0);
+      } else if (action === "generate_doc") {
+        alertBox.show("กำลังสร้างเอกสาร... กรุณารอสักครู่", "info", 0);
+      }
+      
+      // *** [สำคัญมาก] ***
+      // เรียกฟังก์ชันนี้เพื่ออัปเดต <input type="hidden">
+      // ก่อนที่เบราว์เซอร์จะส่งข้อมูลฟอร์มไปที่ Backend
+      syncHiddenField();
+    });
+  } else {
+    console.warn("ไม่พบ <form id='chapter2Form'> ในหน้า HTML");
+  }
 });

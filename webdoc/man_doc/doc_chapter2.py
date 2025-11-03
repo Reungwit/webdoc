@@ -69,6 +69,15 @@ def doc_chapter2(intro_body="", sections_json=None, pictures=None, media_root=""
                 # ถ้าไฟล์ไม่มีจริง ข้าม
                 continue
 
+            # image
+            par = doc.add_paragraph()
+            par.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            run = par.add_run()
+            run.add_picture(abs_path, width=Inches(5))
+            par.paragraph_format.space_after = Pt(8)
+
+            running += 1
+            
             # caption
             _p(
                 doc,
@@ -78,14 +87,7 @@ def doc_chapter2(intro_body="", sections_json=None, pictures=None, media_root=""
                 before=6,
                 after=4,
             )
-            # image
-            par = doc.add_paragraph()
-            par.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-            run = par.add_run()
-            run.add_picture(abs_path, width=Inches(5.5))
-            par.paragraph_format.space_after = Pt(8)
-
-            running += 1
+            
 
     return doc
 

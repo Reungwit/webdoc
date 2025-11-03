@@ -34,7 +34,7 @@ function makeNode() {
   return {
     text: "",
     paragraphs: [],
-    pictures: [],   // [{pic_no, pic_name, pic_path}]
+    pictures: [],   // [{pic_no, pic_name, pic_path, id?, server_pic_no?}]
     children: []
   };
 }
@@ -80,7 +80,6 @@ async function postAction(action, extra = {}, fileToUpload = null) {
 
   const ct = res.headers.get("Content-Type") || "";
   if (!res.ok) {
-    // ถ้า backend ส่ง JSON error มาก็โชว์ได้เลย
     const text = await res.text();
     throw new Error(text);
   }
@@ -124,6 +123,107 @@ function getNextSectionNumber() {
   return "2." + (sectionsState.length + 1);
 }
 
+// ===== Picture numbering index (per chapter) =====
+const picIndex = {}; // { '2': Set<number> }
+
+function normalizePicNo(pic_no) {
+  if (!pic_no) return pic_no;
+  const m = String(pic_no).match(/^(\d+)(?:\.\d+)*-(\d+)$/); // "2.2.1-7" -> ["2","7"]
+  return m ? `${m[1]}-${m[2]}` : pic_no;
+}
+function seqFromPicNo(pic_no) {
+  const m = String(pic_no || '').match(/^\d+-(\d+)$/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+function chapterOf(sectionNo) {
+  return String(sectionNo).split(".")[0] || "2";
+}
+
+function indexReset(chap) { picIndex[chap] = new Set(); }
+
+function indexAdd(pic_no) {
+  const nn = normalizePicNo(pic_no);
+  const chap = String(nn).split("-")[0];
+  const seq  = seqFromPicNo(nn);
+  if (!picIndex[chap]) picIndex[chap] = new Set();
+  if (seq > 0) picIndex[chap].add(seq);
+}
+
+function indexRemove(pic_no) {
+  const nn = normalizePicNo(pic_no);
+  const chap = String(nn).split("-")[0];
+  const seq  = seqFromPicNo(nn);
+  if (picIndex[chap]) picIndex[chap].delete(seq);
+}
+
+function indexRebuildFromState() {
+  // scan sectionsState -> picIndex
+  Object.keys(picIndex).forEach(k => indexReset(k));
+  (sectionsState || []).forEach(sec => {
+    const chap = chapterOf(sec.title_no);
+    if (!picIndex[chap]) indexReset(chap);
+
+    function scanPics(arr) { (arr||[]).forEach(p => indexAdd(p.pic_no)); }
+    function walkNode(n){ if(!n) return; scanPics(n.pictures); (n.children||[]).forEach(walkNode); }
+
+    scanPics(sec.pictures);
+    (sec.items||[]).forEach(walkNode);
+  });
+}
+
+function nextFreePicNo(chap) {
+  if (!picIndex[chap]) indexReset(chap);
+  let i = 1; while (picIndex[chap].has(i)) i++;
+  return `${chap}-${i}`;
+}
+
+
+
+// ========================= Picture Numbering =========================
+// คืนลำดับจาก "2-15" -> 15 (ผิดฟอร์แม็ตคืน 0)
+function parseSeqFromPicNo(pic_no) {
+  if (!pic_no || typeof pic_no !== "string") return 0;
+  const m = String(pic_no).match(/^(\d+)-(\d+)$/); // 2-15 -> 15
+  return m ? parseInt(m[2], 10) : 0;
+}
+
+function normalizePicNo(anyPicNo) {
+  if (!anyPicNo) return anyPicNo;
+  const m = String(anyPicNo).match(/^(\d+)(?:\.\d+)*-(\d+)$/);
+  return m ? `${m[1]}-${m[2]}` : anyPicNo;
+}
+
+// รวมเลขลำดับของรูปทั้งหมดใน "บท" (ทุกหัวข้อ ทุกชั้น) จาก state (ใช้ pic_no ที่ normalize แล้ว)
+function collectChapterPicSeqs(chapterNo) {
+  const seqs = new Set();
+
+  function scan(arr) {
+    (arr || []).forEach(p => {
+      const pn = normalizePicNo(p && p.pic_no);
+      if (pn && String(pn).startsWith(chapterNo + "-")) {
+        const n = parseSeqFromPicNo(pn);
+        if (n > 0) seqs.add(n);
+      }
+    });
+  }
+  function walk(node) {
+        if (!node) return;
+        scan(node.pictures);
+        (node.children || []).forEach(walk);
+      }
+      (sectionsState || []).forEach(sec => { // <-- [!] แก้ไขโดยลบ "window." ออก
+        scan(sec.pictures);
+        (sec.items || []).forEach(walk);
+      });
+      return seqs;
+}
+
+// หา "เลขว่างตัวแรก" ของบท เช่นมี {1,2,4} -> คืน "2-3"
+function computeFirstFreePicNoForChapter(chapterNo) {
+  const seqs = collectChapterPicSeqs(chapterNo);
+  let i = 1; while (seqs.has(i)) i += 1;
+  return `${chapterNo}-${i}`;
+}
 // ========================= Paragraph Editor =========================
 // ปรับใหม่: แยกการพิมพ์ (ไม่ redrawSections) ออกจาก การเพิ่ม/ลบ (redrawSections)
 function renderParagraphs(arr, onChangeContent, onAddOrRemove) {
@@ -138,7 +238,6 @@ function renderParagraphs(arr, onChangeContent, onAddOrRemove) {
     ta.value = txt || "";
     ta.placeholder = "พิมพ์ย่อหน้า . . .";
 
-    // พิมพ์ทีละตัว -> แก้แค่ใน state + syncHiddenField()
     ta.addEventListener("input", (e) => {
       arr[idx] = e.target.value;
       if (onChangeContent) onChangeContent();
@@ -173,7 +272,7 @@ function renderParagraphs(arr, onChangeContent, onAddOrRemove) {
 
 // ========================= Picture Box =========================
 function renderPicturesBox(sectionObj, secIndex, pathArr) {
-   // ไม่ให้มีรูปในระดับหัวข้อใหญ่ (2.x)
+  // ไม่ให้มีรูปในระดับหัวข้อใหญ่ (2.x)
   if (!pathArr || pathArr.length === 0) {
     return document.createElement("div"); // คืนเปล่า
   }
@@ -222,9 +321,7 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
   fileInput.accept = "image/*";
   fileInput.style.display = "none";
 
-  pickBtn.addEventListener("click", () => {
-    fileInput.click();
-  });
+  pickBtn.addEventListener("click", () => fileInput.click());
 
   fileInput.addEventListener("change", () => {
     if (fileInput.files && fileInput.files.length > 0) {
@@ -238,43 +335,41 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
     const picName = (captionInput.value || "").trim();
     const f = pendingFiles[keyForThisNode];
 
-    if (!picName) {
-      alertBox.show("กรุณากรอกชื่อหรือคำอธิบายรูป", "warning");
-      return;
-    }
-    if (!f) {
-      alertBox.show("ยังไม่ได้เลือกรูป", "warning");
-      return;
-    }
+    if (!picName) { alertBox.show("กรุณากรอกชื่อหรือคำอธิบายรูป", "warning"); return; }
+    if (!f)       { alertBox.show("ยังไม่ได้เลือกรูป", "warning"); return; }
 
     alertBox.show("กำลังอัปโหลดรูป...", "info", 0);
     try {
-      const data = await postAction(
-        "add_picture",
-        {
-          node_no: nodeNo,
-          pic_name: picName,
-          pic_path: f.name
-        },
-        f
-      );
+  const chapterNo = String(sectionObj.title_no).split(".")[0] || "2";
+  const nextPicNo = computeFirstFreePicNoForChapter(chapterNo);
 
-      if (data && data.status === "ok" && data.picture) {
-        targetNode.pictures.push(data.picture);
+  const data = await postAction(
+    "add_picture",
+    {
+      node_no: nodeNo,
+      pic_name: picName,
+      pic_path: f.name,
+      pic_no: nextPicNo          // << ใช้เลขนี้เสมอ
+    },
+    f
+  );
 
-        captionInput.value = "";
-        pendingLabel.textContent = "";
-        delete pendingFiles[keyForThisNode];
+  // ใช้ผลตอบกลับ ถ้ามี; แต่ "บังคับ" pic_no เป็นรูปแบบบท-ลำดับตาม nextPicNo
+  const pushed = (data && data.picture) ? { ...data.picture } : { pic_name: picName, pic_path: f.name };
+  pushed.pic_no = nextPicNo;    // << ไม่ต้องเก็บ/ใช้ server_pic_no อีก
 
-        redrawSections();
-        alertBox.show(data.message || "เพิ่มรูปสำเร็จ ", "success");
-      } else {
-        alertBox.show((data && data.message) || "เพิ่มรูปไม่สำเร็จ", "error");
-      }
-    } catch (err) {
-      console.error(err);
-      alertBox.show("เพิ่มรูปผิดพลาด (" + err.message + ")", "error", 5000);
-    }
+  targetNode.pictures.push(pushed);
+
+  captionInput.value = "";
+  pendingLabel.textContent = "";
+  delete pendingFiles[keyForThisNode];
+
+  renderPicturesList();
+  alertBox.show((data && data.message) || "เพิ่มรูปสำเร็จ", "success");
+} catch (err) {
+  console.error(err);
+  alertBox.show("เพิ่มรูปผิดพลาด (" + err.message + ")", "error", 5000);
+}
   });
 
   addRow.appendChild(captionInput);
@@ -284,30 +379,107 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
   addRow.appendChild(fileInput);
   picsBox.appendChild(addRow);
 
-  // list รูป
+  // ===== list รูป (มีปุ่ม + ใช้ event delegation) =====
   const list = document.createElement("div");
   list.className = "pic-list";
 
-  if (targetNode.pictures.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "pic-item";
-    empty.style.background = "#fff";
-    empty.style.borderStyle = "dashed";
-    empty.style.color = "#6b7280";
-    empty.textContent = "ยังไม่มีรูปในหัวข้อนี้";
-    list.appendChild(empty);
-  } else {
-    targetNode.pictures.forEach(p => {
+  function renderPicturesList() {
+    list.innerHTML = "";
+    const arr = targetNode.pictures || [];
+
+    if (arr.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "pic-item";
+      empty.style.background = "#fff";
+      empty.style.borderStyle = "dashed";
+      empty.style.color = "#6b7280";
+      empty.textContent = "ยังไม่มีรูปในหัวข้อนี้";
+      list.appendChild(empty);
+      return;
+    }
+
+    // แสดงเรียงตามลำดับเลข (เผื่อมีค่า server แปลก ๆ)
+    arr.sort((a, b) => {
+      const an = parseSeqFromPicNo(normalizePicNo(a.pic_no));
+      const bn = parseSeqFromPicNo(normalizePicNo(b.pic_no));
+      return an - bn;
+    });
+
+    arr.forEach((p, idx) => {
+      const shownNo = normalizePicNo(p.pic_no);
       const item = document.createElement("div");
       item.className = "pic-item";
+      item.dataset.idx = String(idx);
       item.innerHTML = `
-        <strong>ภาพที่ ${p.pic_no || "-"}</strong> : ${p.pic_name || ""}
-        ${p.pic_path ? `<div class="pic-path">${p.pic_path}</div>` : ""}
+        <div class="pic-main">
+          <strong>ภาพที่ ${shownNo || "-"}</strong> : ${p.pic_name || ""}
+          ${p.pic_path ? `<div class="pic-path">${p.pic_path}</div>` : ""}
+        </div>
+        <div class="pic-actions">
+          <button type="button" class="mini-btn danger" data-act="del">ลบรูป</button>
+          <button type="button" class="mini-btn outline" data-act="edit">แก้ไข</button>
+        </div>
       `;
       list.appendChild(item);
     });
   }
 
+  // Event delegation: รองรับปุ่มในรายการที่ถูก re-render
+  list.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-act]");
+    if (!btn) return;
+    const item = btn.closest(".pic-item");
+    if (!item) return;
+
+    const idx = parseInt(item.dataset.idx, 10);
+    const arr = targetNode.pictures || [];
+    const p = arr[idx];
+    if (!p) return;
+
+    // ลบ
+if (btn.dataset.act === "del") {
+  const shownNo = normalizePicNo(p.pic_no);
+  if (!confirm(`ยืนยันลบรูปหมายเลข ${shownNo || "-"}`)) return;
+  try {
+    const payload = p.id ? { pic_id: p.id } : { node_no: nodeNo, pic_no: shownNo };
+    const res = await postAction("delete_picture", payload);
+    if (res && res.status === "ok") {
+      arr.splice(idx, 1);        // ลบออกจาก state
+      renderPicturesList();      // ไม่ renumber
+      alertBox.show("ลบรูปสำเร็จ", "success", 1200);
+    } else {
+      throw new Error((res && res.message) || "delete failed");
+    }
+  } catch (e2) {
+    console.error(e2);
+    alertBox.show("ลบรูปไม่สำเร็จ", "danger", 1500);
+  }
+}
+
+// แก้ไข (ตัวอย่างแก้เฉพาะชื่อ)
+if (btn.dataset.act === "edit") {
+  const newName = prompt("แก้ไขคำอธิบายรูป:", p.pic_name || "");
+  if (newName === null) return;
+  try {
+    const payload = p.id ? { pic_id: p.id, pic_name: newName }
+                         : { node_no: nodeNo, pic_no: normalizePicNo(p.pic_no), pic_name: newName };
+    const res = await postAction("edit_picture", payload);
+    if (res && res.status === "ok") {
+      arr[idx].pic_name = newName; // คง pic_no เดิม
+      renderPicturesList();
+      alertBox.show("แก้ไขรูปสำเร็จ", "success", 1200);
+    } else {
+      throw new Error((res && res.message) || "edit failed");
+    }
+  } catch (e3) {
+    console.error(e3);
+    alertBox.show("แก้ไขรูปไม่สำเร็จ", "danger", 1500);
+  }
+}
+
+  });
+
+  renderPicturesList();
   picsBox.appendChild(list);
 
   return picsBox;
@@ -525,8 +697,6 @@ function renderSectionCard(sectionObj, secIndex) {
 
   wrap.appendChild(overBlock);
 
-  
-
   // tree ย่อย
   wrap.appendChild(renderSectionTree(sectionObj, secIndex));
 
@@ -561,6 +731,24 @@ function wireButtons() {
       if (data && data.initial && Array.isArray(data.initial.sections)) {
         intro.value = data.initial.intro_body || "";
 
+        // remap + normalize รูปจาก backend
+        const remapPicture = (p) => {
+          const server_no = p.pic_no || p.server_pic_no || "";
+          return {
+            ...p,
+            pic_no: normalizePicNo(p.pic_no)
+          };
+        };
+
+        const remapNode = (rawNode) => ({
+          text: rawNode.text || "",
+          paragraphs: Array.isArray(rawNode.paragraphs) ? rawNode.paragraphs.slice() : [],
+          pictures: Array.isArray(rawNode.pictures) ? rawNode.pictures.map(remapPicture) : [],
+          children: Array.isArray(rawNode.children)
+            ? rawNode.children.map(remapNode)
+            : []
+        });
+
         sectionsState = data.initial.sections.map(sec => ({
           title_no: sec.title_no || "",
           title: sec.title || "",
@@ -568,7 +756,7 @@ function wireButtons() {
             ? sec.body_paragraphs.slice()
             : [],
           pictures: Array.isArray(sec.pictures)
-            ? sec.pictures.slice()
+            ? sec.pictures.map(remapPicture)
             : [],
           items: Array.isArray(sec.items)
             ? sec.items.map(remapNode)
@@ -596,7 +784,6 @@ function wireButtons() {
         sections_json: hidden.value
       });
 
-      // ถ้ากลับมาเป็น JSON error (status !== ok)
       if (data && data.status === "ok") {
         alertBox.show("บันทึกเรียบร้อย 💾", "success");
       } else {
@@ -640,18 +827,6 @@ function wireButtons() {
     redrawSections();
     alertBox.show(`เพิ่มหัวข้อ ${nextNo} แล้ว ✅`, "success");
   });
-}
-
-// แปลง node จาก DB -> รูปแบบ state ปัจจุบัน
-function remapNode(rawNode) {
-  return {
-    text: rawNode.text || "",
-    paragraphs: Array.isArray(rawNode.paragraphs) ? rawNode.paragraphs.slice() : [],
-    pictures: Array.isArray(rawNode.pictures) ? rawNode.pictures.slice() : [],
-    children: Array.isArray(rawNode.children)
-      ? rawNode.children.map(remapNode)
-      : []
-  };
 }
 
 // ========================= init =========================

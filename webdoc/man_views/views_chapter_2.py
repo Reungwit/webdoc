@@ -7,6 +7,9 @@ import json
 
 from backend.models import DocChapter2  # ต้องอ้างโมเดลบทที่ 2 ของคุณจริง ๆ
 
+# 1. (เพิ่ม Import) เราต้องการตัวจัดการไฟล์ของ Django
+from django.core.files.storage import default_storage
+
 
 @login_required
 def chapter_2_view(request):
@@ -15,7 +18,7 @@ def chapter_2_view(request):
     if request.method == 'POST':
         action = (request.POST.get('action') or '').strip()
 
-        # ---------- ดึงข้อมูล ----------
+        # ---------- ดึงข้อมูล (ไม่ได้แก้ไข) ----------
         if action == 'get_data':
             row = DocChapter2.objects.filter(user=user).first()
             if row:
@@ -33,7 +36,7 @@ def chapter_2_view(request):
                     }
                 })
 
-        # ---------- บันทึก ----------
+        # ---------- บันทึก (ไม่ได้แก้ไข) ----------
         if action == 'save':
             intro_body = request.POST.get('intro_body', '')
 
@@ -68,35 +71,80 @@ def chapter_2_view(request):
 
             return JsonResponse({'status': 'ok'})
 
-        # ---------- generate_doc ----------
-        if action == 'generate_doc':
-            return JsonResponse({
-                'status': 'ok',
-                'message': 'สร้างเอกสารเสร็จ (mock)'
-            })
+        # ---------- generate_doc (ไม่ได้แก้ไข) ----------
+        if action == "generate_doc":
+            row = DocChapter2.objects.filter(user=user).first()
+            intro = row.intro_body if row else ""
+            sections = row.sections_json if row else []
 
-        # ---------- add_picture ----------
+            _ensure_tb_picture()
+            pics = []
+            with connection.cursor() as cur:
+                cur.execute(
+                    "SELECT pic_name, pic_path FROM tb_picture WHERE user_id=%s AND chap_id=%s ORDER BY pic_id ASC",
+                    [uid, 2],
+                )
+                for name, rel in cur.fetchall():
+                    pics.append({"pic_name": name, "pic_path": rel})
+
+            doc = doc_chapter2(
+                intro_body=intro,
+                sections_json=sections,
+                pictures=pics,
+                media_root=settings.MEDIA_ROOT,
+            )
+
+            bio = BytesIO()
+            doc.save(bio)
+            bio.seek(0)
+            resp = FileResponse(bio, asattachment=True, filename=f"chapter2{username}.docx")
+            resp["Content-Type"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            return resp
+
+        # ---------- add_picture (ส่วนที่แก้ไข) ----------
         if action == 'add_picture':
-            node_no   = request.POST.get('node_no', '').strip()
-            pic_name  = request.POST.get('pic_name', '').strip()
-            client_fn = request.POST.get('pic_path', '').strip()
-            upfile    = request.FILES.get('pic_file')
+            try:
+                # 1. ดึงข้อมูลจาก request
+                pic_name  = request.POST.get('pic_name', '').strip()
+                client_pic_no = request.POST.get('pic_no', '') # เลขที่ JS ส่งมา
+                upfile    = request.FILES.get('pic_file')
 
-            pseudo_pic_no = f"{node_no}-1"
+                if not upfile:
+                    return JsonResponse({'status': 'error', 'message': 'ไม่พบไฟล์ (pic_file)'}, status=400)
 
-            picture_block = {
-                "pic_no": pseudo_pic_no,
-                "pic_name": pic_name,
-                "pic_path": client_fn or (upfile.name if upfile else ''),
-            }
+                # 2. สร้าง Path ที่คุณต้องการ
+                file_name = upfile.name
+                
+                # !! [แก้ไข] เปลี่ยนจาก .pk เป็น .username !!
+                # โค้ดเดิม: user_specific_path = f'img/user_{request.user.pk}/{file_name}'
+                user_specific_path = f'img/user_{request.user.username}/{file_name}'
 
-            return JsonResponse({
-                "status": "ok",
-                "message": "เพิ่มรูปสำเร็จ",
-                "picture": picture_block
-            })
+                # 3. บันทึกไฟล์ลง Storage (MEDIA_ROOT)
+                saved_relative_path = default_storage.save(user_specific_path, upfile)
 
-        # ไม่รู้จัก action
+                # 4. (เผื่อใช้) ดึง URL เต็ม
+                saved_url = default_storage.url(saved_relative_path)
+
+                # 5. เตรียมข้อมูลส่งกลับให้ JS
+                picture_block = {
+                    "pic_no": client_pic_no,
+                    "pic_name": pic_name,
+                    "pic_path": saved_relative_path,
+                    "pic_url": saved_url
+                }
+
+                return JsonResponse({
+                    "status": "ok",
+                    "message": "อัปโหลดรูปสำเร็จ",
+                    "picture": picture_block
+                })
+
+            except Exception as e:
+                # 6. ดักจับข้อผิดพลาด
+                return JsonResponse({'status': 'error', 'message': f'Upload failed: {str(e)}'}, status=500)
+
+
+        # ไม่รู้จัก action (ไม่ได้แก้ไข)
         return JsonResponse(
             {'status': 'error', 'message': f'unknown action "{action}"'},
             status=400
@@ -105,7 +153,7 @@ def chapter_2_view(request):
         # ----------------- unknown action -----------------
         return JsonResponse({"status": "error", "message": f"ไม่รู้จัก action: {action}"})
 
-    # GET: render หน้า
+    # GET: render หน้า (ไม่ได้แก้ไข)
     return render(request, "chapter_2.html", {
         "page_title": "บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง"
     })

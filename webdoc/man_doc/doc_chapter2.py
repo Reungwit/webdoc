@@ -1,74 +1,95 @@
-# man_doc/doc_chapter2.py
+# -*- coding: utf-8 -*-
+"""
+ตัวสร้างไฟล์ .docx สำหรับบทที่ 2
+- intro_body: str
+- sections_json: list
+- pictures: [{"pic_name": str, "pic_path": "img/user_<username>/xxx.png"}, ...]
+- media_root: absolute path ของ MEDIA_ROOT
+"""
+import os
 from docx import Document
 from docx.shared import Pt, Inches
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from django.conf import settings
-import os
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
-# ⬇️ ดึงจาก doc_function.py ที่มีอยู่แล้ว
-from man_doc.doc_function import doc_setup, iter_sections, sections_doc_safe, _t
 
-FONT = "TH SarabunPSK"
-BASE_PT = 16
-TITLE_PT = 20
+def _p(doc, text="", bold=False, size=12, align=None, before=4, after=6):
+    para = doc.add_paragraph()
+    if align is not None:
+        para.alignment = align
+    run = para.add_run(text or "")
+    run.bold = bold
+    run.font.size = Pt(size)
+    pf = para.paragraph_format
+    pf.space_before = Pt(before)
+    pf.space_after = Pt(after)
+    return para
 
-def addCaption(doc, chap_no, pic_no, pic_name):
-    cap = doc.add_paragraph()
-    run = cap.add_run(f"ภาพที่ {chap_no}-{pic_no} {pic_name or ''}")
-    run.bold = True
-    cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-def generateDocxChapter2(user, chap, doc, pictures):
-    d = doc_setup()  # ✅ ใช้ฟังก์ชันกลางของคุณ
+def _walk_nodes(doc, section_no, nodes):
+    if not isinstance(nodes, list):
+        return
+    for i, node in enumerate(nodes):
+        node_no = f"{section_no}.{i+1}"
+        title = (node or {}).get("text") or ""
+        if title:
+            _p(doc, f"{node_no} {title}", bold=True, size=13, before=8, after=4)
+        for para in (node or {}).get("paragraphs", []) or []:
+            _p(doc, para or "", size=12, before=0, after=6)
+        _walk_nodes(doc, node_no, (node or {}).get("children", []) or [])
 
-    # ชื่อบท
-    h = d.add_paragraph()
-    r = h.add_run(f"บทที่ {chap.chap_no} เอกสารและงานวิจัยที่เกี่ยวข้อง")
-    r.bold = True
-    r.font.size = Pt(TITLE_PT)
 
-    # ย่อหน้าเกริ่น
-    if doc and (doc.intro_body or "").strip():
-        p = d.add_paragraph(doc.intro_body.strip())
-        p.paragraph_format.first_line_indent = Inches(0.5)
+def doc_chapter2(intro_body="", sections_json=None, pictures=None, media_root=""):
+    sections_json = sections_json or []
+    pictures = pictures or []
 
-    # ส่วนหัวข้อย่อย: ใช้ iterator กลาง
-    sections_any = getattr(doc, 'sections_json', '[]')
-    for title, body, mains in iter_sections(sections_any, first_section_mode="body"):
-        if _t(title):
-            t = d.add_paragraph(_t(title))
-            if t.runs:
-                t.runs[0].bold = True
-        if _t(body):
-            pb = d.add_paragraph(_t(body))
-            pb.paragraph_format.first_line_indent = Inches(0.5)
-        # ถ้าในอนาคตต้องเรนเดอร์ mains/subs ก็วนต่อที่นี่ได้
+    doc = Document()
+    _p(doc, "บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง", bold=True, size=18, before=0, after=12)
 
-    # รวมรูปภาพทั้งหมด เรียงตาม pic_no (อ่านจาก JSON)
-    pic_items = []
-    for p in pictures:
-        data = p.get_data()
-        try:
-            pic_items.append({
-                "no": int(data.get("pic_no") or 0),
-                "name": data.get("pic_name") or "",
-                "path": data.get("pic_path") or "",
-            })
-        except Exception:
-            pass
-    pic_items.sort(key=lambda x: x["no"])
+    if intro_body:
+        _p(doc, intro_body, size=12, before=0, after=10)
 
-    for item in pic_items:
-        abs_path = os.path.join(settings.MEDIA_ROOT, item["path"])
-        if os.path.exists(abs_path):
-            try:
-                d.add_picture(abs_path, width=Inches(5.5))
-            except Exception:
-                pass
-        addCaption(d, chap.chap_no, item["no"], item["name"])
+    for sec in sections_json:
+        sec_no = (sec or {}).get("title_no") or ""
+        sec_title = (sec or {}).get("title") or ""
+        if sec_no:
+            _p(doc, f"{sec_no} {sec_title}".strip(), bold=True, size=14, before=10, after=6)
+        for para in (sec or {}).get("body_paragraphs", []) or []:
+            _p(doc, para or "", size=12, before=0, after=6)
+        _walk_nodes(doc, sec_no, (sec or {}).get("items", []) or [])
 
-    out_dir = os.path.join("media", "exports", f"user_{user.id}")
-    os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, f"chapter2_user{user.id}_chap{chap.chap_no}.docx")
-    d.save(out_path)
-    return "/" + out_path.replace("\\", "/")
+    # รูปภาพท้ายบท
+    if pictures:
+        _p(doc, "", size=12, before=6, after=0)
+        running = 1
+        for p in pictures:
+            name = (p or {}).get("pic_name") or ""
+            rel = ((p or {}).get("pic_path") or "").replace("\\", "/")
+            abs_path = os.path.join(media_root or "", rel).replace("\\", os.sep)
+            if not os.path.isfile(abs_path):
+                # ถ้าไฟล์ไม่มีจริง ข้าม
+                continue
+
+            # caption
+            _p(
+                doc,
+                f"ภาพที่ 2-{running} {name}",
+                size=12,
+                align=WD_PARAGRAPH_ALIGNMENT.CENTER,
+                before=6,
+                after=4,
+            )
+            # image
+            par = doc.add_paragraph()
+            par.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            run = par.add_run()
+            run.add_picture(abs_path, width=Inches(5.5))
+            par.paragraph_format.space_after = Pt(8)
+
+            running += 1
+
+    return doc
+
+
+# alias
+doc_chapter_2 = doc_chapter2
+generate_doc = doc_chapter2

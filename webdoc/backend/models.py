@@ -1,9 +1,12 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import JSONField
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -394,46 +397,6 @@ class DocChapter1(models.Model):
     class Meta:
         managed = False
         db_table = 'doc_chapter_1'
-
-User = get_user_model()
-
-class TbChap(models.Model):
-    chap_id   = models.IntegerField(primary_key=True)
-    chap_no   = models.IntegerField()
-    chap_name = models.CharField(max_length=255)
-
-    class Meta:
-        managed = False
-        db_table = 'tb_chap'
-
-class TbPicture(models.Model):
-    pic_id        = models.AutoField(primary_key=True)
-    user          = models.ForeignKey(User, db_column='user_id', on_delete=models.DO_NOTHING)
-    chap          = models.ForeignKey(TbChap, db_column='chap_id', on_delete=models.DO_NOTHING)
-    pic_data_json = models.TextField()  # {"pic_name": "...", "pic_path": "...", "pic_no": 1}
-
-    class Meta:
-        managed = False
-        db_table = 'tb_picture'
-
-    def get_data(self):
-        try:
-            return json.loads(self.pic_data_json or "{}")
-        except Exception:
-            return {}
-
-class DocChapter2(models.Model):
-    doc_id   = models.AutoField(primary_key=True)
-    user     = models.ForeignKey(User, db_column='user_id', on_delete=models.DO_NOTHING)
-    chap     = models.ForeignKey(TbChap, db_column='chap_id', on_delete=models.DO_NOTHING)
-    intro_body    = models.TextField(blank=True, null=True)
-    sections_json = models.TextField(blank=True, null=True)
-    pic           = models.ForeignKey(TbPicture, db_column='pic_id', on_delete=models.SET_NULL, null=True, blank=True)
-
-    class Meta:
-        managed = False
-        db_table = 'doc_chapter_2'
-
 
 #     Chapter 5 
 class Chapter5(models.Model):

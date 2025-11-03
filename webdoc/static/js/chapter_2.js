@@ -11,7 +11,7 @@ function getCsrfToken() { return getCookie("csrftoken"); }
 const alertBox = (() => {
   const el = () => document.getElementById("alert-box");
   function show(msg, type = "info", timeoutMs = 3000) {
-    const box = el(); 
+    const box = el();
     if (!box) return;
     box.textContent = msg;
     box.className = "";
@@ -30,24 +30,22 @@ const alertBox = (() => {
 })();
 
 // ========================= Data Model =========================
-// node ย่อย (หัวข้อย่อยระดับใดก็ได้: 2.1.1, 2.1.1.1 ฯลฯ)
 function makeNode() {
   return {
-    text: "",        // ชื่อหัวข้อย่อย
-    paragraphs: [],  // ย่อหน้าในหัวข้อนี้
-    pictures: [],    // [{pic_no, pic_name, pic_path}]
-    children: []     // node ย่อยลงไปอีก
+    text: "",
+    paragraphs: [],
+    pictures: [],   // [{pic_no, pic_name, pic_path}]
+    children: []
   };
 }
 
-// หัวข้อใหญ่ เช่น 2.1, 2.2, 2.3 ...
 function makeSection(title_no, title) {
   return {
-    title_no,              // "2.1"
-    title,                 // "แนวคิดและทฤษฎีที่เกี่ยวข้อง"
-    body_paragraphs: [],   // ย่อหน้าอธิบายหัวข้อหลัก
-    pictures: [],          // รูปแนบตรงระดับหัวข้อหลัก
-    items: [ makeNode() ]  // node ชั้นแรกอย่างน้อย 1 ตัว
+    title_no,
+    title,
+    body_paragraphs: [],
+    pictures: [],
+    items: [ makeNode() ]
   };
 }
 
@@ -57,12 +55,10 @@ let sectionsState = [
   makeSection("2.2", "งานวิจัยที่เกี่ยวข้อง")
 ];
 
-// เก็บไฟล์รูปที่เลือกไว้ชั่วคราวตามตำแหน่ง
-// key = "secIdx|pathStr" เช่น "0|" (รูปของหัวข้อ 2.1 เอง)
-// หรือ "0|0.1" (node path [0,1] ของหัวข้อ index=0)
-const pendingFiles = {};
+// key => File ที่ผู้ใช้เลือกเตรียมอัปโหลดใน node นั้น
+const pendingFiles = {}; // {"secIndex|path.path": File}
 
-// ========================= Utilities =========================
+// ========================= Utils / AJAX =========================
 function syncHiddenField() {
   const hidden = document.getElementById("sections_json");
   if (!hidden) return;
@@ -83,24 +79,26 @@ async function postAction(action, extra = {}, fileToUpload = null) {
   });
 
   const ct = res.headers.get("Content-Type") || "";
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    // ถ้า backend ส่ง JSON error มาก็โชว์ได้เลย
+    const text = await res.text();
+    throw new Error(text);
+  }
   if (ct.includes("application/json")) return res.json();
   return res.text();
 }
 
-// ดึง node ตาม path (เช่น [0,1] คือ items[0].children[1] ...)
+// เข้าถึง node ย่อยด้วย path array เช่น [0,1,2]
 function getNodeByPath(sectionObj, pathArr) {
-  if (pathArr.length === 0) return null; // ว่าง = ระดับหัวข้อใหญ่เอง
+  if (pathArr.length === 0) return null;
   let cur = sectionObj.items[pathArr[0]];
-  for (let i=1; i<pathArr.length; i++) {
+  for (let i = 1; i < pathArr.length; i++) {
     cur = cur.children[pathArr[i]];
   }
   return cur;
 }
 
-// สร้างหมายเลขหัวข้อย่อยจาก path
-// ex: sectionNo "2.1", pathArr [0] -> "2.1.1"
-//     pathArr [0,1] -> "2.1.1.2"
+// แปลง path → "2.1.2.1" เป็นต้น
 function buildNodeNumber(sectionNo, pathArr) {
   if (!pathArr || pathArr.length === 0) return sectionNo;
   const suffix = pathArr.map(i => (i+1)).join(".");
@@ -113,29 +111,22 @@ function fileKey(secIndex, pathArr) {
   return secIndex + "|" + pathArr.join(".");
 }
 
-// หาเลขหัวข้อใหญ่ถัดไป เช่น ถ้ามี 2.1, 2.2 แล้ว -> คืน "2.3"
+// หาเลขหัวข้อใหญ่ใหม่ เช่น 2.3, 2.4,...
 function getNextSectionNumber() {
-  if (sectionsState.length === 0) {
-    return "2.1";
-  }
-  // หยิบ title_no อันสุดท้าย แล้ว +0.1 แบบมนุษย์
-  // สมมติ "2.2" -> แบ่งด้วย "." ได้ ["2","2"]
+  if (sectionsState.length === 0) return "2.1";
   const last = sectionsState[sectionsState.length - 1].title_no || "2.1";
   const parts = last.split(".");
-  // parts[0] = "2", parts[1] = "2"
   if (parts.length === 2) {
-    const chap = parts[0];     // "2"
+    const chap = parts[0]; // "2"
     const idx  = parseInt(parts[1], 10) || 1;
-    return chap + "." + (idx + 1); // "2.3"
+    return chap + "." + (idx + 1);
   }
-  // fallback ถ้า title_no รูปแบบเพี้ยน
   return "2." + (sectionsState.length + 1);
 }
 
-// ========================= Render helpers =========================
-
-// render paragraphs array ให้แก้ไขได้
-function renderParagraphs(arr, onMutate) {
+// ========================= Paragraph Editor =========================
+// ปรับใหม่: แยกการพิมพ์ (ไม่ redrawSections) ออกจาก การเพิ่ม/ลบ (redrawSections)
+function renderParagraphs(arr, onChangeContent, onAddOrRemove) {
   const wrap = document.createElement("div");
   wrap.className = "paras-wrap";
 
@@ -146,9 +137,11 @@ function renderParagraphs(arr, onMutate) {
     const ta = document.createElement("textarea");
     ta.value = txt || "";
     ta.placeholder = "พิมพ์ย่อหน้า . . .";
-    ta.addEventListener("input", e => {
+
+    // พิมพ์ทีละตัว -> แก้แค่ใน state + syncHiddenField()
+    ta.addEventListener("input", (e) => {
       arr[idx] = e.target.value;
-      onMutate();
+      if (onChangeContent) onChangeContent();
     });
 
     const del = document.createElement("button");
@@ -157,7 +150,7 @@ function renderParagraphs(arr, onMutate) {
     del.textContent = "ลบ";
     del.addEventListener("click", () => {
       arr.splice(idx,1);
-      onMutate();
+      if (onAddOrRemove) onAddOrRemove();
     });
 
     row.appendChild(ta);
@@ -171,19 +164,18 @@ function renderParagraphs(arr, onMutate) {
   addBtn.textContent = "➕ เพิ่มย่อหน้า";
   addBtn.addEventListener("click", () => {
     arr.push("");
-    onMutate();
+    if (onAddOrRemove) onAddOrRemove();
   });
   wrap.appendChild(addBtn);
 
   return wrap;
 }
 
-// กล่องรูปภาพ ใช้ได้ทั้งหัวข้อใหญ่ และ node ย่อย
+// ========================= Picture Box =========================
 function renderPicturesBox(sectionObj, secIndex, pathArr) {
   const picsBox = document.createElement("div");
   picsBox.className = "pics-box";
 
-  // node เป้าหมาย = หัวข้อใหญ่เอง หรือ node ย่อย
   const targetNode = (pathArr.length === 0)
     ? sectionObj
     : getNodeByPath(sectionObj, pathArr);
@@ -193,17 +185,13 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
   }
 
   const nodeNo = buildNodeNumber(sectionObj.title_no, pathArr);
+  const keyForThisNode = fileKey(secIndex, pathArr);
 
-  // หัวกล่อง "รูปภาพของหัวข้อ …"
   const head = document.createElement("div");
   head.className = "pics-head";
   head.textContent = `รูปภาพของหัวข้อ ${nodeNo}`;
   picsBox.appendChild(head);
 
-  // เล่นกับ key สำหรับไฟล์ชั่วคราว
-  const keyForThisNode = fileKey(secIndex, pathArr);
-
-  // แถว input เพิ่มรูป
   const addRow = document.createElement("div");
   addRow.className = "pics-add-row";
 
@@ -212,50 +200,38 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
   captionInput.className = "pic-caption-input";
   captionInput.placeholder = "คำอธิบายรูป / ชื่อรูป (เช่น ภาพที่ 2-1 : แผนภาพระบบ)";
 
-  // ป้ายสถานะไฟล์ที่เลือก
   const pendingLabel = document.createElement("div");
   pendingLabel.style.fontSize = "12px";
   pendingLabel.style.color = "#6b7280";
   pendingLabel.style.minWidth = "160px";
 
-  // ปุ่มเลือกไฟล์
   const pickBtn = document.createElement("button");
   pickBtn.type = "button";
   pickBtn.className = "mini-btn";
   pickBtn.textContent = "เลือกรูป…";
 
-  // ปุ่มยืนยันเพิ่มรูป (อัปโหลด+insert DB)
   const addBtn = document.createElement("button");
   addBtn.type = "button";
   addBtn.className = "mini-btn";
   addBtn.textContent = "เพิ่มรูป";
 
-  // input file ที่ซ่อน
   const fileInput = document.createElement("input");
   fileInput.type = "file";
   fileInput.accept = "image/*";
   fileInput.style.display = "none";
 
-  // เมื่อคลิก "เลือกรูป…" ให้เปิด file picker
   pickBtn.addEventListener("click", () => {
     fileInput.click();
   });
 
-  // เมื่อผู้ใช้เลือกไฟล์
   fileInput.addEventListener("change", () => {
     if (fileInput.files && fileInput.files.length > 0) {
-      // เก็บไฟล์ไว้ใน pendingFiles เพื่อกด "เพิ่มรูป"
       pendingFiles[keyForThisNode] = fileInput.files[0];
-
-      // อัปเดต UI ให้ผู้ใช้เห็นทันทีว่ามีไฟล์ถูกเลือกแล้ว
       pendingLabel.textContent = "ไฟล์ที่เลือก: " + fileInput.files[0].name;
-
-      // แจ้งเตือนบนกล่องข้อความด้านบน (alertBox)
       alertBox.show(`เลือกรูป: ${fileInput.files[0].name}`, "info");
     }
   });
 
-  // เมื่อคลิก "เพิ่มรูป"
   addBtn.addEventListener("click", async () => {
     const picName = (captionInput.value || "").trim();
     const f = pendingFiles[keyForThisNode];
@@ -270,43 +246,35 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
     }
 
     alertBox.show("กำลังอัปโหลดรูป...", "info", 0);
-
     try {
       const data = await postAction(
         "add_picture",
         {
-          node_no: nodeNo,        // ex "2.1.1"
-          pic_name: picName,      // ชื่อรูป/คำอธิบายจากผู้ใช้
-          pic_path: f.name        // path/ชื่อไฟล์ (ฝั่ง backend ควรบันทึกที่เก็บจริง)
+          node_no: nodeNo,
+          pic_name: picName,
+          pic_path: f.name
         },
-        f                          // <-- ตัวไฟล์จริง (request.FILES['pic_file'])
+        f
       );
 
       if (data && data.status === "ok" && data.picture) {
-        // push รูปใหม่เข้า node นี้
         targetNode.pictures.push(data.picture);
 
-        // เคลียร์ state และ UI ชั่วคราว
         captionInput.value = "";
         pendingLabel.textContent = "";
         delete pendingFiles[keyForThisNode];
 
-        // redraw เพื่อให้ list ด้านล่างอัปเดต
         redrawSections();
-
         alertBox.show(data.message || "เพิ่มรูปสำเร็จ 🖼", "success");
       } else {
         alertBox.show((data && data.message) || "เพิ่มรูปไม่สำเร็จ", "error");
       }
-
     } catch (err) {
       console.error(err);
       alertBox.show("เพิ่มรูปผิดพลาด (" + err.message + ")", "error", 5000);
     }
   });
 
-  // ใส่ element ต่าง ๆ ลงแถวควบคุม
-  // ลำดับประมาณ: ช่องชื่อรูป | ปุ่มเลือกรูป | ป้ายไฟล์ที่เลือก | ปุ่มเพิ่มรูป
   addRow.appendChild(captionInput);
   addRow.appendChild(pickBtn);
   addRow.appendChild(pendingLabel);
@@ -314,7 +282,7 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
   addRow.appendChild(fileInput);
   picsBox.appendChild(addRow);
 
-  // รายการรูปที่เคยเพิ่มแล้ว
+  // list รูป
   const list = document.createElement("div");
   list.className = "pic-list";
 
@@ -343,7 +311,7 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
   return picsBox;
 }
 
-// render node (recursive)
+// ========================= Node Renderer (หัวข้อย่อย) =========================
 function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   const nodeEl = document.createElement("div");
   nodeEl.className = "node-card";
@@ -362,9 +330,9 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   titleInput.className = "node-title-input";
   titleInput.placeholder = "พิมพ์ชื่อหัวข้อย่อย…";
   titleInput.value = nodeObj.text || "";
-  titleInput.addEventListener("input", e => {
+  titleInput.addEventListener("input", (e) => {
     nodeObj.text = e.target.value;
-    syncHiddenField();
+    syncHiddenField(); // อัปเดต hidden แต่ไม่ redraw
   });
 
   const controls = document.createElement("div");
@@ -376,7 +344,7 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   btnAddPara.textContent = "➕ ย่อหน้า";
   btnAddPara.addEventListener("click", () => {
     nodeObj.paragraphs.push("");
-    redrawSections();
+    redrawSections(); // การเพิ่มย่อหน้าต้อง redraw
   });
 
   const btnAddChild = document.createElement("button");
@@ -385,7 +353,7 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   btnAddChild.textContent = "➕ หัวข้อย่อยถัดไป";
   btnAddChild.addEventListener("click", () => {
     nodeObj.children.push(makeNode());
-    redrawSections();
+    redrawSections(); // เพิ่มหัวข้อย่อยใหม่ -> redraw
   });
 
   const btnDelNode = document.createElement("button");
@@ -393,19 +361,16 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   btnDelNode.className = "mini-btn";
   btnDelNode.textContent = "ลบหัวข้อนี้";
   btnDelNode.addEventListener("click", () => {
-    // ลบ node นี้ออกจาก sectionsState
     const [rootIdx, ...rest] = pathArr;
     if (rest.length === 0) {
-      // ลบจาก section.items[rootIdx]
       sectionObj.items.splice(rootIdx,1);
     } else {
-      // ลบจาก children ของ parent
-      const parentPath = pathArr.slice(0,-1);
-      const parentNode  = getNodeByPath(sectionObj, parentPath);
+      const parentPath = pathArr.slice(0, -1);
+      const parentNode = getNodeByPath(sectionObj, parentPath);
       const myIdx = pathArr[pathArr.length-1];
       parentNode.children.splice(myIdx,1);
     }
-    redrawSections();
+    redrawSections(); // ลบ -> redraw
   });
 
   controls.appendChild(btnAddPara);
@@ -417,10 +382,18 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   topRow.appendChild(controls);
   nodeEl.appendChild(topRow);
 
-  // paragraphs
+  // paragraphs ของ nodeObj
   if (nodeObj.paragraphs && nodeObj.paragraphs.length > 0) {
     nodeEl.appendChild(
-      renderParagraphs(nodeObj.paragraphs, () => { syncHiddenField(); redrawSections(); })
+      renderParagraphs(
+        nodeObj.paragraphs,
+        () => { // onChangeContent (แค่พิมพ์)
+          syncHiddenField();
+        },
+        () => { // onAddOrRemove (เพิ่ม/ลบ)
+          redrawSections();
+        }
+      )
     );
   } else {
     const firstParaBtn = document.createElement("button");
@@ -429,15 +402,15 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
     firstParaBtn.textContent = "➕ เพิ่มย่อหน้าแรก";
     firstParaBtn.addEventListener("click", () => {
       nodeObj.paragraphs.push("");
-      redrawSections();
+      redrawSections(); // เพิ่ม -> redraw
     });
     nodeEl.appendChild(firstParaBtn);
   }
 
-  // pictures (ระดับ node นี้)
+  // box รูปภาพของ node
   nodeEl.appendChild(renderPicturesBox(sectionObj, secIndex, pathArr));
 
-  // children
+  // children (หัวข้อย่อยระดับถัดไป)
   const childrenWrap = document.createElement("div");
   childrenWrap.className = "children-block";
 
@@ -465,7 +438,7 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   return nodeEl;
 }
 
-// render tree ของ section (items[])
+// render กลุ่ม node ชั้นแรกของหัวข้อใหญ่
 function renderSectionTree(sectionObj, secIndex) {
   const treeWrap = document.createElement("div");
   treeWrap.className = "tree-wrap";
@@ -490,12 +463,11 @@ function renderSectionTree(sectionObj, secIndex) {
   return treeWrap;
 }
 
-// render การ์ดหัวข้อใหญ่ (2.1 / 2.2 / ...)
+// การ์ดหัวข้อใหญ่ 2.x
 function renderSectionCard(sectionObj, secIndex) {
   const wrap = document.createElement("div");
   wrap.className = "chapter-section-card";
 
-  // head row
   const headRow = document.createElement("div");
   headRow.className = "chapter-head-row";
 
@@ -508,15 +480,11 @@ function renderSectionCard(sectionObj, secIndex) {
   titleInput.className = "chapter-title-input";
   titleInput.placeholder = "ชื่อหัวข้อหลัก เช่น แนวคิดและทฤษฎีที่เกี่ยวข้อง";
   titleInput.value = sectionObj.title || "";
-  titleInput.addEventListener("input", e => {
+  titleInput.addEventListener("input", (e) => {
     sectionObj.title = e.target.value;
-    syncHiddenField();
+    syncHiddenField(); // ไม่ redraw ตอนพิมพ์
   });
 
-  headRow.appendChild(badge);
-  headRow.appendChild(titleInput);
-
-  // ปุ่มลบหัวข้อใหญ่ (ลบทั้ง 2.3 ทั้งก้อน)
   const delSectionBtn = document.createElement("button");
   delSectionBtn.type = "button";
   delSectionBtn.className = "mini-btn";
@@ -524,14 +492,15 @@ function renderSectionCard(sectionObj, secIndex) {
   delSectionBtn.textContent = "ลบหัวข้อใหญ่";
   delSectionBtn.addEventListener("click", () => {
     sectionsState.splice(secIndex, 1);
-    redrawSections();
+    redrawSections(); // ลบ -> redraw
   });
 
+  headRow.appendChild(badge);
+  headRow.appendChild(titleInput);
   headRow.appendChild(delSectionBtn);
-
   wrap.appendChild(headRow);
 
-  // overview paragraphs ของหัวข้อใหญ่
+  // ย่อหน้า overview ของหัวข้อใหญ่
   const overBlock = document.createElement("div");
   overBlock.className = "overview-block";
 
@@ -541,12 +510,20 @@ function renderSectionCard(sectionObj, secIndex) {
   overBlock.appendChild(overLabel);
 
   overBlock.appendChild(
-    renderParagraphs(sectionObj.body_paragraphs, () => { syncHiddenField(); redrawSections(); })
+    renderParagraphs(
+      sectionObj.body_paragraphs,
+      () => { // onChangeContent
+        syncHiddenField();
+      },
+      () => { // onAddOrRemove
+        redrawSections();
+      }
+    )
   );
 
   wrap.appendChild(overBlock);
 
-  // รูประดับหัวข้อใหญ่เอง
+  // รูประดับหัวข้อใหญ่
   wrap.appendChild(renderPicturesBox(sectionObj, secIndex, []));
 
   // tree ย่อย
@@ -555,7 +532,7 @@ function renderSectionCard(sectionObj, secIndex) {
   return wrap;
 }
 
-// render ทั้งหมด (sectionsState -> DOM)
+// render ทุกหัวข้อใหญ่
 function redrawSections() {
   const container = document.getElementById("sections-container");
   container.innerHTML = "";
@@ -565,17 +542,17 @@ function redrawSections() {
   syncHiddenField();
 }
 
-// ========================= BUTTON HANDLERS (ดึง/บันทึก/เอกสาร/เพิ่มหัวข้อใหญ่) =========================
+// ========================= BUTTON HANDLERS =========================
 function wireButtons() {
   const btnGet = document.getElementById("btnGetData");
   const btnSave = document.getElementById("btnSave");
-  const btnGen = document.getElementById("btnGenerate");
+  const btnGen  = document.getElementById("btnGenerate");
   const btnAddSection = document.getElementById("btnAddSection");
 
-  const intro = document.getElementById("intro_body");
+  const intro  = document.getElementById("intro_body");
   const hidden = document.getElementById("sections_json");
 
-  // ดึงข้อมูลจาก DB
+  // ดึงข้อมูล
   btnGet.addEventListener("click", async () => {
     alertBox.show("กำลังดึงข้อมูล...", "info", 0);
     try {
@@ -602,13 +579,13 @@ function wireButtons() {
       } else {
         alertBox.show("โครงสร้างข้อมูลไม่ถูกต้อง", "error", 5000);
       }
-    } catch(err) {
+    } catch (err) {
       console.error(err);
       alertBox.show("ดึงข้อมูลล้มเหลว ("+err.message+")", "error", 5000);
     }
   });
 
-  // บันทึกข้อมูล
+  // บันทึก
   btnSave.addEventListener("click", async () => {
     alertBox.show("กำลังบันทึก...", "info", 0);
     syncHiddenField();
@@ -617,12 +594,18 @@ function wireButtons() {
         intro_body: intro.value,
         sections_json: hidden.value
       });
+
+      // ถ้ากลับมาเป็น JSON error (status !== ok)
       if (data && data.status === "ok") {
         alertBox.show("บันทึกเรียบร้อย 💾", "success");
       } else {
-        alertBox.show("บันทึกไม่สำเร็จ", "error", 5000);
+        alertBox.show(
+          "บันทึกผิดพลาด " + JSON.stringify(data),
+          "error",
+          5000
+        );
       }
-    } catch(err) {
+    } catch (err) {
       console.error(err);
       alertBox.show("บันทึกล้มเหลว ("+err.message+")", "error", 5000);
     }
@@ -637,18 +620,18 @@ function wireButtons() {
         intro_body: intro.value,
         sections_json: hidden.value
       });
-      if (typeof data === "string") {
-        alertBox.show(data, "success", 5000);
+      if (data && data.status === "ok") {
+        alertBox.show(data.message || "สร้างเอกสารเสร็จ 📄", "success", 5000);
       } else {
-        alertBox.show("สร้างเอกสารเสร็จ 📄", "success", 5000);
+        alertBox.show("สร้างเอกสารผิดพลาด", "error", 5000);
       }
-    } catch(err) {
+    } catch (err) {
       console.error(err);
       alertBox.show("สร้างเอกสารผิดพลาด ("+err.message+")", "error", 5000);
     }
   });
 
-  // เพิ่มหัวข้อใหญ่ใหม่
+  // เพิ่มหัวข้อใหญ่ใหม่ (2.3, 2.4, ...)
   btnAddSection.addEventListener("click", () => {
     const nextNo = getNextSectionNumber();
     const newSec = makeSection(nextNo, "");
@@ -658,7 +641,7 @@ function wireButtons() {
   });
 }
 
-// ฟังก์ชันแปลง node จาก backend -> รูปแบบปัจจุบันเรา
+// แปลง node จาก DB -> รูปแบบ state ปัจจุบัน
 function remapNode(rawNode) {
   return {
     text: rawNode.text || "",

@@ -445,4 +445,7 @@ class DocChapter2(models.Model):
 
     class Meta:
         managed = False
-        db_table = "doc_chapter_2"
+        db_table = 'doc_chapter_2'
+
+    def __str__(self):
+        return f"บทที่ 2 ของ {self.user.full_name or self.user.email}"

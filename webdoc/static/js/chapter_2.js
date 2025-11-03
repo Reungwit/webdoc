@@ -173,13 +173,15 @@ function renderParagraphs(arr, onChangeContent, onAddOrRemove) {
 
 // ========================= Picture Box =========================
 function renderPicturesBox(sectionObj, secIndex, pathArr) {
+   // ไม่ให้มีรูปในระดับหัวข้อใหญ่ (2.x)
+  if (!pathArr || pathArr.length === 0) {
+    return document.createElement("div"); // คืนเปล่า
+  }
+
   const picsBox = document.createElement("div");
   picsBox.className = "pics-box";
 
-  const targetNode = (pathArr.length === 0)
-    ? sectionObj
-    : getNodeByPath(sectionObj, pathArr);
-
+  const targetNode = getNodeByPath(sectionObj, pathArr);
   if (!targetNode.pictures) {
     targetNode.pictures = [];
   }
@@ -265,7 +267,7 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
         delete pendingFiles[keyForThisNode];
 
         redrawSections();
-        alertBox.show(data.message || "เพิ่มรูปสำเร็จ 🖼", "success");
+        alertBox.show(data.message || "เพิ่มรูปสำเร็จ ", "success");
       } else {
         alertBox.show((data && data.message) || "เพิ่มรูปไม่สำเร็จ", "error");
       }
@@ -523,8 +525,7 @@ function renderSectionCard(sectionObj, secIndex) {
 
   wrap.appendChild(overBlock);
 
-  // รูประดับหัวข้อใหญ่
-  wrap.appendChild(renderPicturesBox(sectionObj, secIndex, []));
+  
 
   // tree ย่อย
   wrap.appendChild(renderSectionTree(sectionObj, secIndex));

@@ -1,116 +1,129 @@
+# man_views/views_chapter_2.py
+import json
+import os
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.core.files.storage import default_storage
+from django.db import transaction
+from django.conf import settings
 
-import json
+from backend.models import DocChapter2  # ← ใช้แค่ตารางนี้ตามฐานข้อมูลใหม่
 
-# -------------------------------------------------------------
-# โครงข้อมูล (phase: mock) — ยังไม่แตะฐานข้อมูลจริง
-# -------------------------------------------------------------
-DEFAULT_SECTIONS = [
-    {
-        "title_no": "2.1",
-        "title": "แนวคิดและทฤษฎีที่เกี่ยวข้อง",
-        # ย่อหน้าใหญ่ของหัวข้อ (หลายย่อหน้าได้)
-        "body_paragraphs": [],
-        # โครงย่อยแบบ tree: items = [{text, paragraphs:[], children:[...]}]
-        "items": [],
-        "pictures": []  # [{pic_no, pic_name, pic_path}]
-    },
-    {
-        "title_no": "2.2",
-        "title": "งานวิจัยที่เกี่ยวข้อง",
-        "body_paragraphs": [],
-        "items": [],
-        "pictures": []
-    }
-]
-
-def _safe_json_loads(s, default):
-    try:
-        return json.loads(s)
-    except Exception:
-        return default
+# ฟังก์ชันกลางจาก doc_function (ไฟล์ของคุณ)
+try:
+    from man_doc.doc_function import sections_ui_from_db, sections_db_from_ui
+except ImportError:
+    # fallback กรณี path ต่างจากโปรเจกต์จริง
+    from doc_function import sections_ui_from_db, sections_db_from_ui  # noqa
 
 @login_required
+@require_http_methods(["GET", "POST"])
+@transaction.atomic
 def chapter_2_view(request):
-    """
-    บทที่ 2 (phase: mock)
-    - หน้าเว็บทำงานครบ, เพิ่มหัวข้อย่อยได้หลายระดับ, แนบรูปต่อหัวข้อใหญ่
-    - ยังไม่เชื่อมฐานข้อมูลจริง / ยังไม่ generate docx จริง
-    """
+    user = request.user  # AUTH_USER_MODEL
+
     if request.method == "POST":
         action = (request.POST.get("action") or "").strip()
 
-        # ----------------- 1) GET DATA -----------------
+        # -------------------- 1) ดึงข้อมูลกลับมาแสดง --------------------
         if action == "get_data":
-            # ส่งค่าเริ่มต้น (mock) เป็นสองหัวข้อคงที่
-            initial = {
-                "intro_body": "",
-                "sections": DEFAULT_SECTIONS
-            }
-            return JsonResponse({
-                "status": "ok",
-                "initial": initial
-            })
+            try:
+                doc = DocChapter2.objects.get(user=user)
+                initial = {
+                    "intro_body": doc.intro_body or "",
+                    # แปลง schema DB -> UI เพื่อยิงเข้า template initial
+                    "sections": sections_ui_from_db(doc.sections_json, first_section_mode="body"),
+                    "pics": doc.pic_data_json or [],  # รายการรูปในบทนี้ (จัดเก็บในคอลัมน์เดียว)
+                }
+                return JsonResponse({"status": "ok", "initial": initial})
+            except DocChapter2.DoesNotExist:
+                # เคสยังไม่มีข้อมูล ให้ initial เปล่า ๆ
+                return JsonResponse({
+                    "status": "nodata",
+                    "initial": {
+                        "intro_body": "",
+                        "sections": sections_ui_from_db(None, first_section_mode="body"),
+                        "pics": [],
+                    }
+                })
 
-        # ----------------- 2) SAVE -----------------
+        # -------------------- 2) บันทึก/อัปเดตข้อมูล --------------------
         elif action == "save":
             intro_body = request.POST.get("intro_body", "")
             sections_raw = request.POST.get("sections_json", "[]")
-            sections_data = _safe_json_loads(sections_raw, [])
 
-            # phase mock: แค่ echo กลับเพื่อยืนยันโครง
-            return JsonResponse({
-                "status": "ok",
-                "message": "บันทึก (mock) เรียบร้อย",
-                "echo": {
+            # UI -> DB (คงโครงสร้าง mains ให้ใช้ได้ทุกบท)
+            sections_for_db = sections_db_from_ui(sections_raw, first_section_mode="body")
+
+            # อัปเดต/สร้างใหม่ แยกตาม user_id
+            obj, created = DocChapter2.objects.update_or_create(
+                user=user,
+                defaults={
                     "intro_body": intro_body,
-                    "sections": sections_data
+                    "sections_json": sections_for_db,
+                    "chap_no": 2,                 # เก็บเลขบทตามเส้นทาง chapter_2/
+                    # ไม่แตะ pic_data_json ที่มีอยู่ (ปล่อยให้เดิมอยู่)
                 }
-            })
+            )
+            return JsonResponse({"status": "ok", "message": "บันทึกข้อมูลบทที่ 2 สำเร็จ"})
 
-        # ----------------- 3) ADD PICTURE (ต่อหัวข้อใหญ่) -----------------
+        # -------------------- 3) แนบรูป (เก็บลงคอลัมน์ pic_data_json) --------------------
         elif action == "add_picture":
-            # ระบุหัวข้อใหญ่ที่จะแนบรูป เช่น "2.1" หรือ "2.2"
-            section_no = (request.POST.get("section_no") or "").strip()
-            pic_name   = (request.POST.get("pic_name") or "").strip()
-            # ใน phase mock จะไม่ได้อัปโหลดจริง แต่รองรับไฟล์เข้ามาแล้ว
-            _pic_file  = request.FILES.get("pic_file")  # noqa
+            pic_name = (request.POST.get("pic_name") or "").strip()
+            pic_file = request.FILES.get("pic_file")
 
-            if not section_no:
-                return JsonResponse({"status": "error", "message": "ไม่พบเลขหัวข้อ section_no"})
-            if section_no not in ("2.1", "2.2"):
-                return JsonResponse({"status": "error", "message": "section_no ต้องเป็น 2.1 หรือ 2.2"})
             if not pic_name:
                 return JsonResponse({"status": "error", "message": "กรุณากรอกชื่อรูป"})
+            if not pic_file:
+                return JsonResponse({"status": "error", "message": "กรุณาแนบไฟล์รูปภาพ"})
 
-            # mock running number (เช่น ภาพที่ 2-1, 2-2 ... — ที่จริงควรอ่านจาก DB)
-            # ในที่นี้ให้ fix เป็น 2-99 เพื่อยืนยัน flow
-            fake_no = "2-99"
-            # path mock (ถ้ามีไฟล์จะใช้ชื่อไฟล์; ถ้าไม่มีก็ว่าง)
-            fake_path = _pic_file.name if _pic_file else (request.POST.get("pic_path") or "")
+            # ให้แน่ใจว่ามีแถวของบทที่ 2 ก่อน
+            doc, _ = DocChapter2.objects.get_or_create(
+                user=user,
+                defaults={
+                    "intro_body": "",
+                    "sections_json": [],
+                    "pic_data_json": [],
+                    "chap_no": 2,
+                }
+            )
+
+            # จัดเก็บไฟล์ลง storage
+            upload_dir = os.path.join("user_uploads", f"user_{getattr(user, 'user_id', user.pk)}", "chap_2")
+            file_name = default_storage.get_available_name(os.path.join(upload_dir, pic_file.name))
+            saved_path = default_storage.save(file_name, pic_file)
+
+            # สร้างหมายเลขรูปแบบ 2-ลำดับ
+            pics = list(doc.pic_data_json or [])
+            new_pic_no = f"2-{len(pics) + 1}"
+
+            entry = {
+                "pic_name": pic_name,
+                "pic_path": saved_path,               # path เก็บไฟล์
+                "pic_url": default_storage.url(saved_path),  # URL สำหรับแสดงผล
+                "pic_no": new_pic_no,
+            }
+            pics.append(entry)
+            doc.pic_data_json = pics
+            doc.save(update_fields=["pic_data_json"])
 
             return JsonResponse({
                 "status": "ok",
-                "message": f"เพิ่มรูป (mock) แล้วในหัวข้อ {section_no} : {fake_no}",
-                "picture": {
-                    "pic_no": fake_no,
-                    "pic_name": pic_name,
-                    "pic_path": fake_path
-                },
-                "section_no": section_no
+                "message": f"เพิ่มรูป '{pic_name}' (ภาพที่ {new_pic_no}) สำเร็จ",
+                "picture": entry
             })
 
-        # ----------------- 4) GENERATE DOC (mock) -----------------
+        # -------------------- 4) (ตัวอย่าง) สร้างเอกสาร .docx --------------------
         elif action == "generate_doc":
-            return HttpResponse("กำลังอยู่ในโหมด mock: ยังไม่ generate .docx", content_type="text/plain")
+            # คุณสามารถ import เอนจิน docx บทที่ 2 มาต่อได้ในภายหลัง
+            # จากโครงกลางใน doc_function ที่คุณใช้อยู่
+            return HttpResponse("ยังไม่ได้เชื่อมเอนจิน .docx สำหรับบทที่ 2 (ตัวอย่าง action)")
 
-        # ----------------- unknown action -----------------
         return JsonResponse({"status": "error", "message": f"ไม่รู้จัก action: {action}"})
 
-    # GET: render หน้า
+    # -------------------- GET: แสดงหน้า template --------------------
     return render(request, "chapter_2.html", {
-        "page_title": "บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง"
+        "page_title": "บทที่ 2 เอกสาร/งานวิจัยที่เกี่ยวข้อง",
     })

@@ -61,7 +61,6 @@ def chapter_1_view(request: HttpRequest) -> HttpResponse:
                     default_titles=DEFAULT_TITLES,
                     first_section_mode=FIRST_MODE,
                 )
-#saveบั๊คคคคคคคคคคคคคคคค
             elif action == "get_data":
                 ui_sections = sections_ui_from_db(
                 db_sections,

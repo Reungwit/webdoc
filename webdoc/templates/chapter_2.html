@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ page_title }}</title>
+
+  <meta name="csrf-token" content="{{ csrf_token }}">
+
+  <link rel="stylesheet" href="{% static 'css/chapter_2.css' %}">
+</head>
+<body>
+  <div class="ch2-container">
+    <!-- HEADER -->
+    <header class="ch2-header">
+      <h1>บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง</h1>
+      <div class="ch2-buttons">
+        <button id="btnGetData"   type="button">🔄 ดึงข้อมูล</button>
+        <button id="btnSave"      type="button">💾 บันทึกข้อมูล</button>
+        <button id="btnGenerate"  type="button">📄 สร้างเอกสาร</button>
+      </div>
+    </header>
+
+    <!-- ALERT -->
+    <div id="alert-box" class="alert-box"></div>
+
+    <!-- INTRO -->
+    <section class="ch2-section">
+      <h2>คำนำบทที่ 2</h2>
+      <textarea id="intro_body" name="intro_body" placeholder="พิมพ์เนื้อหาคำนำบทที่ 2..." rows="6"></textarea>
+    </section>
+
+    <!-- SECTIONS -->
+    <section class="ch2-section">
+      <h2>หัวข้อ 2.1 และ 2.2 (คงที่)</h2>
+      <div id="sections-container" class="sections-container"></div>
+
+      <!-- hidden เก็บ JSON เมื่อกดบันทึก -->
+      <input type="hidden" id="sections_json" name="sections_json" value="[]">
+    </section>
+  </div>
+
+  <script src="{% static 'js/chapter_2.js' %}"></script>
+</body>
+</html>

@@ -45,7 +45,7 @@ from man_views.views_format_dates_for_doc import format_dates_for_doc
 from man_views.views_collect_references import collect_references_from_post
 
 # ---------------- บทที่ 1 ----------------
-from man_views.views_chapter_1 import chapter_1_view
+from man_views.views_chapter_1 import chapter_1_view as chapter_1_view_logic
 
 # ---------------- บทที่ 2 (แก้ import ให้ตรงกับโฟลเดอร์จริง) ----------------
 from man_views.views_chapter_2 import chapter_2_view as chapter_2_view_logic
@@ -91,9 +91,6 @@ def index(request):
 def about(request):
     return render(request, 'index.html')
 
-def cover(request):
-    return render(request, 'cover.html')
-
 def sp_project_form_view(request):
     return render(request, 'sp_project_form.html')
 
@@ -101,7 +98,7 @@ def intro_view(request):
     return render(request, 'intro.html')
 
 def chapter_1_view(request):
-    return render(request, 'chapter_1.html')
+    return chapter_1_view_logic(request)
 
 def chapter_2_view(request):
     return chapter_2_view_logic(request)
@@ -113,8 +110,6 @@ def chapter_3_view(request):
 def chapter_4_view(request):
     return render(request, 'chapter_4.html')
 
-def refer_view(request):
-    return render(request, 'refer.html')
 
 def home_view(request):
     return render(request, 'home.html')

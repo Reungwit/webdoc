@@ -105,7 +105,7 @@ textarea {
     padding: 12px 16px;
     border-radius: 10px; /* ใช้ 10px สำหรับ input */
     border: 1px solid var(--card-border);
-    background-color: var(--bg-soft);
+    background-color: #ffffff;
     font-family: 'Kanit', sans-serif;
     font-size: 1rem;
     color: var(--ink-2);

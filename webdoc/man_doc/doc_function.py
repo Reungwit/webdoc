@@ -15,7 +15,7 @@ from docx.text.paragraph import Paragraph
 from docx.document import Document as DocxDocument
 from typing import Any, Dict, Iterable, List, Tuple, Optional
 import json
-
+import os
 
 def doc_setup():
     doc = Document()
@@ -71,36 +71,54 @@ def add_paragraph_indent(doc, text, bold=False, custom_tap: float = 0.0):
     return p
 
 
-def add_wrapped_paragraph(p_or_doc, text: str, n: int, disth: bool = False ,extap: bool = False,tap: bool = False , custom_tap: float = 0.0):
+def apply_rest_page_margin(doc: Document, top_inch: float = 1.5):
+    """ปรับ top margin ของหน้าถัดไป (ต่อเนื่อง ไม่ขึ้นหน้าใหม่)"""
+    sec = doc.add_section(WD_SECTION.CONTINUOUS)
+    base = doc.sections[0]
+    sec.top_margin = Inches(top_inch)
+    sec.bottom_margin = base.bottom_margin
+    sec.left_margin = base.left_margin
+    sec.right_margin = base.right_margin
+
+def add_wrapped_paragraph(
+    p_or_doc,
+    text: str,
+    n: int,
+    disth: bool = False,
+    extap: bool = False,
+    tap: bool = False,
+    custom_tap: float = 0.0,
+    bold: bool = False,
+):
     """
-    สร้างหรือเพิ่มข้อความที่ถูกตัดคำลงใน paragraph หรือ document/cell
-    disth=True จะใช้ thaiDistribute แทน justify
+    สร้าง/เพิ่มข้อความที่ถูกตัดคำลงใน paragraph หรือ document/cell
+    - disth=True ใช้ thaiDistribute (เหมาะกับภาษาไทย)
+    - bold=True ทำให้ข้อความทั้งหมดในย่อหน้านี้เป็นตัวหนา
     """
 
     def set_thai_distributed(paragraph):
         p_pr = paragraph._p.get_or_add_pPr()
-        jc = OxmlElement('w:jc')
-        jc.set(qn('w:val'), 'thaiDistribute')
+        jc = OxmlElement("w:jc")
+        jc.set(qn("w:val"), "thaiDistribute")
         p_pr.append(jc)
 
-    # ตัดคำแบบภาษาไทย
-    # words = word_tokenize(text, engine="newmm")
-    # แบ่งบรรทัดตามความยาว n
-    
+    # เตรียมบรรทัดจากการตัดคำไทย
+    text = text or ""
     lines = []
     for paragraph in text.split("\n"):
         words = word_tokenize(paragraph.strip(), engine="newmm")
         line = ""
         for word in words:
             if len(line + word) <= n:
-                line += word + ""
+                line += word
             else:
-                lines.append(line.strip())
-                line = word + ""
+                if line.strip():
+                    lines.append(line.strip())
+                line = word
         if line:
             lines.append(line.strip())
 
-    # # ตรวจสอบว่าเป็น doc/cell หรือ paragraph
+    # ตรวจชนิดปลายทาง
     if isinstance(p_or_doc, (DocxDocument, _Cell)):
         p = p_or_doc.add_paragraph()
     elif isinstance(p_or_doc, Paragraph):
@@ -108,24 +126,27 @@ def add_wrapped_paragraph(p_or_doc, text: str, n: int, disth: bool = False ,exta
     else:
         raise TypeError("Argument must be Document, _Cell, or Paragraph")
 
-    # เพิ่มข้อความ
+    # เพิ่มข้อความลง paragraph
     for idx, l in enumerate(lines):
-        tab_count = len(l) - len(l.lstrip("\t"))  # นับจำนวน \t ต้นบรรทัด
-        l = l.lstrip("\t")  # ลบ \t ทิ้ง เพื่อใส่ข้อความจริง
+        # นับจำนวนแท็บต้นบรรทัด แล้วลบออกก่อนพิมพ์
+        tab_count = len(l) - len(l.lstrip("\t"))
+        l = l.lstrip("\t")
 
-    #  ✅ ใส่ tab ตามจำนวน
+        # ใส่แท็บตามจำนวน (ไม่ต้องหนา)
         for _ in range(tab_count):
             p.add_run().add_tab()
 
-    # ✅ ใส่ข้อความที่เหลือ (ถ้าเหลือ)
-        if l.strip():  # ป้องกันบรรทัดว่าง
-            p.add_run(l)
+        # ใส่ข้อความจริง (หนาเมื่อ bold=True)
+        if l.strip():
+            r = p.add_run(l)
+            if bold:
+                r.bold = True
 
+        # ขึ้นบรรทัดใหม่ถ้ายังไม่ใช่บรรทัดสุดท้าย
         if idx < len(lines) - 1:
             p.add_run().add_break()
 
     # ตั้งค่าการจัดรูปแบบ paragraph
-    
     p.paragraph_format.keep_together = True
     p.paragraph_format.keep_with_next = True
 
@@ -133,11 +154,11 @@ def add_wrapped_paragraph(p_or_doc, text: str, n: int, disth: bool = False ,exta
         set_thai_distributed(p)
     else:
         p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-         
-         # ตั้งค่าการจัดรูปแบบ paragraph
-    if extap :
+
+    # ย่อบรรทัดแรก
+    if extap:
         p.paragraph_format.first_line_indent = Cm(1.80)
-    elif tap :
+    elif tap:
         p.paragraph_format.first_line_indent = Cm(1.00)
     elif custom_tap:
         p.paragraph_format.first_line_indent = Cm(custom_tap)
@@ -188,10 +209,195 @@ def add_page_number(section):
     run._r.append(fldChar3)
     run._r.append(fldChar4)
 
+# -------------------------ฟังก์ชัน จัดการรูป---------------------
+# ===================== utils =====================
+
+def t(v: Any) -> str:
+    return (v or "").strip() if isinstance(v, str) else ""
+
+def as_list(v: Any) -> list:
+    return v if isinstance(v, list) else []
+
+def resolve_image_path(p: Dict[str, Any], media_root: str) -> str | None:
+    """คืน absolute path ของรูป รองรับ pic_path / pic_url (/media/...)"""
+    rel = t(p.get("pic_path"))
+    if rel:
+        rel = rel.replace("\\", "/").lstrip("/")
+        abs_path = os.path.join(media_root or "", rel)
+        abs_path = abs_path.replace("\\", os.sep)
+        if os.path.isfile(abs_path):
+            return abs_path
+    url = t(p.get("pic_url"))
+    if url:
+        url = url.replace("\\", "/").lstrip("/")
+        if url.lower().startswith("media/"):
+            url = url[6:]
+        abs_path = os.path.join(media_root or "", url).replace("\\", os.sep)
+        if os.path.isfile(abs_path):
+            return abs_path
+    return None
+
+def two_spaces_join(a: str, b: str) -> str:
+    """เชื่อมข้อความด้วย '  ' (2 ช่องว่าง)"""
+    a = t(a); b = t(b)
+    if not a: return b
+    if not b: return a
+    return f"{a}  {b}"
+
+# ===================== body paragraph =====================
+
+def _reset_center_paragraph(p):
+    """(ฟังก์ชันกลาง) จัดกึ่งกลางจริงและกัน indent จาก Normal style"""
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    pf = p.paragraph_format
+    pf.left_indent = Cm(0)
+    pf.right_indent = Cm(0)
+    pf.first_line_indent = Cm(0)
+    return pf
+
+# --- 1. ฟังก์ชันที่แก้ไข (รับ chapter_no) ---
+
+def add_picture_box_with_caption(
+    doc: Document,
+    abs_path: str,
+    *,
+    pic_name: str = "",
+    chapter_no: int,  # <-- 1. แก้ไข: รับเลขบทเข้ามา
+    run_no: int,
+    width_cm: float = 5.8,
+    height_cm: float = 4.8,
+) -> None:
+    """
+    (ฟังก์ชันกลาง) วางรูป จัดกึ่งกลาง และใส่แคปชัน (ไม่มีกรอบ)
+    """
+    # ย่อหน้ารูป
+    p_img = doc.add_paragraph()
+    _reset_center_paragraph(p_img)
+
+    run = p_img.add_run()
+    run.add_picture(abs_path, width=Cm(width_cm), height=Cm(height_cm))
+
+    # ระยะก่อน/หลังรูป
+    pf = p_img.paragraph_format
+    pf.space_before = Pt(6)
+    pf.space_after = Pt(4)
+
+    # แคปชัน
+    cap = doc.add_paragraph()
+    _reset_center_paragraph(cap)
+    cap.paragraph_format.space_before = Pt(0)
+    cap.paragraph_format.space_after = Pt(8)
+    
+    # <-- 2. แก้ไข: ใช้ chapter_no ที่รับเข้ามา
+    cap.add_run(f"ภาพที่ {chapter_no}-{run_no} {pic_name or ''}")
 
 
+# --- 2. ฟังก์ชันที่แก้ไข (รับและส่งต่อ chapter_no) ---
 
-# ---------- helpers ----------
+def walk_item_tree(
+    doc: Document,
+    section_no: str,
+    nodes: List[Dict[str, Any]],
+    *,
+    chapter_no: int,  # <-- 1. แก้ไข: รับเลขบทเข้ามา
+    media_root: str,
+    pic_counter: List[int],
+    seen_pics: set[str],
+    
+    # (ฟังก์ชัน helper สำหรับสไตล์)
+    heading_func: callable,
+    body_func: callable,
+):
+    """
+    (ฟังก์ชันกลาง) เรนเดอร์ items แบบ tree
+    (แก้ไขให้รับ chapter_no และฟังก์ชันสไตล์)
+    """
+    if not isinstance(nodes, list):
+        return
+
+    for i, node in enumerate(nodes):
+        current_no = f"{section_no}.{i+1}" if section_no else f"{i+1}"
+        title = t((node or {}).get("text"))
+        paras = [t(x) for x in as_list((node or {}).get("paragraphs")) if t(x)]
+
+        # --- (ปรับปรุง) หัวข้อระดับ 2 ขึ้นไป
+        if title:
+            heading_func(doc, current_no, title) # <-- ใช้ฟังก์ชันสไตล์ที่รับมา
+
+        # ย่อหน้าที่เหลือของ node
+        for s in paras:
+            body_func(doc, s) # <-- ใช้ฟังก์ชันสไตล์ที่รับมา
+
+        # รูปของ node นี้
+        for pinfo in as_list((node or {}).get("pictures")):
+            abs_path = resolve_image_path(pinfo, media_root) # (ต้อง import resolve_image_path)
+            if not abs_path or abs_path in seen_pics:
+                continue
+            seen_pics.add(abs_path)
+            pic_counter[0] += 1
+            add_picture_box_with_caption(
+                doc,
+                abs_path,
+                pic_name=t(pinfo.get("pic_name")),
+                chapter_no=chapter_no,  # <-- 2. แก้ไข: ส่งต่อเลขบท
+                run_no=pic_counter[0],
+            )
+
+        # ลูก
+        walk_item_tree(
+            doc,
+            current_no,
+            as_list((node or {}).get("children")),
+            chapter_no=chapter_no,  # <-- 3. แก้ไข: ส่งต่อเลขบท (ตอนเรียกซ้ำ)
+            media_root=media_root,
+            pic_counter=pic_counter,
+            seen_pics=seen_pics,
+            heading_func=heading_func, # ส่งต่อฟังก์ชันสไตล์
+            body_func=body_func,       # ส่งต่อฟังก์ชันสไตล์
+        )
+
+# --- 3. ฟังก์ชันสไตล์ (ไม่จำเป็นต้องแก้ไข แต่ย้ายมาได้) ---
+# (ฟังก์ชันเหล่านี้คือ "สไตล์" ของเอกสารคุณ)
+
+def add_body_paragraph_style_1(doc: Document, text: str) -> None:
+    """
+    (ฟังก์ชันกลาง) สไตล์เนื้อหา: ย่อหน้า 1.85 ซม.
+    """
+    p = add_wrapped_paragraph(doc, text, n=120, disth=True, custom_tap=1.85)
+    pf = p.paragraph_format
+    # (อาจตั้งค่าเพิ่มเติม เช่น p.alignment = ... ถ้า add_wrapped_paragraph ไม่ได้ทำ)
+
+
+def add_section_heading_level1_style_1(doc: Document, title_no: str, title: str) -> None:
+    """
+    (ฟังก์ชันกลาง) สไตล์หัวข้อระดับ 1: หนา, ไม่ย่อหน้า, ห่าง 6pt
+    """
+    text = two_spaces_join(t(title_no), t(title)) # (ต้อง import two_spaces_join)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    r = p.add_run(text)
+    r.bold = True
+    pf = p.paragraph_format
+    pf.first_line_indent = Cm(0)
+    pf.space_before = Pt(6)
+    pf.space_after = Pt(0)
+
+def add_section_heading_level2_plus_style_1(doc: Document, title_no: str, title: str) -> None:
+    """
+    (ฟังก์ชันกลาง) สไตล์หัวข้อระดับ 2+: หนา, ย่อ 0.75, ห่าง 3pt
+    """
+    text = two_spaces_join(t(title_no), t(title)) # (ต้อง import two_spaces_join)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    r = p.add_run(text)
+    r.bold = True
+    pf = p.paragraph_format
+    pf.first_line_indent = Cm(0.75)
+    pf.space_before = Pt(3)
+    pf.space_after = Pt(0)
+
+
+# ----------function for views helpers ----------
 def _t(v: Any) -> str:
     return (v or "").strip() if isinstance(v, str) else ""
 

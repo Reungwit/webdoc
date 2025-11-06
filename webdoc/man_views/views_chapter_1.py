@@ -9,13 +9,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
-
-try:
-    from backend.models import DocChapter1 as Chapter1
-except Exception:
-    from backend.models import SpChapter1 as Chapter1
-
-from man_doc.doc_chapter1 import doc_chapter1
+from backend.models import DocChapter1 as Chapter1
+from man_doc.doc_chapter1 import doc_chapter1 
 
 from man_doc.doc_function import (
     _safe_parse_list,

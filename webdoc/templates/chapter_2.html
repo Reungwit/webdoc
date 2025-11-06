@@ -29,29 +29,30 @@
     {% csrf_token %}
 
     <section class="section-card-outer">
+      <center><h2>บทที่ 2 </h2></center>
       <div class="section-title-head">
-        <div>(2.0) บทนำ (ย่อหน้าเกริ่นนำ)</div>
+       <center> <div>เอกสารและงานวิจัยที่เกี่ยวข้อง</div></center>
+        
       </div>
       <div class="section-card-body">
-        <textarea id="intro_body" name="intro_body" class="main-textarea" rows="6" placeholder="พิมพ์เนื้อหาบทนำของบทที่ 2...">{{ initial.intro_body|default:'' }}</textarea>
+        <div class="badge-no">บทนำ</div>
+        <textarea id="intro_body" name="intro_body" class="clean-textarea main-textarea" rows="6" placeholder="พิมพ์เนื้อหาบทนำของบทที่ 2...">{{ initial.intro_body|default:'' }}</textarea>
       </div>
     </section>
 
-    <section class="section-card-outer">
-      <div class="section-title-head">
-        <div>หัวข้อ 2.x + กล่องเพิ่มรูปต่อหัวข้อ + หัวข้อย่อยหลายระดับ</div>
-      </div>
+    
+    
 
       <div id="sections-container" class="chapter2-sections-wrapper"></div>
 
       <div style="margin-top:12px;">
         <button id="btnAddSection" class="main-btn main-btn-neutral" type="button" style="box-shadow:none;">
-          <span class="emoji">➕</span><span>เพิ่มหัวข้อใหญ่ (2.x ใหม่)</span>
+          <span class="emoji">➕</span><span>เพิ่มหัวข้อใหญ่ (2.x)</span>
         </button>
       </div>
 
       <input type="hidden" id="sections_json" name="sections_json" value="[]">
-    </section>
+   
 
     <div class="footer-action-bar">
 
@@ -245,6 +246,7 @@ function renderParagraphs(arr, onChangeContent, onAddOrRemove) {
     const row = document.createElement("div");
     row.className = "para-row";
     const ta = document.createElement("textarea");
+    ta.classList.add("clean-textarea");
     ta.value = txt || "";
     ta.placeholder = "พิมพ์ย่อหน้า . . .";
     ta.addEventListener("input", (e) => {
@@ -532,7 +534,7 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
     const firstParaBtn = document.createElement("button");
     firstParaBtn.type = "button";
     firstParaBtn.className = "mini-btn";
-    firstParaBtn.textContent = "➕ เพิ่มย่อหน้าแรก";
+    firstParaBtn.textContent = "➕ เพิ่มย่อหน้า";
     firstParaBtn.addEventListener("click", () => {
       if (!nodeObj.paragraphs) nodeObj.paragraphs = [];
       nodeObj.paragraphs.push("");
@@ -682,14 +684,12 @@ function getJsonScript(id){
   try { return JSON.parse(el.textContent); } catch(e){ console.error('JSON Script Error:', e); return null; }
 }
 
-// ========================= init (ปรับปรุงใหม่) =========================
+// ========================= init (ปรับปรุงใหม่ + เพิ่มตัดคำ) =========================
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("chapter2Form");
 
-  // [หลักการที่ 5] โหลดข้อมูลจาก json_script
   const pre = getJsonScript('chapter2-data');
   if (pre && Array.isArray(pre) && pre.length > 0) {
-      // remap + normalize รูปจาก backend (เหมือนเดิม)
       const remapPicture = (p) => {
         const server_no = p.pic_no || p.server_pic_no || "";
         return { ...p, pic_no: normalizePicNo(p.pic_no) };
@@ -708,37 +708,30 @@ document.addEventListener("DOMContentLoaded", () => {
         items: Array.isArray(sec.items) ? sec.items.map(remapNode) : []
       }));
   }
-  // ถ้า pre ไม่มี (เช่น โหลดครั้งแรก) ก็จะใช้ sectionsState ที่เป็นค่า default
 
   redrawSections();
-  wireButtons(); // Wire ปุ่ม 'btnAddSection'
+  wireButtons();
 
-  // [หลักการที่ 3] เพิ่ม Event Listener ให้กับ Form (เหมือน chapter_1.html)
   if (form) {
-    form.addEventListener("submit", (e) => {
-      // หาว่าปุ่มไหน (save หรือ generate) ถูกกด
-      const action = e.submitter ? e.submitter.value : null;
-      
-      // ถ้าเป็น 'save' หรือ 'generate_doc' ให้ทำการ serialize ข้อมูลก่อนส่ง
-      // ถ้าเป็น 'get_data' จะไม่เข้าเงื่อนไขนี้ และส่งฟอร์มไปเปล่าๆ (ถูกต้อง)
-      if (action === "save" || action === "generate_doc") {
-        if (action === "save") {
-            // alertBox.show("กำลังบันทึกข้อมูล...", "info", 0); // ไม่ต้องใช้ alert
-        } else if (action === "generate_doc") {
-            // alertBox.show("กำลังสร้างเอกสาร... กรุณารอสักครู่", "info", 0); // ไม่ต้องใช้ alert
-        }
-        
-        // *** [สำคัญมาก] ***
-        // เรียกฟังก์ชันนี้เพื่ออัปเดต <input type="hidden">
-        // ก่อนที่เบราว์เซอร์จะส่งข้อมูลฟอร์มไปที่ Backend
-        syncHiddenField();
-      }
+   
+
+    // ✅ เพิ่มส่วน “ตัดคำก่อนบันทึกหรือสร้างเอกสาร”
+    form.addEventListener("submit", function (e) {
+      const textareas = form.querySelectorAll("textarea");
+      textareas.forEach(textarea => {
+        const rawText = textarea.value;
+        const cleanedText = rawText
+          .replace(/\r?\n/g, "")      // ลบ \n และ \r
+          .replace(/\s+/g, " ")       // ยุบช่องว่าง
+          .trim();                    // ลบช่องว่างหัวท้าย
+        textarea.value = cleanedText;
+      });
     });
+
   } else {
     console.warn("ไม่พบ <form id='chapter2Form'> ในหน้า HTML");
   }
 });
-
 </script>
 
 </body>

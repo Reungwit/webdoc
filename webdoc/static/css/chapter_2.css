@@ -51,6 +51,55 @@ body {
   color: #000;
 }
 
+/* 1. CSS สำหรับการ์ดหลัก (จากคำตอบก่อนหน้า) */
+.section-card-body {
+  display: flex;
+  justify-content: space-between; /* ดัน 2 ส่วนออกจากกัน */
+  align-items: flex-start;       /* จัดให้ชิดขอบบน */
+  width: 100%;
+  margin: 16px 0;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e0e0;
+  box-sizing: border-box;
+  gap: 24px; /* เพิ่มช่องว่างเล็กน้อยระหว่าง 2 ส่วน */
+}
+
+/* 2. CSS สำหรับกล่องข้อความด้านซ้าย */
+.section-card-body .main-textarea {
+  flex: 1; /* ทำให้กล่องข้อความยืดหยุ่น (ใช้พื้นที่ที่เหลือ) */
+  min-width: 300px; /* กำหนดความกว้างขั้นต่ำ */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: sans-serif; /* แนะนำให้กำหนด font ครับ */
+  resize: vertical; /* อนุญาตให้ย่อขยายเฉพาะแนวตั้ง */
+}
+
+/* 3. CSS สำหรับกลุ่มหัวข้อด้านขวา (ส่วนที่เพิ่มใหม่) */
+.section-card-header {
+  /* ไม่ต้องตั้งค่า flex: 1 เพื่อให้มันใช้ขนาดตามเนื้อหา */
+  text-align: right; /* จัดข้อความชิดขวา */
+  flex-shrink: 0; /* ป้องกันไม่ให้มันหดตัวเมื่อจอแคบ */
+  white-space: nowrap; /* ป้องกันการตัดคำขึ้นบรรทัดใหม่ */
+}
+
+.section-card-header h2 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.section-card-header p {
+  font-size: 20px;
+  color: #555;
+  margin: 4px 0 0 0;
+}
+
 /* ----- Alert box ----- */
 #alert-box{
   font-size:14px;
@@ -270,7 +319,7 @@ body {
 }
 .para-row textarea {
   flex: 1;
-  min-height: 70px;
+  min-height: 150px;
   font-size: 14px;
   font-family: var(--font-stack);
   line-height: 1.4;

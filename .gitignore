@@ -60,3 +60,5 @@ node_modules/
 dist/
 build/
 *.docx
+/handsontable
+webdoc/templates/hot_test.html

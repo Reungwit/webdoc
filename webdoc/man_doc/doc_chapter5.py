@@ -78,7 +78,7 @@ def doc_chapter5(
             media_root=media_root,
             pic_counter=pic_counter,
             seen_pics=seen_pics,
-            heading_func=add_section_heading_level2_plus_style_1,
+            heading_func=add_section_heading_level2_plus_style_custom,
             body_func=add_body_paragraph_style_1,
         )
 
@@ -97,4 +97,18 @@ def add_section_heading_level1_style_custom(doc: Document, title_no: str, title:
     pf = p.paragraph_format
     pf.first_line_indent = Cm(0)
     pf.space_before = Pt(6)
+    pf.space_after = Pt(0)
+    
+def add_section_heading_level2_plus_style_custom(doc: Document, title_no: str, title: str) -> None:
+    """
+    (ฟังก์ชันกลาง) สไตล์หัวข้อระดับ 2+: หนา, ย่อ 0.75, ห่าง 3pt
+    """
+    text = two_spaces_join(t(title_no), t(title)) # (ต้อง import two_spaces_join)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    r = p.add_run(text)
+    r.bold = False
+    pf = p.paragraph_format
+    pf.first_line_indent = Cm(0.75)
+    pf.space_before = Pt(3)
     pf.space_after = Pt(0)

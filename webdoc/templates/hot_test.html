@@ -5,16 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Handsontable Quick Test</title>
 
-  <!-- Handsontable CSS (CDN) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css">
-
-  <!-- Handsontable JS (CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+  <!-- แนะนำปักเวอร์ชันให้แน่นอน -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/styles/ht-theme-main.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.js"></script>
 
   <style>
     :root { --border:#e5e7eb; --muted:#6b7280; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+    body { font-family: system-ui,-apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
     h1 { margin: 0 0 12px; }
     .btn { padding: 9px 14px; border: 1px solid #dadde3; border-radius: 10px; background: #fff; cursor: pointer; font-weight: 600; }
     .btn.primary { background: #2d6cdf; color: #fff; border-color: #2d6cdf; }
@@ -46,14 +44,13 @@
     const CHAPTER_NO = 3;  // บทที่ 3
 
     // ===== State =====
-    let tableSeq = 0;         // ลำดับตารางในบท (รันนิ่ง)
-    const allTables = [];     // เก็บตารางทั้งหมดเพื่อส่งออก tb_sections_json
+    let tableSeq = 0;               // running number
+    const allTables = [];           // [{ title_no, caption, display_title, seq, hot }]
 
     // ===== Helpers =====
     const nextSeq = () => (++tableSeq);
 
     function formatDisplayTitle(chap, seq, caption) {
-      // รูปแบบ: ตารางที่ <บท>-<ลำดับ>␠␠<ชื่อ/คำอธิบาย>
       const cap = (caption || '').trim();
       return `ตารางที่ ${chap}-${seq}${cap ? '  ' + cap : ''}`;
     }
@@ -64,13 +61,23 @@
       return { headers, rowsData };
     }
 
+    function normalizedHeaders(hot) {
+      const n = hot.countCols();
+      let h = Array.isArray(hot.getColHeader()) ? hot.getColHeader().slice() : [];
+      while (h.length < n) h.push(`หัว ${h.length + 1}`);
+      if (h.length > n) h.length = n;
+      return h;
+    }
+
     function buildTbJson(tb) {
       const hot = tb.hot;
+      // commit ค่าในเซลล์ที่กำลังแก้ก่อนอ่าน
+      hot.finishEditing();
       return {
-        title_no: tb.title_no,                   // ใช้ anchor ง่าย ๆ ในตัวอย่าง
+        title_no: tb.title_no,
         caption: tb.caption || '',
-        headers: hot ? hot.getColHeader() : tb.headers,
-        rows: hot ? hot.getData() : tb.rows,
+        headers: normalizedHeaders(hot),
+        rows: hot.getData(),
         display_title: tb.display_title,
         seq: tb.seq,
         anchor_no: tb.title_no
@@ -82,10 +89,52 @@
       document.getElementById('jsonOut').value = JSON.stringify(payload, null, 2);
     }
 
+    // เพิ่ม/ลบ แถว–คอลัมน์ แบบ "ไม่ใช้ alter()" ให้ทำงานได้ทุก build
+    function addRowAfterSelection(hot) {
+      const data = hot.getData();                   // array by ref
+      const nRows = hot.countRows();
+      const nCols = hot.countCols();
+      const sel = hot.getSelectedLast();
+      const r = sel ? sel[0] : nRows - 1;
+      const row = Array.from({ length: nCols }, () => '');
+      data.splice(Math.max(r + 1, 0), 0, row);
+      hot.updateSettings({ data });
+    }
+    function removeRowAtSelection(hot) {
+      const data = hot.getData();
+      const nRows = hot.countRows();
+      if (!nRows) return;
+      const sel = hot.getSelectedLast();
+      const r = sel ? sel[0] : nRows - 1;
+      data.splice(Math.max(r, 0), 1);
+      hot.updateSettings({ data });
+    }
+    function addColAfterSelection(hot) {
+      const data = hot.getData();
+      const nCols = hot.countCols();
+      let headers = normalizedHeaders(hot);
+      const sel = hot.getSelectedLast();
+      const c = sel ? sel[1] : nCols - 1;
+      data.forEach(row => row.splice(Math.max(c + 1, 0), 0, ''));
+      headers.splice(Math.max(c + 1, 0), 0, '');
+      hot.updateSettings({ data, colHeaders: headers });
+    }
+    function removeColAtSelection(hot) {
+      const data = hot.getData();
+      const nCols = hot.countCols();
+      if (!nCols) return;
+      let headers = normalizedHeaders(hot);
+      const sel = hot.getSelectedLast();
+      const c = sel ? sel[1] : nCols - 1;
+      data.forEach(row => row.splice(Math.max(c, 0), 1));
+      headers.splice(Math.max(c, 0), 1);
+      hot.updateSettings({ data, colHeaders: headers });
+    }
+
     // ===== UI: สร้างการ์ดตาราง 1 ใบ =====
     function createTableCard() {
       const seq = nextSeq();
-      const anchorNo = `3.${seq}`;      // anchor ง่าย ๆ สำหรับเดโม
+      const anchorNo = `3.${seq}`;
 
       const card = document.createElement('div');
       card.className = 'card';
@@ -129,10 +178,10 @@
       card.appendChild(sub);
       card.appendChild(mount);
 
-      // เริ่มต้น Handsontable 5×5
+      // สร้าง Handsontable เริ่มต้น 5×5
       const { headers, rowsData } = defaultMatrix();
       const hot = new Handsontable(mount, {
-        themeName: 'ht-theme-main-dark-auto', // ใช้ธีมหลัก
+        themeName: 'ht-theme-main-dark-auto',
         data: rowsData,
         colHeaders: headers,
         rowHeaders: true,
@@ -144,51 +193,33 @@
         licenseKey: 'non-commercial-and-evaluation'
       });
 
-      // เก็บ state ของตารางนี้
-      const tb = {
-        title_no: anchorNo,
-        caption: '',
-        display_title: '',
-        seq,
-        hot
-      };
+      // เก็บ state
+      const tb = { title_no: anchorNo, caption: '', display_title: '', seq, hot };
       allTables.push(tb);
 
-      // อัปเดตชื่อแสดงผลเมื่อกรอก caption
-      caption.addEventListener('input', (e) => {
-        tb.caption = e.target.value;
+      // ตั้งชื่อแสดงผลครั้งแรก + อัปเดตเมื่อพิมพ์
+      const updateTitle = () => {
         tb.display_title = formatDisplayTitle(CHAPTER_NO, tb.seq, tb.caption);
         sub.textContent = tb.display_title;
-        refreshJsonOutput();
-      });
-      // ตั้งค่าแสดงผลครั้งแรก (caption ว่าง)
-      tb.display_title = formatDisplayTitle(CHAPTER_NO, tb.seq, tb.caption);
-      sub.textContent = tb.display_title;
+      };
+      updateTitle();
+      caption.addEventListener('input', (e) => { tb.caption = e.target.value; updateTitle(); refreshJsonOutput(); });
 
-      // ปุ่ม action ต่าง ๆ
+      // ปุ่ม action (เวอร์ชันที่ “ไม่ใช้ alter()”)
       head.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-act]');
         if (!btn) return;
         const act = btn.dataset.act;
 
-        if (act === 'add-row') hot.alter('insert_row', hot.countRows());
-        if (act === 'del-row' && hot.countRows() > 0) hot.alter('remove_row', hot.countRows() - 1);
-
-        if (act === 'add-col') {
-          hot.alter('insert_col', hot.countCols());
-          const h = hot.getColHeader(); h.push(''); hot.updateSettings({ colHeaders: h });
-        }
-        if (act === 'del-col' && hot.countCols() > 0) {
-          const h = hot.getColHeader(); h.pop();
-          hot.alter('remove_col', hot.countCols() - 1);
-          hot.updateSettings({ colHeaders: h });
-        }
+        if (act === 'add-row') addRowAfterSelection(hot);
+        if (act === 'del-row') removeRowAtSelection(hot);
+        if (act === 'add-col') addColAfterSelection(hot);
+        if (act === 'del-col') removeColAtSelection(hot);
         if (act === 'remove') {
           if (confirm('ลบตารางนี้?')) {
             const i = allTables.indexOf(tb);
             if (i >= 0) allTables.splice(i, 1);
             card.remove();
-            refreshJsonOutput();
           }
         }
         refreshJsonOutput();

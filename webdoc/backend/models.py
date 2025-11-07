@@ -445,3 +445,27 @@ class DocChapter2(models.Model):
     class Meta:
         managed = False  # ใช้ตารางที่มีอยู่แล้ว
         db_table = "doc_chapter_2"
+
+
+
+# ----------------------------
+# บทที่ 3: อิงตารางที่มีอยู่แล้วใน MySQL
+# ----------------------------
+class DocChapter3(models.Model):
+    doc_id = models.AutoField(primary_key=True)  # PK: AUTO_INCREMENT
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        db_column="user_id",
+        on_delete=models.RESTRICT,
+        related_name="chapter3_docs",
+    )
+    intro_body = models.TextField(blank=True, null=True)
+    sections_json = models.JSONField(blank=True, null=True)       # เนื้อหา+รูปภาพ (โครงเดียวกับบท 2)
+    tb_sections_json = models.JSONField(blank=True, null=True)    # ตารางของแต่ละหัวข้อ
+    chap_id = models.IntegerField(blank=True, null=True, db_column="chap_id")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False                 # ใช้ตารางเดิม (สร้างใน phpMyAdmin)
+        db_table = "doc_chapter_3"
+        unique_together = (('user',),)  # ให้ update_or_create(user=...) ชี้ตัวเดียว

@@ -1,0 +1,102 @@
+:root{
+  --bg:#f6f8fb;
+  --card:#ffffff;
+  --ink:#1f2937;
+  --muted:#6b7280;
+  --primary:#2d6cdf;
+  --border:#e5e7eb;
+  --ring:#c7d2fe;
+  --danger:#ef4444;
+}
+
+*{box-sizing:border-box}
+body{font-family:"Prompt","Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;margin:0;}
+.page-shell{max-width:1160px;margin:24px auto;padding:10px 16px;}
+h2{margin:0 0 8px;color:var(--primary);font-weight:700;}
+
+.messages{list-style:none;margin:8px 0 16px;padding:10px 14px;background:#e8f0ff;border:1px solid #c9daff;border-radius:10px;}
+.alert-inline{margin:8px 0 16px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;}
+.alert-inline.info{border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8}
+.alert-inline.success{border-color:#bbf7d0;background:#f0fdf4;color:#166534}
+.alert-inline.warning{border-color:#fde68a;background:#fffbeb;color:#92400e}
+.alert-inline.error{border-color:#fecaca;background:#fef2f2;color:#991b1b}
+
+.section-card-outer{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:18px;}
+.section-title-head{padding:12px 16px;border-bottom:1px solid var(--border);font-weight:600;}
+.section-card-body{padding:16px}
+
+.badge-no{display:inline-block;background:#edf2ff;border:1px solid var(--ring);color:#1e3a8a;font-weight:600;padding:2px 8px;border-radius:8px;margin-bottom:8px;}
+
+.clean-textarea,.node-title-input,.chapter-title-input,.tb-input,.table-caption-input{
+  width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;
+}
+.clean-textarea{min-height:120px;resize:vertical}
+.main-textarea{min-height:140px}
+
+.toolbar-top{display:flex; gap:8px; margin:12px 0;}
+.main-btn{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; font-weight:600;}
+.main-btn-success{background:#10b981;color:#fff;border-color:#10b981}
+.main-btn-danger{background:#ef4444;color:#fff;border-color:#ef4444}
+.main-btn-info{background:#2563eb;color:#fff;border-color:#2563eb}
+.main-btn-neutral{background:#f3f4f6}
+.footer-action-bar{display:flex; gap:8px; justify-content:center; margin:18px 0 28px;}
+
+.chapter-sections-wrapper{display:flex;flex-direction:column;gap:16px}
+.chapter-section-card{border:1px solid var(--border);border-radius:14px;background:#fff;padding:14px;}
+.chapter-head-row{display:flex; gap:10px; align-items:center; margin-bottom:10px;}
+.chapter-title-input{flex:1}
+.overview-block{margin:8px 0 12px}
+.overview-label{font-weight:600;color:#374151;margin-bottom:6px}
+.tree-wrap{display:flex; flex-direction:column; gap:12px}
+
+.node-card{border:1px dashed var(--border);border-radius:12px;padding:12px;background:#fafcff;}
+.node-top-row{display:flex; gap:10px; align-items:center; margin-bottom:8px;}
+.node-no-badge{min-width:64px;text-align:center;padding:6px 8px;border-radius:10px;background:#f1f5ff;border:1px solid var(--ring);font-weight:700;color:#1e3a8a;}
+.node-title-input{flex:1}
+.node-controls{display:flex; gap:6px; flex-wrap:wrap}
+
+/* ปุ่มเล็ก */
+.mini-btn{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:13px;font-weight:600;}
+.mini-btn.primary{background:#2d6cdf;color:#fff;border-color:#2d6cdf}
+.mini-btn.danger{background:#ef4444;color:#fff;border-color:#ef4444}
+
+/* แถบปุ่ม toggle รูป/ตาราง */
+.node-toggle-bar{display:flex; gap:8px; margin:8px 0}
+
+/* ย่อหน้า */
+.paras-wrap{display:flex; flex-direction:column; gap:8px}
+.para-row{display:flex; gap:6px; align-items:flex-start}
+.para-row textarea{flex:1}
+
+/* children */
+.children-block{margin-top:10px; padding-left:14px; border-left:3px dotted #e5edff}
+
+/* รูปภาพ */
+.pics-box{border:1px solid var(--border);border-radius:10px;background:#fff;padding:10px;margin-top:6px;}
+.pics-head{font-weight:700;margin-bottom:6px}
+.pics-add-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.hidden-file{display:none}
+.pic-caption-input{flex:1}
+.pending-label{font-size:12px; color:var(--muted)}
+.pic-list{margin-top:8px; display:flex; flex-direction:column; gap:6px}
+.pic-item{border:1px solid var(--border); border-radius:8px; padding:8px; background:#fff; display:flex; justify-content:space-between; align-items:center}
+.pic-item.empty{border-style:dashed; color:#6b7280}
+.pic-path{font-size:12px; color:#6b7280}
+.pic-actions{display:flex; gap:6px}
+
+/* ตัวสร้าง/ตัวแก้ตาราง */
+.table-builder{border:1px solid var(--border); background:#fff; border-radius:10px; padding:10px; margin-top:8px;}
+.tb-head{font-weight:700; margin-bottom:8px}
+.tb-form{display:flex; flex-direction:column; gap:10px}
+.tb-row{display:flex; flex-direction:column; gap:6px}
+.tb-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.tb-actions{display:flex; align-items:center; gap:8px}
+
+.node-tables-wrap{display:flex; flex-direction:column; gap:12px; margin-top:6px}
+.table-card{border:1px solid var(--border); border-radius:12px; background:#fff; padding:10px;}
+.table-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px}
+.table-title{display:flex; align-items:center; gap:8px; flex:1}
+
+/* Handsontable wrapper */
+.hot-mount{width:100%; overflow:auto; border-radius:10px; border:1px solid var(--border)}
+.handsontable .wtHolder{max-height:360px;} /* เลื่อนภายในตารางได้ */

@@ -1,0 +1,446 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ page_title|default:"บทที่ 3 วิธีดำเนินการ" }}</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="{% static 'css/chapter_3.css' %}">
+
+  <!-- Handsontable (CDN) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.min.js"></script>
+</head>
+
+<body>
+<div class="page-shell">
+
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        {% if "chapter3" in message.tags %}
+          <li class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <div id="alert-box"></div>
+
+  <form id="chapter3Form" method="POST" action="{% url 'chapter_3' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <section class="section-card-outer">
+      <center><h2>บทที่ 3</h2></center>
+      <div class="section-title-head"><center>วิธีดำเนินการ/การออกแบบ/ผลลัพธ์</center></div>
+
+      <div class="section-card-body">
+        <div class="badge-no">บทนำ</div>
+        <textarea id="intro_body" name="intro_body" class="clean-textarea main-textarea" rows="6" placeholder="พิมพ์เนื้อหาบทนำของบทที่ 3...">{{ initial.intro_body|default:'' }}</textarea>
+      </div>
+    </section>
+
+    <div class="toolbar-top">
+      <button id="btnAddSection" class="main-btn main-btn-neutral" type="button">
+        <span class="emoji">➕</span><span>เพิ่มหัวข้อใหญ่ (3.x)</span>
+      </button>
+    </div>
+
+    <div id="sections-container" class="chapter-sections-wrapper"></div>
+
+    <!-- hidden fields -->
+    <input type="hidden" id="sections_json"    name="sections_json"    value="[]">
+    <input type="hidden" id="tb_sections_json" name="tb_sections_json" value="[]">
+
+    <div class="footer-action-bar">
+      <button class="main-btn main-btn-success" type="submit" name="action" value="save">
+        💾 บันทึกข้อมูล
+      </button>
+      <button class="main-btn main-btn-info" type="submit" name="action" value="get_data">
+        🔄 ดึงข้อมูล
+      </button>
+      <button class="main-btn main-btn-danger" type="submit" name="action" value="generate_doc">
+        📄 สร้างเอกสาร
+      </button>
+    </div>
+  </form>
+
+  {% if initial.sections %}{{ initial.sections|json_script:"chapter3-sections" }}{% endif %}
+  {% if initial.tables %}{{ initial.tables|json_script:"chapter3-tables" }}{% endif %}
+</div>
+
+<script>
+/* ============ Utils ============ */
+function getCookie(name){const v=`; ${document.cookie}`;const p=v.split(`; ${name}=`);if(p.length===2)return p.pop().split(";").shift();return"";}
+function getCsrfToken(){return getCookie("csrftoken");}
+const alertBox=(()=>{const el=()=>document.getElementById("alert-box");function show(msg,type="info",t=2200){const b=el();if(!b)return;b.textContent=msg;b.className="";b.classList.add("alert-inline",type,"show");if(t)setTimeout(()=>{if(b.textContent===msg){b.textContent="";b.className="";}},t);}return{show};})();
+
+function getJsonScript(id){const el=document.getElementById(id);if(!el)return null;try{return JSON.parse(el.textContent);}catch(e){console.error(e);return null;}}
+
+/* ============ Data model ============ */
+function makeNode(){return{ text:"", paragraphs:[], pictures:[], tables:[], children:[] };}
+function makeSection(no,title){return{ title_no:no, title, body_paragraphs:[], pictures:[], items:[makeNode()] };}
+let sectionsState=[ makeSection("3.1","") ]; // แสดง 3.1 เท่านั้นตอนเข้าเพจ
+
+const pendingFiles={};
+
+/* ============ Table numbering/format ============ */
+function collectAllTablesInChapter(chapNo){
+  const all=[];
+  function walkNode(n){(n.tables||[]).forEach(tb=>all.push(tb));(n.children||[]).forEach(walkNode);}
+  (sectionsState||[]).forEach(sec=>{
+    if(String(sec.title_no).split(".")[0]===String(chapNo)){
+      (sec.items||[]).forEach(walkNode);
+    }
+  });
+  return all;
+}
+function nextTableSeqForChapter(chapNo){
+  // นับเฉพาะที่มี seq แล้ว และใช้ค่ามากสุด + 1
+  const seqs = collectAllTablesInChapter(chapNo)
+    .map(tb=>parseInt(tb.seq||0,10))
+    .filter(n=>Number.isFinite(n)&&n>0);
+  let i=1; while(seqs.includes(i)) i++;
+  return i;
+}
+function formatDisplayTitle(chapNo, seq, caption){
+  // ตารางที่ <บท>-<ลำดับ>  <ชื่อ>   (หน้า <ชื่อ> เว้น 2 ช่อง)
+  const cap = (caption||"").trim();
+  return `ตารางที่ ${chapNo}-${seq}${cap ? "  "+cap : ""}`;
+}
+
+/* ============ Hidden sync ============ */
+function syncHiddenField(){
+  // รวมตารางทุก node ลง tb_sections_json
+  const tbAll=[];
+  function walk(node, nodeNo){
+    (node.tables||[]).forEach(tb=>{
+      tbAll.push({
+        title_no: tb.title_no || nodeNo,     // หมายเลขยึด node
+        caption: tb.caption || "",
+        headers: Array.isArray(tb.headers)?tb.headers:[],
+        rows: Array.isArray(tb.rows)?tb.rows:[],
+        display_title: tb.display_title || "",
+        seq: tb.seq || null,                 // ลำดับตารางในบท
+        anchor_no: nodeNo
+      });
+    });
+    (node.children||[]).forEach((ch,i)=>walk(ch, `${nodeNo}.${i+1}`));
+  }
+  (sectionsState||[]).forEach(sec=>{
+    (sec.items||[]).forEach((node,i)=>walk(node, `${sec.title_no}.${i+1}`));
+  });
+
+  document.getElementById("sections_json").value    = JSON.stringify(sectionsState);
+  document.getElementById("tb_sections_json").value = JSON.stringify(tbAll);
+}
+
+/* ============ Helpers ============ */
+function getNodeByPath(sectionObj, pathArr){let cur=sectionObj.items[pathArr[0]];for(let i=1;i<pathArr.length;i++)cur=cur.children[pathArr[i]];return cur;}
+function getParentAndIndex(sectionObj, pathArr){if(pathArr.length===1)return{listRef:sectionObj.items,idx:pathArr[0]};let p=sectionObj.items[pathArr[0]];for(let i=1;i<pathArr.length-1;i++)p=p.children[pathArr[i]];return{listRef:p.children,idx:pathArr[pathArr.length-1]};}
+function buildNodeNumber(sectionNo,pathArr){return sectionNo+"."+pathArr.map(i=>(i+1)).join(".");}
+function getNextSectionNumber(){if(sectionsState.length===0)return"3.1";const last=sectionsState[sectionsState.length-1].title_no.split(".")[1];return"3."+( (parseInt(last||"1",10))+1 );}
+
+/* ============ Paragraph box ============ */
+function renderParagraphs(arr,onChange,onAddRm){
+  const wrap=document.createElement("div");wrap.className="paras-wrap";
+  arr.forEach((txt,idx)=>{
+    const row=document.createElement("div");row.className="para-row";
+    const ta=document.createElement("textarea");ta.classList.add("clean-textarea");ta.value=txt||"";ta.placeholder="พิมพ์ย่อหน้า . . .";
+    ta.addEventListener("input",(e)=>{arr[idx]=e.target.value;onChange&&onChange();});
+    const del=document.createElement("button");del.type="button";del.className="mini-btn danger";del.textContent="ลบย่อหน้า";
+    del.addEventListener("click",()=>{arr.splice(idx,1);onAddRm&&onAddRm();});
+    row.appendChild(ta);row.appendChild(del);wrap.appendChild(row);
+  });
+  const add=document.createElement("button");add.type="button";add.className="mini-btn";add.textContent="➕ เพิ่มย่อหน้า";
+  add.addEventListener("click",()=>{arr.push("");onAddRm&&onAddRm();});wrap.appendChild(add);
+  return wrap;
+}
+
+/* ============ Pictures UI (ยังเหมือนเดิม กดปุ่มค่อยกาง) ============ */
+function renderPicturesBox(sectionObj,secIndex,pathArr){
+  const picsBox=document.createElement("div");picsBox.className="pics-box";picsBox.hidden=true;
+  const target=getNodeByPath(sectionObj,pathArr);
+  if(!target.pictures)target.pictures=[];
+
+  const nodeNo=buildNodeNumber(sectionObj.title_no,pathArr);
+  const key=secIndex+"|"+pathArr.join(".");
+
+  const head=document.createElement("div");head.className="pics-head";head.textContent=`รูปภาพของหัวข้อ ${nodeNo}`;
+  const row=document.createElement("div");row.className="pics-add-row";
+  const capInp=document.createElement("input");capInp.type="text";capInp.className="pic-caption-input";capInp.placeholder="คำอธิบายรูป / ชื่อรูป …";
+  const pend=document.createElement("div");pend.className="pending-label";
+  const file=document.createElement("input");file.type="file";file.accept="image/*";file.className="hidden-file";
+  const pick=document.createElement("button");pick.type="button";pick.className="mini-btn";pick.textContent="เลือกรูป…";
+  const add=document.createElement("button");add.type="button";add.className="mini-btn primary";add.textContent="เพิ่มรูป";
+  pick.addEventListener("click",()=>file.click());
+  file.addEventListener("change",()=>{if(file.files&&file.files.length>0){pendingFiles[key]=file.files[0];pend.textContent="ไฟล์ที่เลือก: "+file.files[0].name;}});
+  add.addEventListener("click",async()=>{
+    const name=(capInp.value||"").trim();const f=pendingFiles[key];
+    if(!name){alertBox.show("กรุณากรอกชื่อ/คำอธิบายรูป","warning");return;}
+    if(!f){alertBox.show("ยังไม่ได้เลือกรูป","warning");return;}
+    alertBox.show("กำลังอัปโหลดรูป...","info",0);
+    try{
+      const data=await fetch(window.location.href,{method:"POST",headers:{"X-CSRFToken":getCsrfToken()},body:(()=>{const fd=new FormData();fd.append("action","add_picture");fd.append("node_no",nodeNo);fd.append("pic_name",name);fd.append("pic_path",f.name);fd.append("pic_file",f);return fd;})()}).then(r=>r.json());
+      target.pictures.push({pic_name:name,pic_path:f.name,pic_no:(data&&data.pic_no)||""});
+      capInp.value="";pend.textContent="";delete pendingFiles[key];
+      renderList();alertBox.show("เพิ่มรูปสำเร็จ","success");syncHiddenField();
+    }catch(err){alertBox.show("เพิ่มรูปผิดพลาด: "+err.message,"error",5000);}
+  });
+
+  const list=document.createElement("div");list.className="pic-list";
+  function renderList(){
+    list.innerHTML="";
+    const arr=target.pictures||[];
+    if(arr.length===0){const e=document.createElement("div");e.className="pic-item empty";e.textContent="ยังไม่มีรูปในหัวข้อนี้";list.appendChild(e);return;}
+    arr.forEach((p,i)=>{
+      const item=document.createElement("div");item.className="pic-item";
+      item.innerHTML=`<div class="pic-main"><strong>${p.pic_no?("ภาพที่ "+p.pic_no):"ภาพ"}</strong> : ${p.pic_name||""}${p.pic_path?`<div class="pic-path">${p.pic_path}</div>`:""}</div>
+                      <div class="pic-actions"><button type="button" class="mini-btn danger" data-i="${i}">ลบรูป</button></div>`;
+      list.appendChild(item);
+    });
+    list.querySelectorAll(".pic-actions .mini-btn").forEach(b=>{
+      b.addEventListener("click",(e)=>{const i=parseInt(e.currentTarget.dataset.i,10);target.pictures.splice(i,1);renderList();syncHiddenField();});
+    });
+  }
+  renderList();
+
+  picsBox.appendChild(head);picsBox.appendChild(row);
+  row.appendChild(capInp);row.appendChild(pick);row.appendChild(add);row.appendChild(pend);row.appendChild(file);
+  picsBox.appendChild(list);
+
+  const toggle=document.createElement("button");toggle.type="button";toggle.className="mini-btn";toggle.textContent="🖼️ เพิ่มรูปภาพ";
+  toggle.addEventListener("click",()=>{picsBox.hidden=!picsBox.hidden;});
+  return {toggleBtn:toggle,box:picsBox};
+}
+
+/* ============ Tables (Excel-like: กดแล้วโผล่ทันที) ============ */
+function createDefaultTable(titleNo, caption){
+  const cols=5, rows=5; // เริ่มต้น 5x5 (แก้ทีหลังได้ด้วยปุ่มเพิ่ม/ลบ)
+  const headers=Array.from({length:cols},(_,i)=>"หัว "+(i+1));
+  const data=Array.from({length:rows},()=>Array(cols).fill(""));
+  return { title_no:titleNo, caption:caption||"", headers, rows:data, seq:null, display_title:"", __open:true };
+}
+
+function renderNodeTableEditor(tb, nodeObj, reRender){
+  const card=document.createElement("div");card.className="table-card";card.hidden=!tb.__open;
+  const head=document.createElement("div");head.className="table-head";
+  head.innerHTML=`
+    <div class="table-title">
+      <span class="badge-no">${tb.title_no || '-'}</span>
+      <input type="text" class="table-caption-input" placeholder="ชื่อ/คำอธิบายตาราง" value="${tb.caption||''}">
+    </div>
+    <div class="table-actions">
+      <button type="button" class="mini-btn" data-act="add-row">+ แถว</button>
+      <button type="button" class="mini-btn" data-act="add-col">+ คอลัมน์</button>
+      <button type="button" class="mini-btn" data-act="del-row">- แถว</button>
+      <button type="button" class="mini-btn" data-act="del-col">- คอลัมน์</button>
+      <button type="button" class="mini-btn danger" data-act="del-table">ลบตาราง</button>
+    </div>`;
+  const subTitle=document.createElement("div");
+  subTitle.style.cssText="font-size:12px;color:#6b7280;margin:4px 0 6px;";
+  subTitle.textContent = tb.display_title || "";
+  const hotMount=document.createElement("div");hotMount.className="hot-mount";
+  card.appendChild(head);card.appendChild(subTitle);card.appendChild(hotMount);
+
+  const hot=new Handsontable(hotMount,{
+    data:tb.rows,
+    rowHeaders:true,
+    colHeaders:tb.headers,
+    manualColumnMove:true,manualRowMove:true,
+    licenseKey:'non-commercial-and-evaluation',
+    stretchH:'all',contextMenu:true,
+    afterChange(){tb.rows=hot.getData();tb.headers=hot.getColHeader();syncHiddenField();},
+    afterColumnMove(){tb.rows=hot.getData();tb.headers=hot.getColHeader();syncHiddenField();},
+    afterRowMove(){tb.rows=hot.getData();tb.headers=hot.getColHeader();syncHiddenField();}
+  });
+
+  head.addEventListener("click",(e)=>{
+    const btn=e.target.closest("[data-act]"); if(!btn) return;
+    const a=btn.dataset.act;
+    if(a==="del-table"){
+      const i=nodeObj.tables.indexOf(tb);
+      if(i>=0 && confirm("ลบตารางนี้?")){ nodeObj.tables.splice(i,1); reRender(); syncHiddenField(); }
+      return;
+    }
+    if(a==="add-row"){ hot.alter('insert_row', hot.countRows()); }
+    if(a==="del-row"){ if(hot.countRows()>0) hot.alter('remove_row', hot.countRows()-1); }
+    if(a==="add-col"){ hot.alter('insert_col', hot.countCols()); const h=hot.getColHeader(); h.push(""); hot.updateSettings({colHeaders:h}); }
+    if(a==="del-col"){ if(hot.countCols()>0){ const h=hot.getColHeader(); h.pop(); hot.alter('remove_col', hot.countCols()-1); hot.updateSettings({colHeaders:h}); } }
+    tb.rows=hot.getData();tb.headers=hot.getColHeader();syncHiddenField();
+  });
+
+  // เมื่อแก้ไขชื่อ/คำอธิบาย → อัปเดต display_title ตามรูปแบบที่กำหนด
+  head.querySelector(".table-caption-input").addEventListener("input", e=>{
+    tb.caption=e.target.value;
+    const chap = String(tb.title_no||"-").split(".")[0] || "3";
+    tb.display_title = formatDisplayTitle(chap, tb.seq||"", tb.caption);
+    subTitle.textContent = tb.display_title;
+    syncHiddenField();
+  });
+
+  const toggleBtn=document.createElement("button");toggleBtn.type="button";toggleBtn.className="mini-btn";toggleBtn.textContent="🗂️ เปิด/ปิดตาราง";
+  toggleBtn.addEventListener("click",()=>{card.hidden=!card.hidden;});
+  if(tb.__open){setTimeout(()=>{card.hidden=false;tb.__open=false;},0);}
+  return {card,toggleBtn};
+}
+
+function renderTableCreator(sectionObj, pathArr, nodeObj){
+  // ไม่ถามแถว/คอลัมน์ — กดแล้วสร้างตาราง 5x5 ทันที
+  const nodeNo=buildNodeNumber(sectionObj.title_no,pathArr);
+  const creator=document.createElement("div");creator.className="table-builder";creator.hidden=true;
+  creator.innerHTML=`
+    <div class="tb-head">สร้างตารางสำหรับหัวข้อ ${nodeNo}</div>
+    <div class="tb-form">
+      <div class="tb-row">
+        <label>ชื่อ/คำอธิบายตาราง (ต้องการในชื่อแสดงผล)</label>
+        <input type="text" class="tb-input" data-field="caption" placeholder="เช่น ตารางสรุปผลการทดสอบ">
+      </div>
+      <div class="tb-actions">
+        <button type="button" class="mini-btn primary" data-act="create">สร้างตาราง</button>
+      </div>
+    </div>`;
+  creator.addEventListener("click",(e)=>{
+    const btn=e.target.closest('[data-act="create"]'); if(!btn) return;
+    const caption=(creator.querySelector('[data-field="caption"]').value||"").trim();
+
+    // กำหนดลำดับตารางใน “บท”
+    const chap=String(sectionObj.title_no).split(".")[0] || "3";
+    const seq=nextTableSeqForChapter(chap);
+
+    nodeObj.tables=nodeObj.tables||[];
+    const tb=createDefaultTable(nodeNo, caption);
+    tb.seq=seq;
+    tb.display_title = formatDisplayTitle(chap, seq, caption); // ตารางที่ <บท>-<seq>  <ชื่อ>
+    nodeObj.tables.push(tb);
+
+    redrawSections(); alertBox.show("สร้างตารางสำเร็จ","success"); syncHiddenField();
+  });
+
+  const toggle=document.createElement("button");toggle.type="button";toggle.className="mini-btn";toggle.textContent="📊 สร้างตาราง";
+  toggle.addEventListener("click",()=>{creator.hidden=!creator.hidden;});
+  return {builder:creator, toggleBtn:toggle};
+}
+
+/* ============ Render ============ */
+function renderNode(sectionObj,secIndex,nodeObj,pathArr){
+  const el=document.createElement("div");el.className="node-card";
+  const top=document.createElement("div");top.className="node-top-row";
+  const nodeNo=buildNodeNumber(sectionObj.title_no,pathArr);
+  const badge=document.createElement("div");badge.className="node-no-badge";badge.textContent=nodeNo;
+  const title=document.createElement("input");title.type="text";title.className="node-title-input";title.placeholder="พิมพ์ชื่อหัวข้อย่อย…";title.value=nodeObj.text||"";
+  title.addEventListener("input",(e)=>{nodeObj.text=e.target.value;syncHiddenField();});
+  const ctr=document.createElement("div");ctr.className="node-controls";
+  const bPara=document.createElement("button");bPara.type="button";bPara.className="mini-btn";bPara.textContent="➕ ย่อหน้า";
+  bPara.addEventListener("click",()=>{nodeObj.paragraphs=nodeObj.paragraphs||[];nodeObj.paragraphs.push("");redrawSections();});
+  const bChild=document.createElement("button");bChild.type="button";bChild.className="mini-btn";bChild.textContent="➕ หัวข้อย่อยถัดไป";
+  bChild.addEventListener("click",()=>{nodeObj.children=nodeObj.children||[];nodeObj.children.push(makeNode());redrawSections();});
+  const bDel=document.createElement("button");bDel.type="button";bDel.className="mini-btn danger";bDel.textContent="ลบหัวข้อย่อย";
+  bDel.addEventListener("click",()=>{const r=getParentAndIndex(sectionObj,pathArr);if(r){r.listRef.splice(r.idx,1);redrawSections();}});
+  ctr.appendChild(bPara);ctr.appendChild(bChild);ctr.appendChild(bDel);
+  top.appendChild(badge);top.appendChild(title);top.appendChild(ctr);el.appendChild(top);
+
+  nodeObj.paragraphs=nodeObj.paragraphs||[];
+  el.appendChild( renderParagraphs(nodeObj.paragraphs,()=>syncHiddenField(),()=>redrawSections()) );
+
+  // ปุ่มเพิ่มรูป / สร้างตาราง
+  const picUI=renderPicturesBox(sectionObj,secIndex,pathArr);
+  const tbUI =renderTableCreator(sectionObj,pathArr,nodeObj);
+  const toggleBar=document.createElement("div");toggleBar.className="node-toggle-bar";
+  toggleBar.appendChild(picUI.toggleBtn);toggleBar.appendChild(tbUI.toggleBtn);
+  el.appendChild(toggleBar);
+  el.appendChild(picUI.box);el.appendChild(tbUI.builder);
+
+  // ตารางที่มีอยู่
+  const wrap=document.createElement("div");wrap.className="node-tables-wrap";
+  function renderTables(){
+    wrap.innerHTML="";
+    (nodeObj.tables||[]).forEach(tb=>{
+      const ed=renderNodeTableEditor(tb,nodeObj,renderTables);
+      const row=document.createElement("div");row.className="node-toggle-bar";row.appendChild(ed.toggleBtn);
+      wrap.appendChild(row);wrap.appendChild(ed.card);
+    });
+  }
+  renderTables(); el.appendChild(wrap);
+
+  // children
+  const kids=document.createElement("div");kids.className="children-block";
+  (nodeObj.children||[]).forEach((c,i)=>kids.appendChild(renderNode(sectionObj,secIndex,c,[...pathArr,i])));
+  el.appendChild(kids);
+  return el;
+}
+function renderSectionTree(sectionObj,secIndex){
+  const t=document.createElement("div");t.className="tree-wrap";
+  (sectionObj.items||[]).forEach((n,i)=>t.appendChild(renderNode(sectionObj,secIndex,n,[i])));
+  const add=document.createElement("button");add.type="button";add.className="mini-btn";add.textContent="➕ เพิ่มหัวข้อย่อยระดับแรก";
+  add.addEventListener("click",()=>{sectionObj.items=sectionObj.items||[];sectionObj.items.push(makeNode());redrawSections();});
+  t.appendChild(add);
+  return t;
+}
+function renderSectionCard(sectionObj,secIndex){
+  const wrap=document.createElement("div");wrap.className="chapter-section-card";
+  const head=document.createElement("div");head.className="chapter-head-row";
+  const b=document.createElement("div");b.className="badge-no";b.textContent=sectionObj.title_no;
+  const inp=document.createElement("input");inp.type="text";inp.className="chapter-title-input";inp.placeholder="ชื่อหัวข้อหลัก เช่น ขั้นตอนการพัฒนา";inp.value=sectionObj.title||"";
+  inp.addEventListener("input",(e)=>{sectionObj.title=e.target.value;syncHiddenField();});
+  const del=document.createElement("button");del.type="button";del.className="mini-btn danger";del.style.marginLeft="auto";del.textContent="ลบหัวข้อใหญ่";
+  del.addEventListener("click",()=>{sectionsState.splice(secIndex,1);redrawSections();});
+  head.appendChild(b);head.appendChild(inp);head.appendChild(del);wrap.appendChild(head);
+
+  const over=document.createElement("div");over.className="overview-block";
+  const lab=document.createElement("div");lab.className="overview-label";lab.textContent="ย่อหน้าอธิบายหัวข้อนี้ (ภาพรวม):";
+  over.appendChild(lab);
+  sectionObj.body_paragraphs=sectionObj.body_paragraphs||[];
+  over.appendChild( renderParagraphs(sectionObj.body_paragraphs,()=>syncHiddenField(),()=>redrawSections()) );
+  wrap.appendChild(over);
+
+  wrap.appendChild( renderSectionTree(sectionObj,secIndex) );
+  return wrap;
+}
+function redrawSections(){
+  const c=document.getElementById("sections-container");c.innerHTML="";
+  sectionsState.forEach((sec,i)=>c.appendChild(renderSectionCard(sec,i)));
+  syncHiddenField();
+}
+
+/* ============ Load initial ============ */
+// แสดงเฉพาะ 3.1 ตอนโหลดหน้า
+document.addEventListener("DOMContentLoaded",()=>{
+  const preSecs=getJsonScript('chapter3-sections');
+  if(Array.isArray(preSecs)&&preSecs.length){
+    const mapNode=(n)=>({text:n.text||"",paragraphs:Array.isArray(n.paragraphs)?n.paragraphs.slice():[],pictures:Array.isArray(n.pictures)?n.pictures.slice():[],tables:Array.isArray(n.tables)?n.tables.slice():[],children:Array.isArray(n.children)?n.children.map(mapNode):[]});
+    const mapped=preSecs.map(s=>({title_no:s.title_no||"",title:s.title||"",body_paragraphs:Array.isArray(s.body_paragraphs)?s.body_paragraphs.slice():[],pictures:Array.isArray(s.pictures)?s.pictures.slice():[],items:Array.isArray(s.items)?s.items.map(mapNode):[makeNode()]}));
+    const only31=mapped.filter(s=>(s.title_no||"").trim()==="3.1");
+    sectionsState=only31.length?only31:[mapped[0]];
+  }
+  // ถ้ามีตารางจาก server — แนบกลับเข้า nodes ด้วย anchor_no (ถ้าส่งมา)
+  const preTables=getJsonScript('chapter3-tables');
+  if(Array.isArray(preTables)&&preTables.length){
+    function walk(sectionObj,pathArr,nodeObj){
+      const nodeNo=buildNodeNumber(sectionObj.title_no,pathArr);
+      const matches=preTables.filter(t=> (t.anchor_no? t.anchor_no===nodeNo : String(t.title_no||"").startsWith(nodeNo)));
+      if(matches.length){ nodeObj.tables=nodeObj.tables||[]; matches.forEach(t=>nodeObj.tables.push({...t,__open:false})); }
+      (nodeObj.children||[]).forEach((ch,i)=>walk(sectionObj,[...pathArr,i],ch));
+    }
+    (sectionsState||[]).forEach(sec=>{(sec.items||[]).forEach((n,i)=>walk(sec,[i],n));});
+  }
+
+  // ปุ่มเพิ่มหัวข้อใหญ่
+  const addSec=document.getElementById("btnAddSection");
+  if(addSec){ addSec.addEventListener("click",()=>{ const next=getNextSectionNumber(); sectionsState.push(makeSection(next,"")); redrawSections(); }); }
+
+  redrawSections();
+
+  const form=document.getElementById("chapter3Form");
+  if(form){
+    form.addEventListener("submit",()=>{
+      form.querySelectorAll("textarea").forEach(t=>{const raw=t.value;t.value=raw.replace(/\r?\n/g," ").replace(/\s+/g," ").trim();});
+      syncHiddenField();
+    });
+  }
+});
+</script>
+</body>
+</html>

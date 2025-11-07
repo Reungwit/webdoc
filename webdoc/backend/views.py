@@ -2,25 +2,28 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, JsonResponse
 from django.contrib import messages
 from django.template.loader import render_to_string
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.urls import reverse
+from django.conf import settings
+from django.core.files.storage import default_storage
 
 import json
 import re
 import copy
+import traceback
 from io import BytesIO
 
 # Forms / Models
 from .forms import RegisterForm, LoginForm
 from .models import (
     SpProject, SpProjectAuthor, DocCover, Certificate, Chapter1, RefWebsite, RefBook,
-    Chapter5, DocIntroduction, DocAbstract
+    Chapter5, DocIntroduction, DocAbstract, DocChapter3
 )
 
 # DOCX builders
@@ -31,6 +34,12 @@ from man_doc.doc_refer import doc_refer
 from man_doc.doc_chapter5 import doc_chapter5
 from man_doc.doc_chapter1 import doc_chapter1
 from man_doc.doc_certificate import doc_certificate
+# ---------- บทที่ 3: ตัวสร้างเอกสาร (ให้คุณมีไฟล์ man_doc/doc_chapter3.py ชื่อฟังก์ชัน generate_doc) ----------
+# signature แนะนำ: generate_doc(intro_body, sections_json, tables_json, pictures, media_root)
+try:
+    from man_doc.doc_chapter3 import generate_doc as generate_doc_ch3
+except Exception:
+    generate_doc_ch3 = None
 
 # ====== imports from man_views (helpers ที่แยกออก) ======
 from man_views.views_current_user_id import current_user_id as current_user_id
@@ -106,8 +115,167 @@ def chapter_2_view(request):
     return chapter_2_view_logic(request)
 
 
+# ========= บทที่ 3 =========
+def safe_parse_list(raw_text, fallback):
+    """
+    แปลง string JSON -> list อย่างปลอดภัย (ใช้สำหรับบทที่ 3)
+    """
+    try:
+        data = json.loads(raw_text or '[]')
+        return data if isinstance(data, list) else (fallback or [])
+    except json.JSONDecodeError:
+        return fallback or []
+
+@login_required
 def chapter_3_view(request):
-    return render(request, 'chapter_3.html')
+    user = request.user
+
+    # 0) เคลียร์ message ที่ยังค้างมาจากหน้าก่อน (เช่น บทที่ 5)
+    for _ in messages.get_messages(request):
+        pass  # consume แล้วเคลียร์
+
+    # ดึงข้อมูลล่าสุดของ user
+    row = DocChapter3.objects.filter(user=user).order_by('-updated_at').first()
+    db_intro   = (getattr(row, "intro_body", "") or "")
+    db_secs    = row.sections_json if (row and isinstance(row.sections_json, list)) else []
+    db_tables  = row.tb_sections_json if (row and isinstance(row.tb_sections_json, list)) else []
+
+    if request.method == 'GET':
+        return render(request, 'chapter_3.html', {
+            'page_title': 'บทที่ 3 วิธีดำเนินการ/การออกแบบ/ผลลัพธ์',
+            'initial': {
+                'intro_body': db_intro,
+                'sections': db_secs,
+                'tables': db_tables,
+                'chapter3_json': db_secs,
+                'chapter3_tables_json': db_tables,
+            }
+        })
+
+    action = (request.POST.get('action') or '').strip()
+    intro_body = (request.POST.get('intro_body') or '').strip()
+    raw_secs   = request.POST.get('sections_json', None)
+    if raw_secs is None:
+        raw_secs = request.POST.get('chapter3_json', '')
+    raw_tables = request.POST.get('tables_json', None)
+    if raw_tables is None:
+        raw_tables = request.POST.get('chapter3_tables_json', '')
+
+    if action == 'add_picture':
+        try:
+            pic_name = (request.POST.get('pic_name') or '').strip()
+            client_pic_no = (request.POST.get('pic_no') or '').strip()
+            upfile = request.FILES.get('pic_file')
+            if not upfile:
+                return JsonResponse({'status': 'error', 'message': 'ไม่พบไฟล์ (pic_file)'}, status=400)
+
+            user_specific_path = f'img/user_{request.user.username}/{upfile.name}'
+            saved_relative_path = default_storage.save(user_specific_path, upfile)
+            saved_url = default_storage.url(saved_relative_path)
+
+            picture_block = {
+                "pic_no": client_pic_no,
+                "pic_name": pic_name,
+                "pic_path": saved_relative_path,
+                "pic_url": saved_url
+            }
+            return JsonResponse({"status": "ok", "message": "อัปโหลดรูปสำเร็จ", "picture": picture_block})
+        except Exception:
+            return JsonResponse(
+                {'status': 'error', 'message': 'Upload failed', 'trace': traceback.format_exc()},
+                status=500
+            )
+
+    if action == 'save':
+        secs_in   = safe_parse_list(raw_secs, db_secs)
+        tables_in = safe_parse_list(raw_tables, db_tables)
+        try:
+            DocChapter3.objects.update_or_create(
+                user=user,
+                defaults={
+                    'chap_id': 3,
+                    'intro_body': intro_body,
+                    'sections_json': secs_in,
+                    'tb_sections_json': tables_in,
+                    'updated_at': timezone.now(),
+                }
+            )
+            # ใช้ extra_tags เพื่อกันปนกับหน้าบทอื่น
+            messages.success(request, '💾 บันทึกข้อมูลบทที่ 3 เรียบร้อยแล้ว', extra_tags='chapter3')
+        except IntegrityError as e:
+            messages.error(request, f'IntegrityError: {e}', extra_tags='chapter3')
+        except Exception as e:
+            messages.error(request, f'Error: {e}', extra_tags='chapter3')
+        return redirect(request.path)
+
+    if action == 'get_data':
+        # แค่รีเฟรชหน้าให้ดึงค่า db ล่าสุด
+        messages.info(request, '🔄 ดึงข้อมูลล่าสุดเรียบร้อยแล้ว', extra_tags='chapter3')
+        return redirect(request.path)
+
+    if action == 'generate_doc':
+        try:
+            sections_in = safe_parse_list(raw_secs, db_secs)
+            tables_in   = safe_parse_list(raw_tables, db_tables)
+
+            def extractAllPictures(sections_list):
+                pics = []
+                def walkNode(node):
+                    if not isinstance(node, dict): return
+                    if isinstance(node.get("pictures"), list):
+                        pics.extend([p for p in node["pictures"] if p])
+                    if isinstance(node.get("children"), list):
+                        for ch in node["children"]:
+                            walkNode(ch)
+                if isinstance(sections_list, list):
+                    for sec in sections_list:
+                        if not isinstance(sec, dict): continue
+                        if isinstance(sec.get("pictures"), list):
+                            pics.extend([p for p in sec["pictures"] if p])
+                        if isinstance(sec.get("items"), list):
+                            for node in sec["items"]:
+                                walkNode(node)
+                def seq(p):
+                    try:
+                        return int(str(p.get("pic_no","0-0")).split("-")[-1])
+                    except Exception:
+                        return 0
+                pics.sort(key=seq)
+                return pics
+
+            all_pics = extractAllPictures(sections_in)
+
+            if generate_doc_ch3 is None:
+                messages.error(request, "ยังไม่ได้ติดตั้งตัวสร้างเอกสารของบทที่ 3 (man_doc/doc_chapter3.py)", extra_tags='chapter3')
+                return redirect(request.path)
+
+            doc = generate_doc_ch3(
+                intro_body=intro_body or db_intro,
+                sections_json=sections_in,
+                tables_json=tables_in,
+                pictures=all_pics,
+                media_root=settings.MEDIA_ROOT
+            )
+            bio = BytesIO()
+            doc.save(bio)
+            bio.seek(0)
+            resp = FileResponse(
+                bio,
+                as_attachment=True,
+                filename="chapter3.docx",
+                content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+            resp["Cache-Control"] = "no-store"
+            return resp
+
+        except Exception:
+            messages.error(request, f'Generate failed: {traceback.format_exc()}', extra_tags='chapter3')
+            return redirect(request.path)
+
+    messages.error(request, f'unknown action "{action}"', extra_tags='chapter3')
+    return redirect(request.path)
+# ========= จบส่วนบทที่ 3 =========
+
 
 def chapter_4_view(request):
     return render(request, 'chapter_4.html')

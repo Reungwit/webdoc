@@ -61,7 +61,7 @@ def doc_chapter5(
 
         # หัวข้อระดับ 1: 5.{idx}
         title_no = f"{chapter_no}.{idx}"
-        add_section_heading_level1_style_1(doc, title_no, title)
+        add_section_heading_level1_style_custom(doc, title_no, title)
 
         # ย่อหน้าเนื้อหาใต้หัวข้อ
         if body:
@@ -83,3 +83,18 @@ def doc_chapter5(
         )
 
     return doc
+
+
+def add_section_heading_level1_style_custom(doc: Document, title_no: str, title: str) -> None:
+    """
+    (ฟังก์ชันกลาง) สไตล์หัวข้อระดับ 1: หนา, ไม่ย่อหน้า, ห่าง 6pt
+    """
+    text = two_spaces_join(t(title_no), t(title)) # (ต้อง import two_spaces_join)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    r = p.add_run(text)
+    r.bold = True
+    pf = p.paragraph_format
+    pf.first_line_indent = Cm(0)
+    pf.space_before = Pt(6)
+    pf.space_after = Pt(0)

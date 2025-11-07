@@ -56,9 +56,11 @@ from man_views.views_collect_references import collect_references_from_post
 # ---------------- บทที่ 1 ----------------
 from man_views.views_chapter_1 import chapter_1_view as chapter_1_view_logic
 
-# ---------------- บทที่ 2 ----------------
+# ---------------- บทที่ 2  ----------------
 from man_views.views_chapter_2 import chapter_2_view as chapter_2_view_logic
 
+# ---------------- บทที่ 5  ----------------
+from man_views.views_chapter_5 import chapter_5_view as chapter_5_view_logic
 # ========================================================
 
 
@@ -278,6 +280,8 @@ def chapter_3_view(request):
 def chapter_4_view(request):
     return render(request, 'chapter_4.html')
 
+def chapter_5_view(request):
+    return chapter_5_view_logic(request)
 
 def home_view(request):
     return render(request, 'home.html')
@@ -482,220 +486,6 @@ def refer_view(request):
 
 
 # ---------------- บทที่ 5 ----------------
-DEFAULT_TITLES = ['สรุปผลการดำเนินงาน', 'อภิปรายผล', 'ข้อเสนอแนะ']
-DEFAULT_SECTIONS = [
-    {"title": DEFAULT_TITLES[0], "body": "", "mains": []},
-    {"title": DEFAULT_TITLES[1], "body": "", "mains": []},
-    {"title": DEFAULT_TITLES[2], "body": "", "mains": []},
-]
-
-def _norm(s: str) -> str:
-    return re.sub(r'\s+', ' ', (s or '')).strip()
-
-def _get_title(d: dict) -> str:
-    if not isinstance(d, dict): return ''
-    for k in ('title', 'name', 'header'):
-        v = (d.get(k) or '').strip()
-        if v: return v
-    return ''
-
-def _get_body(d: dict) -> str:
-    if not isinstance(d, dict): return ''
-    for k in ('body', 'intro', 'content', 'paragraph', 'desc', 'text'):
-        v = d.get(k)
-        if isinstance(v, str) and v.strip():
-            return v
-    return ''
-
-def _to_mains_list(d: dict):
-    if not isinstance(d, dict): return []
-    candidates = d.get('mains')
-    if candidates is None: candidates = d.get('items')
-    if candidates is None: candidates = d.get('children')
-    if not isinstance(candidates, list): return []
-    out = []
-    for m in candidates:
-        if isinstance(m, dict):
-            text = _get_title(m) or (m.get('text') or '').strip()
-            subs = m.get('subs')
-            if subs is None: subs = m.get('children')
-            if subs is None: subs = m.get('items')
-            if not isinstance(subs, list): subs = []
-            norm_subs = []
-            for s in subs:
-                if isinstance(s, dict):
-                    sv = (s.get('text') or s.get('title') or s.get('name') or '').strip()
-                    if sv: norm_subs.append(sv)
-                elif isinstance(s, str):
-                    sv = s.strip()
-                    if sv: norm_subs.append(sv)
-            out.append({"text": text, "subs": norm_subs})
-        elif isinstance(m, str):
-            out.append({"text": m.strip(), "subs": []})
-    return out
-
-def _normalize_and_order(sections, intro_body, prev=None):
-    prev = prev or []
-    norm_list = []
-
-    if not isinstance(sections, list) or not sections:
-        sections = copy.deepcopy(DEFAULT_SECTIONS)
-
-    for i, raw in enumerate(sections):
-        sec = raw if isinstance(raw, dict) else {}
-        title = _get_title(sec) or ''
-        if not title and i < len(prev) and isinstance(prev[i], dict):
-            title = _get_title(prev[i]) or ''
-        if not title and i < len(DEFAULT_TITLES):
-            title = DEFAULT_TITLES[i]
-
-        body = _get_body(sec)
-        mains = _to_mains_list(sec)
-
-        for j, m in enumerate(mains):
-            m['main_order'] = j + 1
-
-        norm_list.append({
-            "title": title or "",
-            "body": body or "",
-            "mains": mains,
-            "section_order": i + 1,
-        })
-    return norm_list
-
-def _sorted_with_numbers(sections):
-    if not isinstance(sections, list): return []
-    sections = sorted(sections, key=lambda s: int(s.get('section_order') or 0))
-
-    for i, sec in enumerate(sections, start=1):
-        sec['no'] = f'5.{i}'
-        title = _get_title(sec)
-        sec.setdefault('title', title or '')
-        sec.setdefault('name',  title or sec['title'])
-        sec.setdefault('header',title or sec['title'])
-
-        mains = sec.get('mains') if isinstance(sec.get('mains'), list) else []
-        mains = sorted(mains, key=lambda m: int(m.get('main_order') or 0))
-        for j, m in enumerate(mains, start=1):
-            m['no'] = f'5.{i}.{j}'
-            new_subs = []
-            subs = m.get('subs') if isinstance(m.get('subs'), list) else []
-            for k, s in enumerate(subs, start=1):
-                text = (s or '').strip() if isinstance(s, str) else ''
-                if text:
-                    new_subs.append({"text": text, "no": f'5.{i}.{j}.{k}'})
-            m['subs'] = new_subs
-        sec['mains'] = mains
-    return sections
-
-def _sections_from_ui_json(raw_json: str, fallback_list):
-    try:
-        data = json.loads(raw_json) if raw_json else []
-    except json.JSONDecodeError:
-        data = []
-    if not isinstance(data, list) or not data:
-        data = fallback_list or []
-
-    out = []
-    for s in data:
-        if not isinstance(s, dict):
-            continue
-        title = (s.get('title') or s.get('header') or s.get('name') or '').strip()
-        body  = (s.get('body')  or s.get('content') or s.get('desc')  or '').strip()
-
-        points = s.get('points') or s.get('mains') or s.get('items') or []
-        mains = []
-        if isinstance(points, list):
-            for p in points:
-                if isinstance(p, dict):
-                    text = (p.get('main') or p.get('text') or p.get('title') or '').strip()
-                    subs_src = p.get('subs') or p.get('children') or p.get('items') or []
-                    subs = []
-                    if isinstance(subs_src, list):
-                        for sub in subs_src:
-                            if isinstance(sub, str):
-                                st = sub.strip()
-                                if st: subs.append(st)
-                            elif isinstance(sub, dict):
-                                st = (sub.get('text') or sub.get('title') or sub.get('name') or '').strip()
-                                if st: subs.append(st)
-                    mains.append({'text': text, 'subs': subs})
-                elif isinstance(p, str):
-                    t = p.strip()
-                    if t: mains.append({'text': t, 'subs': []})
-
-        out.append({'title': title, 'body': body, 'mains': mains})
-    return out
-
-@login_required
-def chapter_5_view(request):
-    user = request.user
-
-    row = Chapter5.objects.filter(user=user).order_by('-updated_at').first()
-    db_intro = (row.intro_th if row else '') or ''
-    db_sections = row.sections_json if (row and isinstance(row.sections_json, list)) else []
-
-    def safe_parse_list(raw: str, default: list):
-        try:
-            data = json.loads(raw or '[]')
-            return data if isinstance(data, list) else (default or [])
-        except json.JSONDecodeError:
-            return default or []
-
-    if request.method == 'POST':
-        action = (request.POST.get('action') or '').strip()
-        intro_body = (request.POST.get('intro_body') or '').strip()
-        raw_json = request.POST.get('chapter5_json', '')
-
-        if action == 'save':
-            sections_in = safe_parse_list(raw_json, [])
-            Chapter5.objects.update_or_create(
-                user=user,
-                defaults={
-                    'intro_th': intro_body,
-                    'sections_json': sections_in,
-                    'updated_at': timezone.now(),
-                }
-            )
-            messages.success(request, '💾 บันทึกข้อมูลบทที่ 5 เรียบร้อยแล้ว')
-            return render(request, 'chapter_5.html', {
-                'initial': {'intro_body': '', 'chapter5_json': []}
-            })
-
-        elif action == 'get_data':
-            messages.info(request, '🔄 ดึงข้อมูลล่าสุดเรียบร้อยแล้ว')
-            return render(request, 'chapter_5.html', {
-                'initial': {'intro_body': db_intro, 'chapter5_json': db_sections}
-            })
-
-        elif action == 'generate_docx':
-            sections_for_doc = safe_parse_list(raw_json, db_sections)
-            if not intro_body:
-                intro_body = db_intro
-
-            doc = doc_chapter5(intro_body, sections_for_doc)
-            buf = BytesIO()
-            doc.save(buf)
-            buf.seek(0)
-            return FileResponse(
-                buf,
-                as_attachment=True,
-                filename='chapter5.docx',
-                content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            )
-
-        messages.info(request, 'ยังไม่รองรับการทำงานนี้')
-        return render(request, 'chapter_5.html', {
-            'initial': {'intro_body': '', 'chapter5_json': []}
-        })
-
-    return render(request, 'chapter_5.html', {
-        'initial': {
-            'intro_body': (db_intro if (db_intro or db_sections) else ''),
-            'chapter5_json': (db_sections if isinstance(db_sections, list) else []),
-        }
-    })
-
 
 # ---------------- Project Setup ----------------
 def _parse_lines_to_list(text):

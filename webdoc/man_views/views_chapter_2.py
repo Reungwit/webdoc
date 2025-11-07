@@ -10,8 +10,6 @@ from django.core.files.storage import default_storage
 from io import BytesIO
 import json, traceback
 from django.contrib import messages
-
-# 1. [ปรับปรุง] Import ฟังก์ชันกลางที่ใช้ร่วมกันได้
 from man_doc.doc_function import _safe_parse_list
 from backend.models import DocChapter2
 from man_doc.doc_chapter2 import generate_doc
@@ -19,20 +17,14 @@ from man_doc.doc_chapter2 import generate_doc
 @login_required
 def chapter_2_view(request):
     user = request.user
-    
-    # 2. [ปรับปรุง] ย้าย logic การดึงข้อมูลมาไว้ด้านบน (เหมือน chapter_1.py)
-    # เพื่อให้ใช้ได้ทั้ง GET และเป็น context เริ่มต้นสำหรับ POST
     row = DocChapter2.objects.filter(user=user).first()
     db_intro = (getattr(row, "intro_body", "") or "")
     db_sections_raw = getattr(row, "sections_json", [])
     
-    # 3. [ปรับปรุง] เรียกใช้ฟังก์ชันกลาง _safe_parse_list (เหมือน chapter_1.py)
     db_sections = _safe_parse_list(db_sections_raw, [])
 
     # ===== GET (ปรับปรุงใหม่) =====
     if request.method == "GET":
-        # 4. [ปรับปรุง] ส่ง 'initial' data ไปให้ template (เหมือน chapter_1.py)
-        # เพื่อให้ json_script ใน chapter_2.html ทำงานได้
         return render(request, "chapter_2.html", {
             "page_title": "บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง",
             "initial": {
@@ -44,11 +36,6 @@ def chapter_2_view(request):
     # ===== POST (จัดการทุก action) =====
     if request.method == 'POST':
         action = (request.POST.get('action') or '').strip()
-
-        # --- [ลบ] 'get_data' แบบ AJAX ถูกลบออก ---
-        # (เพราะ chapter_2.html ใช้ Form Submit แล้ว)
-
-        # 5. [ปรับปรุง] เพิ่ม 'get_data' แบบ Form Submit (เหมือน chapter_1.py)
         if action == 'get_data':
             # ไม่ต้องทำอะไร ปล่อยให้ redirect กลับไปหน้า GET
             # ซึ่งหน้า GET จะดึงข้อมูลล่าสุดจาก DB มาแสดงเอง
@@ -58,8 +45,6 @@ def chapter_2_view(request):
         if action == 'save':
             intro_body = request.POST.get('intro_body', '')
             raw_sections = request.POST.get('sections_json', '[]')
-            
-            # 6. [ปรับปรุง] เรียกใช้ฟังก์ชันกลาง _safe_parse_list
             sections_data = _safe_parse_list(raw_sections, [])
 
             try:
@@ -78,7 +63,6 @@ def chapter_2_view(request):
             except Exception as e:
                 messages.error(request, f'Error: {e}')
 
-            # Redirect กลับไปหน้าเดิม (หน้า GET)
             return redirect(request.path) 
 
         # --- เพิ่มรูปภาพ (คงเดิม ไม่เปลี่ยนแปลง) ---

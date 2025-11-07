@@ -1,79 +1,85 @@
-# man_doc/doc_chapter5.py
-from typing import List, Dict, Any
-from docx.shared import Pt, Cm, Inches
-from docx.enum.section import WD_SECTION
-from docx.oxml.ns import qn
+# doc_chapter5.py
 
-from man_doc.doc_function import (
-    doc_setup,
-    add_center_paragraph,
-    add_left_paragraph,
-    add_paragraph_indent,
-    add_wrapped_paragraph,
-    iter_sections,
-)
+from typing import List, Dict, Any, Optional
+from docx import Document
 
-# ========================= ค่ามาตรฐานตามคู่มือ =========================
-TITLE_PT = 20
-LINE_LEN = 80
-FIRSTLINE_CM = 1.00
-SUB_FIRSTLINE_CM = 1.50
+# ✅ ดึง “ฟังก์ชันกลาง”
+from man_doc.doc_function import *
 
-# ========================= ตัวช่วยเพิ่มเติม (เฉพาะจัดระยะ) =========================
-def apply_rest_page_margin(doc, top_inch: float = 1.5):
-    """
-    เปลี่ยน top margin สำหรับหน้าถัดไปเป็น top_inch โดยไม่ขึ้นหน้าใหม่
-    """
-    sec = doc.add_section(WD_SECTION.CONTINUOUS)
-    sec.top_margin = Inches(top_inch)
-    # ถ้าต้องการคงค่า margin อื่นให้เท่ากับหน้าแรก ให้คัดลอกจาก section[0] ก็ได้
-    base = doc.sections[0]
-    sec.bottom_margin = base.bottom_margin
-    sec.left_margin   = base.left_margin
-    sec.right_margin  = base.right_margin
+DEFAULT_TITLES = [
+    "บทนำ",                    # (ไม่ใส่เลขหัวข้อ)
+    "สรุปผลการดำเนินงาน",      # 5.1
+    "อภิปรายผล",                # 5.2
+    "ข้อเสนอแนะ",               # 5.3
+]
 
-# ========================= ฟังก์ชันหลัก =========================
-def doc_chapter5(intro_body: str, sections_json: List[Dict[str, Any]]):
+def doc_chapter5(
+    sections_any: Any,                 # โครงจาก DB/UI (ผสมได้)
+    *,
+    media_root: str = "",
+) -> Document:
     """
-    สร้างบทที่ 5 โดยใช้ doc_setup() สำหรับตั้งค่าหน้าแรก และปรับหน้าถัดไปด้วย apply_rest_page_margin
+    เรนเดอร์บทที่ 5:
+      - บรรทัดหัวบทกึ่งกลาง
+      - 'บทนำ' ไม่มีเลขหัวข้อ (เพียงย่อหน้าเนื้อหา)
+      - 5.1 เป็นต้นไป = หัวข้อหลัก (สรุปผลฯ, อภิปรายผล, ข้อเสนอแนะ)
+      - หัวข้อย่อยลึกลงไปใช้เลข 5.x.y, 5.x.y.z อัตโนมัติ
+      - แคปชันรูป = 'ภาพที่ 5-n ...'
     """
-    # ✅ ใช้หน้าแรก/ฟอนต์/บรรทัด จาก doc_setup()
+
+    # ---------- เตรียมเอกสาร + normalize โครงสร้าง ----------
     doc = doc_setup()
 
-    # ===== หัวเรื่องกลางหน้า =====
-    add_center_paragraph(doc, "บทที่ 5", bold=True, font_size=TITLE_PT)
-    add_center_paragraph(doc, "สรุปผลการวิจัย อภิปรายผล และข้อเสนอแนะ", bold=True, font_size=TITLE_PT)
+    # หัวกระดาษบท
+    add_center_paragraph(doc, "บทที่ 5", bold=True, font_size=18)
+    add_center_paragraph(doc, "สรุปผลการวิจัย อภิปรายผล และข้อเสนอแนะ", bold=True, font_size=18)
 
-    apply_rest_page_margin(doc, top_inch=1.5)
+    # ปรับให้โครงสร้างปลอดภัยสำหรับเรนเดอร์
+    secs = sections_doc_safe(
+        sections_any,
+        default_titles=DEFAULT_TITLES,
+        first_section_mode="paragraphs",   # บทนำเก็บเป็น paragraphs
+    )
 
-    # ===== 5.1 บทนำ =====
-    add_left_paragraph(doc, "", bold=True)
-    if (intro_body or "").strip():
-        add_wrapped_paragraph(doc, intro_body, n=LINE_LEN, disth=True, tap=True)
+    # ---------- 0) บทนำ (ไม่มีเลขหัวข้อ) ----------
+    intro = secs[0]
+    paras = intro.get("paragraphs") or []
+    for s in paras:
+        # ย่อหน้าแนวบรรยาย
+        add_wrapped_paragraph(doc, str(s), n=120, disth=True, tap=True)
 
-    # ===== 5.2, 5.3, ... =====
-    for i, (title, body, mains) in enumerate(iter_sections(sections_json), start=2):
-        add_left_paragraph(doc, f"5.{i}  {title}".strip(), bold=True)
+    # ---------- 1) 5.1–5.3 หัวข้อหลัก + รายการย่อย ----------
+    chapter_no = 5
+    pic_counter = [0]
+    seen_pics = set()
 
+    # index: 1..3  → หมายเลขหัวข้อ: 5.1, 5.2, 5.3
+    for idx in range(1, min(4, len(secs))):
+        sec = secs[idx]
+        title = (sec.get("title") or "").strip()
+        body  = (sec.get("body") or "").strip()
+
+        # หัวข้อระดับ 1: 5.{idx}
+        title_no = f"{chapter_no}.{idx}"
+        add_section_heading_level1_style_1(doc, title_no, title)
+
+        # ย่อหน้าเนื้อหาใต้หัวข้อ
         if body:
-            add_wrapped_paragraph(doc, body, n=LINE_LEN, disth=True, tap=True)
+            add_body_paragraph_style_1(doc, body)
 
-        for j, m in enumerate(mains or [], start=1):
-            main_text = (m.get("text") or "").strip()
-            if main_text:
-                add_paragraph_indent(doc, f"5.{i}.{j}  {main_text}", bold=False, custom_tap=FIRSTLINE_CM)
-
-            subs = m.get("subs") if isinstance(m.get("subs"), list) else []
-            for k, s in enumerate(subs, start=1):
-                s = (s or "").strip()
-                if s:
-                    add_wrapped_paragraph(
-                        doc,
-                        f"5.{i}.{j}.{k}  {s}",
-                        n=LINE_LEN,
-                        disth=True,
-                        custom_tap=SUB_FIRSTLINE_CM,
-                    )
-        doc.add_paragraph()
+        # เดินรายการย่อย (หัวข้อ 2 ขึ้นไป → 5.{idx}.1, 5.{idx}.2, …)
+        # heading_func = สไตล์หัวข้อระดับ 2+
+        # body_func    = สไตล์ย่อหน้า
+        walk_item_tree(
+            doc,
+            section_no=title_no,                 # เริ่มเลขจาก 5.{idx}
+            nodes=sec.get("mains") or [],
+            chapter_no=chapter_no,               # แคปชันรูปเป็น 5-n
+            media_root=media_root,
+            pic_counter=pic_counter,
+            seen_pics=seen_pics,
+            heading_func=add_section_heading_level2_plus_style_1,
+            body_func=add_body_paragraph_style_1,
+        )
 
     return doc

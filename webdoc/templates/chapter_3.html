@@ -6,12 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{{ page_title|default:"บทที่ 3 วิธีดำเนินการ" }}</title>
 
-  <!-- CSS -->
   <link rel="stylesheet" href="{% static 'css/chapter_3.css' %}">
-
-  <!-- Handsontable (CDN) -->
+  <!-- Handsontable -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/styles/ht-theme-main.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.js"></script>
 </head>
 
 <body>
@@ -55,15 +54,9 @@
     <input type="hidden" id="tb_sections_json" name="tb_sections_json" value="[]">
 
     <div class="footer-action-bar">
-      <button class="main-btn main-btn-success" type="submit" name="action" value="save">
-        💾 บันทึกข้อมูล
-      </button>
-      <button class="main-btn main-btn-info" type="submit" name="action" value="get_data">
-        🔄 ดึงข้อมูล
-      </button>
-      <button class="main-btn main-btn-danger" type="submit" name="action" value="generate_doc">
-        📄 สร้างเอกสาร
-      </button>
+      <button class="main-btn main-btn-success" type="submit" name="action" value="save">💾 บันทึกข้อมูล</button>
+      <button class="main-btn main-btn-info"    type="submit" name="action" value="get_data">🔄 ดึงข้อมูล</button>
+      <button class="main-btn main-btn-danger"  type="submit" name="action" value="generate_doc">📄 สร้างเอกสาร</button>
     </div>
   </form>
 
@@ -72,158 +65,197 @@
 </div>
 
 <script>
-/* ============ Utils ============ */
+/* ---------- utils ---------- */
 function getCookie(name){const v=`; ${document.cookie}`;const p=v.split(`; ${name}=`);if(p.length===2)return p.pop().split(";").shift();return"";}
 function getCsrfToken(){return getCookie("csrftoken");}
-const alertBox=(()=>{const el=()=>document.getElementById("alert-box");function show(msg,type="info",t=2200){const b=el();if(!b)return;b.textContent=msg;b.className="";b.classList.add("alert-inline",type,"show");if(t)setTimeout(()=>{if(b.textContent===msg){b.textContent="";b.className="";}},t);}return{show};})();
+function jsonScript(id){const el=document.getElementById(id);if(!el)return null;try{return JSON.parse(el.textContent);}catch{ return null;}}
 
-function getJsonScript(id){const el=document.getElementById(id);if(!el)return null;try{return JSON.parse(el.textContent);}catch(e){console.error(e);return null;}}
+const alertBox=(()=>{const el=()=>document.getElementById("alert-box");
+  function show(msg,type="info",timeout=2200){const b=el();if(!b)return;b.textContent=msg;b.className="";b.classList.add("alert-inline",type,"show");if(timeout)setTimeout(()=>{if(b.textContent===msg){b.textContent="";b.className="";}},timeout);}
+  return {show};
+})();
 
-/* ============ Data model ============ */
+/* ---------- data model ---------- */
 function makeNode(){return{ text:"", paragraphs:[], pictures:[], tables:[], children:[] };}
 function makeSection(no,title){return{ title_no:no, title, body_paragraphs:[], pictures:[], items:[makeNode()] };}
-let sectionsState=[ makeSection("3.1","") ]; // แสดง 3.1 เท่านั้นตอนเข้าเพจ
+let sectionsState=[ makeSection("3.1","") ];
+const CHAPTER_NO = 3;
 
-const pendingFiles={};
+/* ---------- keep UI open states ---------- */
+const picsOpenState = new Map();      // key=nodeKey -> true/false
+const tableBuilderOpenState = new Map();
 
-/* ============ Table numbering/format ============ */
-function collectAllTablesInChapter(chapNo){
-  const all=[];
-  function walkNode(n){(n.tables||[]).forEach(tb=>all.push(tb));(n.children||[]).forEach(walkNode);}
-  (sectionsState||[]).forEach(sec=>{
-    if(String(sec.title_no).split(".")[0]===String(chapNo)){
-      (sec.items||[]).forEach(walkNode);
-    }
-  });
-  return all;
+function nodeKey(secIndex, pathArr){ return `${secIndex}|${pathArr.join('.')}`; }
+
+/* ---------- picture numbering (แบบบทที่ 2) ---------- */
+function normalizePicNo(any){const m=String(any||'').match(/^(\d+)(?:\.\d+)*-(\d+)$/);return m?`${m[1]}-${m[2]}`:any;}
+function collectChapterPicSeqs(chapterNo){
+  const seqs=new Set();
+  function scanPics(arr){(arr||[]).forEach(p=>{const n=normalizePicNo(p.pic_no);if(n&&String(n).startsWith(chapterNo+'-')){const m=String(n).split('-')[1];const v=parseInt(m||'0',10);if(v>0)seqs.add(v);}});}
+  function walkNode(n){scanPics(n.pictures);(n.children||[]).forEach(walkNode);}
+  (sectionsState||[]).forEach(sec=>{if(String(sec.title_no).split('.')[0]===String(chapterNo)){scanPics(sec.pictures);(sec.items||[]).forEach(walkNode);}});
+  return seqs;
+}
+function nextPicNo(chapterNo){
+  const used=collectChapterPicSeqs(chapterNo);
+  let i=1; while(used.has(i)) i++;
+  return `${chapterNo}-${i}`;
+}
+
+/* ---------- table helpers ---------- */
+function defaultMatrix(rows=5, cols=5){
+  const headers=Array.from({length:cols},(_,i)=>`หัว ${i+1}`);
+  const rowsData=Array.from({length:rows},()=>Array.from({length:cols},()=>'')); 
+  return { headers, rowsData };
+}
+function renumberHeaders(hot){
+  const n=hot.countCols();
+  hot.updateSettings({ colHeaders: Array.from({length:n},(_,i)=>`หัว ${i+1}`) });
+}
+function normalizedHeaders(hot){const n=hot.countCols();let h=Array.isArray(hot.getColHeader())?hot.getColHeader().slice():[];while(h.length<n)h.push(`หัว ${h.length+1}`);if(h.length>n)h.length=n;return h;}
+function addRowAfterSelection(hot){const data=hot.getData();const nRows=hot.countRows();const nCols=hot.countCols();const sel=hot.getSelectedLast();const r=sel?sel[0]:nRows-1;const row=Array.from({length:nCols},()=> "");data.splice(Math.max(r+1,0),0,row);hot.updateSettings({data});}
+function removeRowAtSelection(hot){const data=hot.getData();const nRows=hot.countRows();if(!nRows)return;const sel=hot.getSelectedLast();const r=sel?sel[0]:nRows-1;data.splice(Math.max(r,0),1);hot.updateSettings({data});}
+function addColAfterSelection(hot){const data=hot.getData();const nCols=hot.countCols();let headers=normalizedHeaders(hot);const sel=hot.getSelectedLast();const c=sel?sel[1]:nCols-1;data.forEach(row=>row.splice(Math.max(c+1,0),0,""));headers.splice(Math.max(c+1,0),0,"");hot.updateSettings({data,colHeaders:headers});renumberHeaders(hot);}
+function removeColAtSelection(hot){const data=hot.getData();const nCols=hot.countCols();if(!nCols)return;let headers=normalizedHeaders(hot);const sel=hot.getSelectedLast();const c=sel?sel[1]:nCols-1;data.forEach(row=>row.splice(Math.max(c,0),1));headers.splice(Math.max(c,0),1);hot.updateSettings({data,colHeaders:headers});renumberHeaders(hot);}
+
+function formatDisplayTitle(chap, seq, caption){
+  const cap=(caption||'').trim();
+  return `ตารางที่ ${chap}-${seq}${cap ? '  '+cap : ''}`;
 }
 function nextTableSeqForChapter(chapNo){
-  // นับเฉพาะที่มี seq แล้ว และใช้ค่ามากสุด + 1
-  const seqs = collectAllTablesInChapter(chapNo)
-    .map(tb=>parseInt(tb.seq||0,10))
-    .filter(n=>Number.isFinite(n)&&n>0);
-  let i=1; while(seqs.includes(i)) i++;
-  return i;
+  const all=[]; function walk(n){(n.tables||[]).forEach(t=>all.push(t));(n.children||[]).forEach(walk);}
+  (sectionsState||[]).forEach(sec=>{ if(String(sec.title_no).split('.')[0]===String(chapNo)){ (sec.items||[]).forEach(walk); }});
+  const seqs=all.map(t=>parseInt(t.seq||0,10)).filter(n=>Number.isFinite(n)&&n>0);
+  let i=1; while(seqs.includes(i)) i++; return i;
 }
-function formatDisplayTitle(chapNo, seq, caption){
-  // ตารางที่ <บท>-<ลำดับ>  <ชื่อ>   (หน้า <ชื่อ> เว้น 2 ช่อง)
-  const cap = (caption||"").trim();
-  return `ตารางที่ ${chapNo}-${seq}${cap ? "  "+cap : ""}`;
+function createDefaultTable(titleNo, caption){
+  const {headers, rowsData}=defaultMatrix();
+  return { title_no:titleNo, caption:caption||'', headers, rows:rowsData, seq:null, display_title:'', __open:true };
 }
 
-/* ============ Hidden sync ============ */
-function syncHiddenField(){
-  // รวมตารางทุก node ลง tb_sections_json
-  const tbAll=[];
-  function walk(node, nodeNo){
-    (node.tables||[]).forEach(tb=>{
-      tbAll.push({
-        title_no: tb.title_no || nodeNo,     // หมายเลขยึด node
-        caption: tb.caption || "",
-        headers: Array.isArray(tb.headers)?tb.headers:[],
-        rows: Array.isArray(tb.rows)?tb.rows:[],
-        display_title: tb.display_title || "",
-        seq: tb.seq || null,                 // ลำดับตารางในบท
-        anchor_no: nodeNo
-      });
-    });
-    (node.children||[]).forEach((ch,i)=>walk(ch, `${nodeNo}.${i+1}`));
-  }
-  (sectionsState||[]).forEach(sec=>{
-    (sec.items||[]).forEach((node,i)=>walk(node, `${sec.title_no}.${i+1}`));
-  });
-
-  document.getElementById("sections_json").value    = JSON.stringify(sectionsState);
-  document.getElementById("tb_sections_json").value = JSON.stringify(tbAll);
-}
-
-/* ============ Helpers ============ */
+/* ---------- UI small helpers ---------- */
+function buildNodeNumber(sectionNo,pathArr){return sectionNo+"."+pathArr.map(i=>i+1).join(".");}
 function getNodeByPath(sectionObj, pathArr){let cur=sectionObj.items[pathArr[0]];for(let i=1;i<pathArr.length;i++)cur=cur.children[pathArr[i]];return cur;}
 function getParentAndIndex(sectionObj, pathArr){if(pathArr.length===1)return{listRef:sectionObj.items,idx:pathArr[0]};let p=sectionObj.items[pathArr[0]];for(let i=1;i<pathArr.length-1;i++)p=p.children[pathArr[i]];return{listRef:p.children,idx:pathArr[pathArr.length-1]};}
-function buildNodeNumber(sectionNo,pathArr){return sectionNo+"."+pathArr.map(i=>(i+1)).join(".");}
-function getNextSectionNumber(){if(sectionsState.length===0)return"3.1";const last=sectionsState[sectionsState.length-1].title_no.split(".")[1];return"3."+( (parseInt(last||"1",10))+1 );}
 
-/* ============ Paragraph box ============ */
-function renderParagraphs(arr,onChange,onAddRm){
-  const wrap=document.createElement("div");wrap.className="paras-wrap";
-  arr.forEach((txt,idx)=>{
-    const row=document.createElement("div");row.className="para-row";
-    const ta=document.createElement("textarea");ta.classList.add("clean-textarea");ta.value=txt||"";ta.placeholder="พิมพ์ย่อหน้า . . .";
-    ta.addEventListener("input",(e)=>{arr[idx]=e.target.value;onChange&&onChange();});
-    const del=document.createElement("button");del.type="button";del.className="mini-btn danger";del.textContent="ลบย่อหน้า";
-    del.addEventListener("click",()=>{arr.splice(idx,1);onAddRm&&onAddRm();});
-    row.appendChild(ta);row.appendChild(del);wrap.appendChild(row);
-  });
-  const add=document.createElement("button");add.type="button";add.className="mini-btn";add.textContent="➕ เพิ่มย่อหน้า";
-  add.addEventListener("click",()=>{arr.push("");onAddRm&&onAddRm();});wrap.appendChild(add);
-  return wrap;
-}
+/* ---------- Pictures UI (fixed keep-open + numbering) ---------- */
+const pendingFiles = new Map();
 
-/* ============ Pictures UI (ยังเหมือนเดิม กดปุ่มค่อยกาง) ============ */
-function renderPicturesBox(sectionObj,secIndex,pathArr){
-  const picsBox=document.createElement("div");picsBox.className="pics-box";picsBox.hidden=true;
-  const target=getNodeByPath(sectionObj,pathArr);
-  if(!target.pictures)target.pictures=[];
+function renderPicturesBox(sectionObj, secIndex, pathArr){
+  const targetNode = getNodeByPath(sectionObj, pathArr);
+  if(!targetNode.pictures) targetNode.pictures = [];
 
-  const nodeNo=buildNodeNumber(sectionObj.title_no,pathArr);
-  const key=secIndex+"|"+pathArr.join(".");
+  const nodeNo = buildNodeNumber(sectionObj.title_no, pathArr);
+  const key = nodeKey(secIndex, pathArr);
 
-  const head=document.createElement("div");head.className="pics-head";head.textContent=`รูปภาพของหัวข้อ ${nodeNo}`;
-  const row=document.createElement("div");row.className="pics-add-row";
-  const capInp=document.createElement("input");capInp.type="text";capInp.className="pic-caption-input";capInp.placeholder="คำอธิบายรูป / ชื่อรูป …";
-  const pend=document.createElement("div");pend.className="pending-label";
-  const file=document.createElement("input");file.type="file";file.accept="image/*";file.className="hidden-file";
-  const pick=document.createElement("button");pick.type="button";pick.className="mini-btn";pick.textContent="เลือกรูป…";
-  const add=document.createElement("button");add.type="button";add.className="mini-btn primary";add.textContent="เพิ่มรูป";
-  pick.addEventListener("click",()=>file.click());
-  file.addEventListener("change",()=>{if(file.files&&file.files.length>0){pendingFiles[key]=file.files[0];pend.textContent="ไฟล์ที่เลือก: "+file.files[0].name;}});
-  add.addEventListener("click",async()=>{
-    const name=(capInp.value||"").trim();const f=pendingFiles[key];
-    if(!name){alertBox.show("กรุณากรอกชื่อ/คำอธิบายรูป","warning");return;}
+  // toggle button
+  const toggle = document.createElement("button");
+  toggle.type="button"; toggle.className="mini-btn"; toggle.textContent="🖼️ เพิ่มรูปภาพ";
+
+  // box
+  const box = document.createElement("div");
+  box.className="pics-box";
+
+  // เปิดตาม state: ถ้ามีรูปอยู่แล้วให้เปิด
+  const defaultOpen = targetNode.pictures.length>0;
+  const remembered = picsOpenState.get(key);
+  box.hidden = remembered!==undefined ? !remembered : !defaultOpen;
+
+  toggle.addEventListener("click",(e)=>{ e.preventDefault(); box.hidden=!box.hidden; picsOpenState.set(key, !box.hidden); });
+
+  // header
+  const head = document.createElement("div");
+  head.className = "pics-head";
+  head.textContent = `รูปภาพของหัวข้อ ${nodeNo}`;
+
+  // add row
+  const row = document.createElement("div");
+  row.className = "pics-add-row";
+
+  const captionInput = document.createElement("input");
+  captionInput.type="text"; captionInput.className="pic-caption-input"; captionInput.placeholder="คำอธิบายรูป / ชื่อรูป …";
+
+  const pickBtn = document.createElement("button");
+  pickBtn.type="button"; pickBtn.className="mini-btn"; pickBtn.textContent="เลือกรูป…";
+
+  const uploadBtn = document.createElement("button");
+  uploadBtn.type="button"; uploadBtn.className="mini-btn primary"; uploadBtn.textContent="อัปโหลดรูป";
+
+  const pendingLabel = document.createElement("div");
+  pendingLabel.className="pending-label";
+
+  const fileInput = document.createElement("input");
+  fileInput.type="file"; fileInput.accept="image/*"; fileInput.className="hidden-file";
+
+  pickBtn.addEventListener("click",(e)=>{e.preventDefault();fileInput.click();});
+  fileInput.addEventListener("change",()=>{ if(fileInput.files&&fileInput.files.length){ pendingFiles.set(key,{file:fileInput.files[0]}); pendingLabel.textContent="ไฟล์ที่เลือก: "+fileInput.files[0].name; } });
+
+  uploadBtn.addEventListener("click", async (e)=>{
+    e.preventDefault();
+    const info=pendingFiles.get(key);
+    const f=info&&info.file;
+    const cap=(captionInput.value||"").trim();
+    if(!cap){alertBox.show("กรุณากรอกชื่อรูปภาพ","warning");return;}
     if(!f){alertBox.show("ยังไม่ได้เลือกรูป","warning");return;}
+
     alertBox.show("กำลังอัปโหลดรูป...","info",0);
     try{
-      const data=await fetch(window.location.href,{method:"POST",headers:{"X-CSRFToken":getCsrfToken()},body:(()=>{const fd=new FormData();fd.append("action","add_picture");fd.append("node_no",nodeNo);fd.append("pic_name",name);fd.append("pic_path",f.name);fd.append("pic_file",f);return fd;})()}).then(r=>r.json());
-      target.pictures.push({pic_name:name,pic_path:f.name,pic_no:(data&&data.pic_no)||""});
-      capInp.value="";pend.textContent="";delete pendingFiles[key];
-      renderList();alertBox.show("เพิ่มรูปสำเร็จ","success");syncHiddenField();
-    }catch(err){alertBox.show("เพิ่มรูปผิดพลาด: "+err.message,"error",5000);}
+      const chapterNo = String(sectionObj.title_no).split(".")[0] || "3";
+      const autoPicNo = nextPicNo(chapterNo); // เช่น 3-1
+
+      const fd = new FormData();
+      fd.append("action","add_picture");
+      fd.append("node_no", nodeNo);
+      fd.append("pic_name", cap);
+      fd.append("pic_file", f);
+      fd.append("pic_no", autoPicNo); // ส่งหมายเลขตามแบบบท 2 ไปด้วย
+
+      const res = await fetch(window.location.href,{ method:"POST", headers:{ "X-CSRFToken":getCsrfToken() }, body:fd });
+      if(!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+
+      const pushed = (data && data.picture) ? data.picture : { pic_no:(data&&data.pic_no)||autoPicNo, pic_name:cap, pic_path:f.name, url:null };
+      targetNode.pictures.push(pushed);
+      renderList(); // refresh
+
+      captionInput.value=""; fileInput.value=""; pendingFiles.delete(key); pendingLabel.textContent="";
+      picsOpenState.set(key, true); // คงสถานะเปิดไว้เสมอ
+      alertBox.show("อัปโหลดรูปสำเร็จ","success");
+      syncHiddenField();
+    }catch(err){ console.error(err); alertBox.show("อัปโหลดรูปไม่สำเร็จ: "+err.message,"error",4500); }
   });
 
-  const list=document.createElement("div");list.className="pic-list";
+  row.appendChild(captionInput); row.appendChild(pickBtn); row.appendChild(uploadBtn); row.appendChild(pendingLabel); row.appendChild(fileInput);
+
+  // list
+  const list = document.createElement("div"); list.className="pic-list";
   function renderList(){
     list.innerHTML="";
-    const arr=target.pictures||[];
-    if(arr.length===0){const e=document.createElement("div");e.className="pic-item empty";e.textContent="ยังไม่มีรูปในหัวข้อนี้";list.appendChild(e);return;}
-    arr.forEach((p,i)=>{
-      const item=document.createElement("div");item.className="pic-item";
-      item.innerHTML=`<div class="pic-main"><strong>${p.pic_no?("ภาพที่ "+p.pic_no):"ภาพ"}</strong> : ${p.pic_name||""}${p.pic_path?`<div class="pic-path">${p.pic_path}</div>`:""}</div>
-                      <div class="pic-actions"><button type="button" class="mini-btn danger" data-i="${i}">ลบรูป</button></div>`;
-      list.appendChild(item);
-    });
-    list.querySelectorAll(".pic-actions .mini-btn").forEach(b=>{
-      b.addEventListener("click",(e)=>{const i=parseInt(e.currentTarget.dataset.i,10);target.pictures.splice(i,1);renderList();syncHiddenField();});
+    const arr=targetNode.pictures||[];
+    if(arr.length===0){ const e=document.createElement("div"); e.className="pic-item empty"; e.textContent="ยังไม่มีรูปในหัวข้อนี้"; list.appendChild(e); return; }
+
+    arr.forEach((p, idx)=>{
+      const item=document.createElement("div"); item.className="pic-item";
+      const left=document.createElement("div"); left.className="pic-main";
+      left.innerHTML = `<strong>${p.pic_no?`ภาพที่ ${normalizePicNo(p.pic_no)}`:"ภาพ"}</strong> : ${p.pic_name||""}`;
+      if(p.url){ const img=document.createElement("img"); img.src=p.url; img.alt=p.pic_name||""; img.style.cssText="max-height:40px;margin-left:8px;border-radius:4px;border:1px solid #e5e7eb"; left.appendChild(img); }
+      else if(p.pic_path){ const pp=document.createElement("div"); pp.className="pic-path"; pp.textContent=p.pic_path; left.appendChild(pp); }
+
+      const right=document.createElement("div"); right.className="pic-actions";
+      const del=document.createElement("button"); del.type="button"; del.className="mini-btn danger"; del.textContent="ลบรูป";
+      del.addEventListener("click",(e)=>{ e.preventDefault(); targetNode.pictures.splice(idx,1); renderList(); syncHiddenField(); });
+
+      right.appendChild(del); item.appendChild(left); item.appendChild(right); list.appendChild(item);
     });
   }
   renderList();
 
-  picsBox.appendChild(head);picsBox.appendChild(row);
-  row.appendChild(capInp);row.appendChild(pick);row.appendChild(add);row.appendChild(pend);row.appendChild(file);
-  picsBox.appendChild(list);
-
-  const toggle=document.createElement("button");toggle.type="button";toggle.className="mini-btn";toggle.textContent="🖼️ เพิ่มรูปภาพ";
-  toggle.addEventListener("click",()=>{picsBox.hidden=!picsBox.hidden;});
-  return {toggleBtn:toggle,box:picsBox};
+  // compose
+  box.appendChild(head); box.appendChild(row); box.appendChild(list);
+  return {toggleBtn:toggle, box};
 }
 
-/* ============ Tables (Excel-like: กดแล้วโผล่ทันที) ============ */
-function createDefaultTable(titleNo, caption){
-  const cols=5, rows=5; // เริ่มต้น 5x5 (แก้ทีหลังได้ด้วยปุ่มเพิ่ม/ลบ)
-  const headers=Array.from({length:cols},(_,i)=>"หัว "+(i+1));
-  const data=Array.from({length:rows},()=>Array(cols).fill(""));
-  return { title_no:titleNo, caption:caption||"", headers, rows:data, seq:null, display_title:"", __open:true };
-}
-
+/* ---------- Table editor ---------- */
 function renderNodeTableEditor(tb, nodeObj, reRender){
   const card=document.createElement("div");card.className="table-card";card.hidden=!tb.__open;
   const head=document.createElement("div");head.className="table-head";
@@ -247,32 +279,36 @@ function renderNodeTableEditor(tb, nodeObj, reRender){
 
   const hot=new Handsontable(hotMount,{
     data:tb.rows,
-    rowHeaders:true,
     colHeaders:tb.headers,
+    rowHeaders:(r)=>r+1,
     manualColumnMove:true,manualRowMove:true,
     licenseKey:'non-commercial-and-evaluation',
-    stretchH:'all',contextMenu:true,
-    afterChange(){tb.rows=hot.getData();tb.headers=hot.getColHeader();syncHiddenField();},
-    afterColumnMove(){tb.rows=hot.getData();tb.headers=hot.getColHeader();syncHiddenField();},
-    afterRowMove(){tb.rows=hot.getData();tb.headers=hot.getColHeader();syncHiddenField();}
+    stretchH:'all',contextMenu:true,height:'auto'
   });
+  tb.__hot = hot;
+
+  function syncFromHot(){
+    if(tb.__hot && typeof tb.__hot.finishEditing==='function') tb.__hot.finishEditing();
+    tb.rows = tb.__hot.getData();
+    tb.headers = normalizedHeaders(tb.__hot);
+    syncHiddenField();
+  }
 
   head.addEventListener("click",(e)=>{
     const btn=e.target.closest("[data-act]"); if(!btn) return;
-    const a=btn.dataset.act;
+    const a=btn.dataset.act; e.preventDefault();
+
     if(a==="del-table"){
       const i=nodeObj.tables.indexOf(tb);
       if(i>=0 && confirm("ลบตารางนี้?")){ nodeObj.tables.splice(i,1); reRender(); syncHiddenField(); }
       return;
     }
-    if(a==="add-row"){ hot.alter('insert_row', hot.countRows()); }
-    if(a==="del-row"){ if(hot.countRows()>0) hot.alter('remove_row', hot.countRows()-1); }
-    if(a==="add-col"){ hot.alter('insert_col', hot.countCols()); const h=hot.getColHeader(); h.push(""); hot.updateSettings({colHeaders:h}); }
-    if(a==="del-col"){ if(hot.countCols()>0){ const h=hot.getColHeader(); h.pop(); hot.alter('remove_col', hot.countCols()-1); hot.updateSettings({colHeaders:h}); } }
-    tb.rows=hot.getData();tb.headers=hot.getColHeader();syncHiddenField();
+    if(a==="add-row"){ addRowAfterSelection(hot); hot.render(); syncFromHot(); }
+    if(a==="del-row"){ removeRowAtSelection(hot); hot.render(); syncFromHot(); }
+    if(a==="add-col"){ addColAfterSelection(hot); hot.render(); syncFromHot(); }
+    if(a==="del-col"){ removeColAtSelection(hot); hot.render(); syncFromHot(); }
   });
 
-  // เมื่อแก้ไขชื่อ/คำอธิบาย → อัปเดต display_title ตามรูปแบบที่กำหนด
   head.querySelector(".table-caption-input").addEventListener("input", e=>{
     tb.caption=e.target.value;
     const chap = String(tb.title_no||"-").split(".")[0] || "3";
@@ -281,116 +317,133 @@ function renderNodeTableEditor(tb, nodeObj, reRender){
     syncHiddenField();
   });
 
-  const toggleBtn=document.createElement("button");toggleBtn.type="button";toggleBtn.className="mini-btn";toggleBtn.textContent="🗂️ เปิด/ปิดตาราง";
-  toggleBtn.addEventListener("click",()=>{card.hidden=!card.hidden;});
-  if(tb.__open){setTimeout(()=>{card.hidden=false;tb.__open=false;},0);}
+  const toggleBtn=document.createElement("button");toggleBtn.type="button";toggleBtn.className="mini-btn";toggleBtn.textContent="📂 เปิด/ปิดตาราง";
+  toggleBtn.addEventListener("click",(e)=>{ e.preventDefault(); card.hidden=!card.hidden; });
+  if(tb.__open){ setTimeout(()=>{card.hidden=false;tb.__open=false;},0); }
   return {card,toggleBtn};
 }
 
+/* ---------- Table creator ---------- */
 function renderTableCreator(sectionObj, pathArr, nodeObj){
-  // ไม่ถามแถว/คอลัมน์ — กดแล้วสร้างตาราง 5x5 ทันที
   const nodeNo=buildNodeNumber(sectionObj.title_no,pathArr);
-  const creator=document.createElement("div");creator.className="table-builder";creator.hidden=true;
-  creator.innerHTML=`
+  const creator=document.createElement("div");creator.className="table-builder";
+  const k = nodeKey(0, pathArr);   // ใช้ path เป็น key สำหรับ state
+  const remembered = tableBuilderOpenState.get(k);
+  creator.hidden = remembered!==undefined ? !remembered : true;
+
+  creator.innerHTML = `
     <div class="tb-head">สร้างตารางสำหรับหัวข้อ ${nodeNo}</div>
     <div class="tb-form">
       <div class="tb-row">
-        <label>ชื่อ/คำอธิบายตาราง (ต้องการในชื่อแสดงผล)</label>
+        <label>ชื่อ/คำอธิบายตาราง</label>
         <input type="text" class="tb-input" data-field="caption" placeholder="เช่น ตารางสรุปผลการทดสอบ">
       </div>
       <div class="tb-actions">
         <button type="button" class="mini-btn primary" data-act="create">สร้างตาราง</button>
       </div>
     </div>`;
+
   creator.addEventListener("click",(e)=>{
-    const btn=e.target.closest('[data-act="create"]'); if(!btn) return;
-    const caption=(creator.querySelector('[data-field="caption"]').value||"").trim();
+    const btn=e.target.closest('[data-act="create"]'); if(!btn) return; e.preventDefault();
+    const caption=(creator.querySelector('[data-field="caption"]').value||'').trim();
+    const seq = nextTableSeqForChapter(CHAPTER_NO);
 
-    // กำหนดลำดับตารางใน “บท”
-    const chap=String(sectionObj.title_no).split(".")[0] || "3";
-    const seq=nextTableSeqForChapter(chap);
-
-    nodeObj.tables=nodeObj.tables||[];
-    const tb=createDefaultTable(nodeNo, caption);
-    tb.seq=seq;
-    tb.display_title = formatDisplayTitle(chap, seq, caption); // ตารางที่ <บท>-<seq>  <ชื่อ>
+    nodeObj.tables = nodeObj.tables || [];
+    const tb = createDefaultTable(nodeNo, caption);
+    tb.seq = seq;
+    tb.display_title = formatDisplayTitle(CHAPTER_NO, seq, caption);
     nodeObj.tables.push(tb);
 
-    redrawSections(); alertBox.show("สร้างตารางสำเร็จ","success"); syncHiddenField();
+    // คงสถานะเปิดของ pictures
+    redrawSections(); syncHiddenField();
+    tableBuilderOpenState.set(k, true);
   });
 
-  const toggle=document.createElement("button");toggle.type="button";toggle.className="mini-btn";toggle.textContent="📊 สร้างตาราง";
-  toggle.addEventListener("click",()=>{creator.hidden=!creator.hidden;});
+  const toggle=document.createElement("button");
+  toggle.type="button"; toggle.className="mini-btn"; toggle.textContent="📊 สร้างตาราง";
+  toggle.addEventListener("click",(e)=>{ e.preventDefault(); creator.hidden=!creator.hidden; tableBuilderOpenState.set(k, !creator.hidden); });
+
   return {builder:creator, toggleBtn:toggle};
 }
 
-/* ============ Render ============ */
+/* ---------- paragraph + nodes/sections ---------- */
+function renderParagraphs(arr,onChange,onAddRm){
+  const wrap=document.createElement("div");wrap.className="paras-wrap";
+  arr.forEach((txt,idx)=>{const row=document.createElement("div");row.className="para-row";
+    const ta=document.createElement("textarea");ta.classList.add("clean-textarea");ta.value=txt||"";ta.placeholder="พิมพ์ย่อหน้า . . .";
+    ta.addEventListener("input",(e)=>{arr[idx]=e.target.value;onChange&&onChange();});
+    const del=document.createElement("button");del.type="button";del.className="mini-btn danger";del.textContent="ลบย่อหน้า";
+    del.addEventListener("click",(e)=>{e.preventDefault();arr.splice(idx,1);onAddRm&&onAddRm();});
+    row.appendChild(ta);row.appendChild(del);wrap.appendChild(row);});
+  const add=document.createElement("button");add.type="button";add.className="mini-btn";add.textContent="➕ เพิ่มย่อหน้า";
+  add.addEventListener("click",(e)=>{e.preventDefault();arr.push("");onAddRm&&onAddRm();});wrap.appendChild(add);
+  return wrap;
+}
+
 function renderNode(sectionObj,secIndex,nodeObj,pathArr){
-  const el=document.createElement("div");el.className="node-card";
-  const top=document.createElement("div");top.className="node-top-row";
-  const nodeNo=buildNodeNumber(sectionObj.title_no,pathArr);
-  const badge=document.createElement("div");badge.className="node-no-badge";badge.textContent=nodeNo;
-  const title=document.createElement("input");title.type="text";title.className="node-title-input";title.placeholder="พิมพ์ชื่อหัวข้อย่อย…";title.value=nodeObj.text||"";
-  title.addEventListener("input",(e)=>{nodeObj.text=e.target.value;syncHiddenField();});
-  const ctr=document.createElement("div");ctr.className="node-controls";
-  const bPara=document.createElement("button");bPara.type="button";bPara.className="mini-btn";bPara.textContent="➕ ย่อหน้า";
-  bPara.addEventListener("click",()=>{nodeObj.paragraphs=nodeObj.paragraphs||[];nodeObj.paragraphs.push("");redrawSections();});
-  const bChild=document.createElement("button");bChild.type="button";bChild.className="mini-btn";bChild.textContent="➕ หัวข้อย่อยถัดไป";
-  bChild.addEventListener("click",()=>{nodeObj.children=nodeObj.children||[];nodeObj.children.push(makeNode());redrawSections();});
-  const bDel=document.createElement("button");bDel.type="button";bDel.className="mini-btn danger";bDel.textContent="ลบหัวข้อย่อย";
-  bDel.addEventListener("click",()=>{const r=getParentAndIndex(sectionObj,pathArr);if(r){r.listRef.splice(r.idx,1);redrawSections();}});
-  ctr.appendChild(bPara);ctr.appendChild(bChild);ctr.appendChild(bDel);
-  top.appendChild(badge);top.appendChild(title);top.appendChild(ctr);el.appendChild(top);
+  const el=document.createElement("div"); el.className="node-card";
+  const top=document.createElement("div"); top.className="node-top-row";
+  const badge=document.createElement("div"); badge.className="node-no-badge"; badge.textContent=buildNodeNumber(sectionObj.title_no,pathArr);
+  const title=document.createElement("input"); title.type="text"; title.className="node-title-input"; title.placeholder="พิมพ์ชื่อหัวข้อย่อย…"; title.value=nodeObj.text||"";
+  title.addEventListener("input",()=>{ nodeObj.text=title.value; syncHiddenField(); });
 
-  nodeObj.paragraphs=nodeObj.paragraphs||[];
-  el.appendChild( renderParagraphs(nodeObj.paragraphs,()=>syncHiddenField(),()=>redrawSections()) );
+  const ctr=document.createElement("div"); ctr.className="node-controls";
+  const bPara=document.createElement("button"); bPara.type="button"; bPara.className="mini-btn"; bPara.textContent="➕ ย่อหน้า";
+  bPara.addEventListener("click",(e)=>{e.preventDefault(); nodeObj.paragraphs=nodeObj.paragraphs||[]; nodeObj.paragraphs.push(""); redrawSections();});
+  const bChild=document.createElement("button"); bChild.type="button"; bChild.className="mini-btn"; bChild.textContent="➕ หัวข้อย่อยถัดไป";
+  bChild.addEventListener("click",(e)=>{e.preventDefault(); nodeObj.children=nodeObj.children||[]; nodeObj.children.push(makeNode()); redrawSections();});
+  const bDel=document.createElement("button"); bDel.type="button"; bDel.className="mini-btn danger"; bDel.textContent="ลบหัวข้อย่อย";
+  bDel.addEventListener("click",(e)=>{e.preventDefault(); const r=getParentAndIndex(sectionObj,pathArr); if(r){r.listRef.splice(r.idx,1); redrawSections();}});
+  ctr.appendChild(bPara); ctr.appendChild(bChild); ctr.appendChild(bDel);
 
-  // ปุ่มเพิ่มรูป / สร้างตาราง
-  const picUI=renderPicturesBox(sectionObj,secIndex,pathArr);
-  const tbUI =renderTableCreator(sectionObj,pathArr,nodeObj);
-  const toggleBar=document.createElement("div");toggleBar.className="node-toggle-bar";
-  toggleBar.appendChild(picUI.toggleBtn);toggleBar.appendChild(tbUI.toggleBtn);
-  el.appendChild(toggleBar);
-  el.appendChild(picUI.box);el.appendChild(tbUI.builder);
+  top.appendChild(badge); top.appendChild(title); top.appendChild(ctr); el.appendChild(top);
+  nodeObj.paragraphs=nodeObj.paragraphs||[]; el.appendChild( renderParagraphs(nodeObj.paragraphs,()=>syncHiddenField(),()=>redrawSections()) );
 
-  // ตารางที่มีอยู่
-  const wrap=document.createElement("div");wrap.className="node-tables-wrap";
+  // toggles row
+  const toggles=document.createElement("div"); toggles.className="node-toggle-bar";
+  const picUI = renderPicturesBox(sectionObj, secIndex, pathArr);
+  const tbUI  = renderTableCreator(sectionObj, pathArr, nodeObj);
+  toggles.appendChild(picUI.toggleBtn); toggles.appendChild(tbUI.toggleBtn);
+  el.appendChild(toggles); el.appendChild(picUI.box); el.appendChild(tbUI.builder);
+
+  // tables list
+  const wrap=document.createElement("div"); wrap.className="node-tables-wrap";
   function renderTables(){
     wrap.innerHTML="";
     (nodeObj.tables||[]).forEach(tb=>{
       const ed=renderNodeTableEditor(tb,nodeObj,renderTables);
-      const row=document.createElement("div");row.className="node-toggle-bar";row.appendChild(ed.toggleBtn);
-      wrap.appendChild(row);wrap.appendChild(ed.card);
+      const tRow=document.createElement("div"); tRow.className="node-toggle-bar"; tRow.appendChild(ed.toggleBtn);
+      wrap.appendChild(tRow); wrap.appendChild(ed.card);
     });
   }
   renderTables(); el.appendChild(wrap);
 
   // children
-  const kids=document.createElement("div");kids.className="children-block";
+  const kids=document.createElement("div"); kids.className="children-block";
   (nodeObj.children||[]).forEach((c,i)=>kids.appendChild(renderNode(sectionObj,secIndex,c,[...pathArr,i])));
   el.appendChild(kids);
   return el;
 }
+
 function renderSectionTree(sectionObj,secIndex){
-  const t=document.createElement("div");t.className="tree-wrap";
+  const t=document.createElement("div"); t.className="tree-wrap";
   (sectionObj.items||[]).forEach((n,i)=>t.appendChild(renderNode(sectionObj,secIndex,n,[i])));
-  const add=document.createElement("button");add.type="button";add.className="mini-btn";add.textContent="➕ เพิ่มหัวข้อย่อยระดับแรก";
-  add.addEventListener("click",()=>{sectionObj.items=sectionObj.items||[];sectionObj.items.push(makeNode());redrawSections();});
-  t.appendChild(add);
-  return t;
+  const add=document.createElement("button"); add.type="button"; add.className="mini-btn"; add.textContent="➕ เพิ่มหัวข้อย่อยระดับแรก";
+  add.addEventListener("click",(e)=>{e.preventDefault(); sectionObj.items=sectionObj.items||[]; sectionObj.items.push(makeNode()); redrawSections();});
+  t.appendChild(add); return t;
 }
 function renderSectionCard(sectionObj,secIndex){
-  const wrap=document.createElement("div");wrap.className="chapter-section-card";
-  const head=document.createElement("div");head.className="chapter-head-row";
-  const b=document.createElement("div");b.className="badge-no";b.textContent=sectionObj.title_no;
-  const inp=document.createElement("input");inp.type="text";inp.className="chapter-title-input";inp.placeholder="ชื่อหัวข้อหลัก เช่น ขั้นตอนการพัฒนา";inp.value=sectionObj.title||"";
-  inp.addEventListener("input",(e)=>{sectionObj.title=e.target.value;syncHiddenField();});
-  const del=document.createElement("button");del.type="button";del.className="mini-btn danger";del.style.marginLeft="auto";del.textContent="ลบหัวข้อใหญ่";
-  del.addEventListener("click",()=>{sectionsState.splice(secIndex,1);redrawSections();});
-  head.appendChild(b);head.appendChild(inp);head.appendChild(del);wrap.appendChild(head);
+  const wrap=document.createElement("div"); wrap.className="chapter-section-card";
+  const head=document.createElement("div"); head.className="chapter-head-row";
+  const b=document.createElement("div"); b.className="badge-no"; b.textContent=sectionObj.title_no;
+  const inp=document.createElement("input"); inp.type="text"; inp.className="chapter-title-input"; inp.placeholder="ชื่อหัวข้อหลัก เช่น ขั้นตอนการพัฒนา"; inp.value=sectionObj.title||"";
+  inp.addEventListener("input",()=>{sectionObj.title=inp.value; syncHiddenField();});
+  const del=document.createElement("button"); del.type="button"; del.className="mini-btn danger"; del.style.marginLeft="auto"; del.textContent="ลบหัวข้อใหญ่";
+  del.addEventListener("click",(e)=>{e.preventDefault(); sectionsState.splice(secIndex,1); redrawSections();});
+  head.appendChild(b); head.appendChild(inp); head.appendChild(del); wrap.appendChild(head);
 
-  const over=document.createElement("div");over.className="overview-block";
-  const lab=document.createElement("div");lab.className="overview-label";lab.textContent="ย่อหน้าอธิบายหัวข้อนี้ (ภาพรวม):";
+  const over=document.createElement("div"); over.className="overview-block";
+  const lab=document.createElement("div"); lab.className="overview-label"; lab.textContent="ย่อหน้าอธิบายหัวข้อนี้ (ภาพรวม):";
   over.appendChild(lab);
   sectionObj.body_paragraphs=sectionObj.body_paragraphs||[];
   over.appendChild( renderParagraphs(sectionObj.body_paragraphs,()=>syncHiddenField(),()=>redrawSections()) );
@@ -400,46 +453,81 @@ function renderSectionCard(sectionObj,secIndex){
   return wrap;
 }
 function redrawSections(){
-  const c=document.getElementById("sections-container");c.innerHTML="";
+  const c=document.getElementById("sections-container"); c.innerHTML="";
   sectionsState.forEach((sec,i)=>c.appendChild(renderSectionCard(sec,i)));
   syncHiddenField();
 }
 
-/* ============ Load initial ============ */
-// แสดงเฉพาะ 3.1 ตอนโหลดหน้า
-document.addEventListener("DOMContentLoaded",()=>{
-  const preSecs=getJsonScript('chapter3-sections');
+/* ---------- sync hidden ---------- */
+function syncHiddenField(){
+  const tbAll=[];
+  function walk(node,nodeNo){
+    (node.tables||[]).forEach(tb=>{
+      if(tb.__hot && typeof tb.__hot.finishEditing === 'function'){ tb.__hot.finishEditing(); }
+      tbAll.push({
+        title_no: tb.title_no || nodeNo,
+        caption: tb.caption || '',
+        headers: Array.isArray(tb.headers)?tb.headers:[],
+        rows: Array.isArray(tb.rows)?tb.rows:[],
+        display_title: tb.display_title || '',
+        seq: tb.seq || null,
+        anchor_no: nodeNo
+      });
+    });
+    (node.children||[]).forEach((ch,i)=>walk(ch, `${nodeNo}.${i+1}`));
+  }
+  (sectionsState||[]).forEach(sec=>{ (sec.items||[]).forEach((n,i)=>walk(n, `${sec.title_no}.${i+1}`)); });
+
+  document.getElementById('sections_json').value    = JSON.stringify(sectionsState);
+  document.getElementById('tb_sections_json').value = JSON.stringify(tbAll);
+}
+
+/* ---------- init / load initial ---------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const preSecs=jsonScript('chapter3-sections');
   if(Array.isArray(preSecs)&&preSecs.length){
     const mapNode=(n)=>({text:n.text||"",paragraphs:Array.isArray(n.paragraphs)?n.paragraphs.slice():[],pictures:Array.isArray(n.pictures)?n.pictures.slice():[],tables:Array.isArray(n.tables)?n.tables.slice():[],children:Array.isArray(n.children)?n.children.map(mapNode):[]});
     const mapped=preSecs.map(s=>({title_no:s.title_no||"",title:s.title||"",body_paragraphs:Array.isArray(s.body_paragraphs)?s.body_paragraphs.slice():[],pictures:Array.isArray(s.pictures)?s.pictures.slice():[],items:Array.isArray(s.items)?s.items.map(mapNode):[makeNode()]}));
-    const only31=mapped.filter(s=>(s.title_no||"").trim()==="3.1");
+    const only31=mapped.filter(s=>(s.title_no||"")=="3.1");
     sectionsState=only31.length?only31:[mapped[0]];
   }
-  // ถ้ามีตารางจาก server — แนบกลับเข้า nodes ด้วย anchor_no (ถ้าส่งมา)
-  const preTables=getJsonScript('chapter3-tables');
+
+  // แนบตารางเก่ากลับ
+  const preTables=jsonScript('chapter3-tables');
   if(Array.isArray(preTables)&&preTables.length){
     function walk(sectionObj,pathArr,nodeObj){
-      const nodeNo=buildNodeNumber(sectionObj.title_no,pathArr);
+      const nodeNo=sectionObj.title_no+'.'+pathArr.map(i=>i+1).join('.');
       const matches=preTables.filter(t=> (t.anchor_no? t.anchor_no===nodeNo : String(t.title_no||"").startsWith(nodeNo)));
       if(matches.length){ nodeObj.tables=nodeObj.tables||[]; matches.forEach(t=>nodeObj.tables.push({...t,__open:false})); }
       (nodeObj.children||[]).forEach((ch,i)=>walk(sectionObj,[...pathArr,i],ch));
     }
-    (sectionsState||[]).forEach(sec=>{(sec.items||[]).forEach((n,i)=>walk(sec,[i],n));});
+    (sectionsState||[]).forEach(sec=>{ (sec.items||[]).forEach((n,i)=>walk(sec,[i],n)); });
   }
 
-  // ปุ่มเพิ่มหัวข้อใหญ่
-  const addSec=document.getElementById("btnAddSection");
-  if(addSec){ addSec.addEventListener("click",()=>{ const next=getNextSectionNumber(); sectionsState.push(makeSection(next,"")); redrawSections(); }); }
-
-  redrawSections();
-
-  const form=document.getElementById("chapter3Form");
-  if(form){
-    form.addEventListener("submit",()=>{
-      form.querySelectorAll("textarea").forEach(t=>{const raw=t.value;t.value=raw.replace(/\r?\n/g," ").replace(/\s+/g," ").trim();});
-      syncHiddenField();
+  // เพิ่มหัวข้อใหญ่
+  const addBtn=document.getElementById('btnAddSection');
+  if(addBtn){
+    addBtn.addEventListener('click',(e)=>{
+      e.preventDefault();
+      const last = sectionsState.length ? parseInt(sectionsState[sectionsState.length-1].title_no.split('.')[1]||'1',10) : 0;
+      sectionsState.push( makeSection(`3.${last+1}`, '') );
+      redrawSections();
     });
   }
+
+  // ป้องกัน mini-btn ทำฟอร์ม submit
+  document.getElementById('chapter3Form').addEventListener('click',(e)=>{
+    const isActionBtn = e.target.closest('.mini-btn');
+    if(isActionBtn){ e.preventDefault(); }
+  });
+
+  // ก่อน submit ทำความสะอาด + sync
+  document.getElementById('chapter3Form').addEventListener('submit', ()=>{
+    document.querySelectorAll('textarea').forEach(t=>{ t.value = t.value.replace(/\r?\n/g,' ').replace(/\s+/g,' ').trim(); });
+    syncHiddenField();
+  });
+
+  redrawSections();
 });
 </script>
 </body>

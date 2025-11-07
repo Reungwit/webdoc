@@ -1,198 +1,240 @@
 <!doctype html>
 <html lang="th">
 <head>
-  <meta charset="utf-8">
-  <title>Handsontable — table quick test</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Handsontable Quick Test</title>
 
-  <!-- Handsontable (CDN) -->
+  <!-- แนะนำปักเวอร์ชันให้แน่นอน -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/styles/ht-theme-main.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.js"></script>
 
   <style>
-    :root{--border:#e5e7eb;--muted:#6b7280}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:20px}
-    h1{margin-top:0}
-    .btn{padding:10px 14px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-weight:600}
-    .btn.primary{background:#2d6cdf;color:#fff;border-color:#2d6cdf}
-    .wrap{display:flex;gap:16px;align-items:center;margin:12px 0 20px}
-    .card{border:1px solid var(--border);border-radius:12px;padding:12px;margin:12px 0;background:#fff}
-    .head{display:flex;gap:10px;align-items:center;justify-content:space-between}
-    .title{display:flex;gap:8px;align-items:center;flex:1}
-    .badge{background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:2px 8px;font-weight:700;color:#1e3a8a}
-    .caption{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px}
-    .sub{font-size:12px;color:var(--muted);margin:6px 0 8px}
-    .hot{border:1px solid var(--border);border-radius:10px;overflow:auto}
-    .actions{display:flex;gap:6px}
-    .json-view{width:100%;height:120px;margin-top:10px}
+    :root { --border:#e5e7eb; --muted:#6b7280; }
+    body { font-family: system-ui,-apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+    h1 { margin: 0 0 12px; }
+    .btn { padding: 9px 14px; border: 1px solid #dadde3; border-radius: 10px; background: #fff; cursor: pointer; font-weight: 600; }
+    .btn.primary { background: #2d6cdf; color: #fff; border-color: #2d6cdf; }
+    .toolbar { display: flex; gap: 10px; margin: 10px 0 18px; flex-wrap: wrap; }
+    .card { border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin: 14px 0; background: #fff; }
+    .head { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+    .title { display: flex; align-items: center; gap: 10px; flex: 1; }
+    .badge { background:#eef2ff; border:1px solid #c7d2fe; color:#1e3a8a; font-weight:700; border-radius:8px; padding:2px 8px; }
+    .caption { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; }
+    .actions { display: flex; gap: 6px; }
+    .sub { font-size: 12px; color: var(--muted); margin: 6px 0 8px; }
+    .hot-mount { border: 1px solid var(--border); border-radius: 10px; overflow: auto; }
+    .json { width: 100%; height: 140px; margin-top: 8px; }
   </style>
 </head>
 <body>
-
   <h1>ทดสอบ Handsontable</h1>
-  <div class="wrap">
+
+  <div class="toolbar">
     <button id="btnCreate" class="btn primary">📊 สร้างตาราง</button>
     <button id="btnShowJson" class="btn">👀 แสดง tb_sections_json</button>
   </div>
 
   <div id="tablesContainer"></div>
+  <textarea id="jsonOut" class="json json-view" placeholder="ผลลัพธ์ tb_sections_json จะแสดงที่นี่"></textarea>
 
-  <textarea id="jsonOut" class="json-view" placeholder="ผลลัพธ์ tb_sections_json จะมาแสดงตรงนี้เมื่อกดปุ่ม ‘แสดง tb_sections_json’"></textarea>
+  <script>
+    // ===== Config =====
+    const CHAPTER_NO = 3;  // บทที่ 3
 
-<script>
-/* ---------- Config: หมายเลขบท ---------- */
-const CHAPTER_NO = 3;
+    // ===== State =====
+    let tableSeq = 0;               // running number
+    const allTables = [];           // [{ title_no, caption, display_title, seq, hot }]
 
-/* ---------- State ---------- */
-let tableSeq = 0;               // running number ต่อบท
-const allTables = [];           // ใช้สร้าง tb_sections_json
+    // ===== Helpers =====
+    const nextSeq = () => (++tableSeq);
 
-/* ---------- Helpers ---------- */
-function nextSeq(){ tableSeq += 1; return tableSeq; }
-function formatDisplayTitle(chap, seq, caption){
-  // ตารางที่ <บท>-<seq>␠␠<caption>
-  const cap = (caption||"").trim();
-  return `ตารางที่ ${chap}-${seq}${cap ? "  " + cap : ""}`;
-}
-function buildTbJson(tb){
-  return {
-    title_no: tb.title_no,          // ในที่ทดสอบนี้ผูกตาม seq ง่าย ๆ
-    caption: tb.caption || "",
-    headers: tb.hot ? tb.hot.getColHeader() : tb.headers,
-    rows: tb.hot ? tb.hot.getData() : tb.rows,
-    display_title: tb.display_title,
-    seq: tb.seq,
-    anchor_no: tb.title_no         // ใช้ title_no เป็น anchor ง่าย ๆ
-  };
-}
-function refreshJsonOutput(){
-  const payload = allTables.map(buildTbJson);
-  document.getElementById('jsonOut').value = JSON.stringify(payload, null, 2);
-}
-
-/* ---------- Create one empty HOT table (5x5) ---------- */
-function createDefaultMatrix(rows=5, cols=5){
-  const headers = Array.from({length: cols}, (_,i)=>"หัว "+(i+1));
-  const data    = Array.from({length: rows}, ()=> Array.from({length: cols}, ()=>""));
-  return {headers, data};
-}
-
-/* ---------- UI: create a table card ---------- */
-function createTableCard(){
-  const seq = nextSeq();
-  const titleNo = `3.${seq}`; // ทดสอบ: อิงเลข node ง่าย ๆ เป็น 3.<seq>
-
-  const card = document.createElement('div');
-  card.className = 'card';
-
-  const head = document.createElement('div');
-  head.className = 'head';
-
-  const titleWrap = document.createElement('div');
-  titleWrap.className = 'title';
-
-  const badge = document.createElement('span');
-  badge.className = 'badge';
-  badge.textContent = titleNo;
-
-  const caption = document.createElement('input');
-  caption.className = 'caption';
-  caption.placeholder = 'ชื่อ/คำอธิบายตาราง';
-
-  const actions = document.createElement('div');
-  actions.className = 'actions';
-  actions.innerHTML = `
-    <button class="btn" data-act="add-row">+ แถว</button>
-    <button class="btn" data-act="add-col">+ คอลัมน์</button>
-    <button class="btn" data-act="del-row">- แถว</button>
-    <button class="btn" data-act="del-col">- คอลัมน์</button>
-    <button class="btn" data-act="remove">ลบตาราง</button>
-  `;
-
-  titleWrap.appendChild(badge);
-  titleWrap.appendChild(caption);
-  head.appendChild(titleWrap);
-  head.appendChild(actions);
-
-  const sub = document.createElement('div');
-  sub.className = 'sub';
-  sub.textContent = ''; // จะ set หลังพิมพ์ caption
-
-  const mount = document.createElement('div');
-  mount.className = 'hot';
-
-  card.appendChild(head);
-  card.appendChild(sub);
-  card.appendChild(mount);
-
-  // สร้าง HOT 5×5
-  const base = createDefaultMatrix();
-  const hot = new Handsontable(mount, {
-    data: base.data,
-    colHeaders: base.headers,
-    rowHeaders: true,
-    manualColumnMove: true,
-    manualRowMove: true,
-    stretchH: 'all',
-    contextMenu: true,
-    licenseKey: 'non-commercial-and-evaluation',
-    afterChange(){ syncSelf(); }
-  });
-
-  // เก็บ state ของการ์ดนี้
-  const tb = {
-    title_no: titleNo,
-    caption: '',
-    display_title: '',
-    seq: seq,
-    hot
-  };
-  allTables.push(tb);
-
-  // sync caption -> display_title
-  caption.addEventListener('input', (e)=>{
-    tb.caption = e.target.value;
-    tb.display_title = formatDisplayTitle(CHAPTER_NO, tb.seq, tb.caption);
-    sub.textContent = tb.display_title;
-    syncSelf();
-  });
-
-  // ปุ่ม actions
-  head.addEventListener('click', (e)=>{
-    const btn = e.target.closest('[data-act]'); if(!btn) return;
-    const act = btn.getAttribute('data-act');
-    if (act === 'add-row') hot.alter('insert_row', hot.countRows());
-    if (act === 'del-row' && hot.countRows()>0) hot.alter('remove_row', hot.countRows()-1);
-    if (act === 'add-col'){ hot.alter('insert_col', hot.countCols()); const h=hot.getColHeader(); h.push(''); hot.updateSettings({colHeaders:h}); }
-    if (act === 'del-col' && hot.countCols()>0){ const h=hot.getColHeader(); h.pop(); hot.alter('remove_col', hot.countCols()-1); hot.updateSettings({colHeaders:h}); }
-    if (act === 'remove'){
-      if (confirm('ลบตารางนี้?')){
-        const i = allTables.indexOf(tb);
-        if (i>=0) allTables.splice(i,1);
-        card.remove();
-        refreshJsonOutput();
-      }
+    function formatDisplayTitle(chap, seq, caption) {
+      const cap = (caption || '').trim();
+      return `ตารางที่ ${chap}-${seq}${cap ? '  ' + cap : ''}`;
     }
-    syncSelf();
-  });
 
-  function syncSelf(){ refreshJsonOutput(); }
-  // ตั้งชื่อแสดงผลเริ่มต้น (ว่าง)
-  tb.display_title = formatDisplayTitle(CHAPTER_NO, tb.seq, tb.caption);
-  sub.textContent = tb.display_title;
+    function defaultMatrix(rows = 5, cols = 5) {
+      const headers = Array.from({ length: cols }, (_, i) => `หัว ${i + 1}`);
+      const rowsData = Array.from({ length: rows }, () => Array.from({ length: cols }, () => ''));
+      return { headers, rowsData };
+    }
 
-  return card;
-}
+    function normalizedHeaders(hot) {
+      const n = hot.countCols();
+      let h = Array.isArray(hot.getColHeader()) ? hot.getColHeader().slice() : [];
+      while (h.length < n) h.push(`หัว ${h.length + 1}`);
+      if (h.length > n) h.length = n;
+      return h;
+    }
 
-/* ---------- Wire buttons ---------- */
-document.getElementById('btnCreate').addEventListener('click', ()=>{
-  const card = createTableCard();
-  document.getElementById('tablesContainer').appendChild(card);
-});
+    function buildTbJson(tb) {
+      const hot = tb.hot;
+      // commit ค่าในเซลล์ที่กำลังแก้ก่อนอ่าน
+      hot.finishEditing();
+      return {
+        title_no: tb.title_no,
+        caption: tb.caption || '',
+        headers: normalizedHeaders(hot),
+        rows: hot.getData(),
+        display_title: tb.display_title,
+        seq: tb.seq,
+        anchor_no: tb.title_no
+      };
+    }
 
-document.getElementById('btnShowJson').addEventListener('click', ()=>{
-  refreshJsonOutput();
-});
-</script>
+    function refreshJsonOutput() {
+      const payload = allTables.map(buildTbJson);
+      document.getElementById('jsonOut').value = JSON.stringify(payload, null, 2);
+    }
+
+    // เพิ่ม/ลบ แถว–คอลัมน์ แบบ "ไม่ใช้ alter()" ให้ทำงานได้ทุก build
+    function addRowAfterSelection(hot) {
+      const data = hot.getData();                   // array by ref
+      const nRows = hot.countRows();
+      const nCols = hot.countCols();
+      const sel = hot.getSelectedLast();
+      const r = sel ? sel[0] : nRows - 1;
+      const row = Array.from({ length: nCols }, () => '');
+      data.splice(Math.max(r + 1, 0), 0, row);
+      hot.updateSettings({ data });
+    }
+    function removeRowAtSelection(hot) {
+      const data = hot.getData();
+      const nRows = hot.countRows();
+      if (!nRows) return;
+      const sel = hot.getSelectedLast();
+      const r = sel ? sel[0] : nRows - 1;
+      data.splice(Math.max(r, 0), 1);
+      hot.updateSettings({ data });
+    }
+    function addColAfterSelection(hot) {
+      const data = hot.getData();
+      const nCols = hot.countCols();
+      let headers = normalizedHeaders(hot);
+      const sel = hot.getSelectedLast();
+      const c = sel ? sel[1] : nCols - 1;
+      data.forEach(row => row.splice(Math.max(c + 1, 0), 0, ''));
+      headers.splice(Math.max(c + 1, 0), 0, '');
+      hot.updateSettings({ data, colHeaders: headers });
+    }
+    function removeColAtSelection(hot) {
+      const data = hot.getData();
+      const nCols = hot.countCols();
+      if (!nCols) return;
+      let headers = normalizedHeaders(hot);
+      const sel = hot.getSelectedLast();
+      const c = sel ? sel[1] : nCols - 1;
+      data.forEach(row => row.splice(Math.max(c, 0), 1));
+      headers.splice(Math.max(c, 0), 1);
+      hot.updateSettings({ data, colHeaders: headers });
+    }
+
+    // ===== UI: สร้างการ์ดตาราง 1 ใบ =====
+    function createTableCard() {
+      const seq = nextSeq();
+      const anchorNo = `3.${seq}`;
+
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const head = document.createElement('div');
+      head.className = 'head';
+
+      const titleWrap = document.createElement('div');
+      titleWrap.className = 'title';
+
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = anchorNo;
+
+      const caption = document.createElement('input');
+      caption.className = 'caption';
+      caption.placeholder = 'ชื่อ/คำอธิบายตาราง';
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      actions.innerHTML = `
+        <button class="btn" data-act="add-row">+ แถว</button>
+        <button class="btn" data-act="add-col">+ คอลัมน์</button>
+        <button class="btn" data-act="del-row">- แถว</button>
+        <button class="btn" data-act="del-col">- คอลัมน์</button>
+        <button class="btn" data-act="remove">ลบตาราง</button>
+      `;
+
+      titleWrap.appendChild(badge);
+      titleWrap.appendChild(caption);
+      head.appendChild(titleWrap);
+      head.appendChild(actions);
+
+      const sub = document.createElement('div');
+      sub.className = 'sub';
+
+      const mount = document.createElement('div');
+      mount.className = 'hot-mount';
+
+      card.appendChild(head);
+      card.appendChild(sub);
+      card.appendChild(mount);
+
+      // สร้าง Handsontable เริ่มต้น 5×5
+      const { headers, rowsData } = defaultMatrix();
+      const hot = new Handsontable(mount, {
+        themeName: 'ht-theme-main-dark-auto',
+        data: rowsData,
+        colHeaders: headers,
+        rowHeaders: true,
+        manualColumnMove: true,
+        manualRowMove: true,
+        stretchH: 'all',
+        contextMenu: true,
+        height: 'auto',
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      // เก็บ state
+      const tb = { title_no: anchorNo, caption: '', display_title: '', seq, hot };
+      allTables.push(tb);
+
+      // ตั้งชื่อแสดงผลครั้งแรก + อัปเดตเมื่อพิมพ์
+      const updateTitle = () => {
+        tb.display_title = formatDisplayTitle(CHAPTER_NO, tb.seq, tb.caption);
+        sub.textContent = tb.display_title;
+      };
+      updateTitle();
+      caption.addEventListener('input', (e) => { tb.caption = e.target.value; updateTitle(); refreshJsonOutput(); });
+
+      // ปุ่ม action (เวอร์ชันที่ “ไม่ใช้ alter()”)
+      head.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-act]');
+        if (!btn) return;
+        const act = btn.dataset.act;
+
+        if (act === 'add-row') addRowAfterSelection(hot);
+        if (act === 'del-row') removeRowAtSelection(hot);
+        if (act === 'add-col') addColAfterSelection(hot);
+        if (act === 'del-col') removeColAtSelection(hot);
+        if (act === 'remove') {
+          if (confirm('ลบตารางนี้?')) {
+            const i = allTables.indexOf(tb);
+            if (i >= 0) allTables.splice(i, 1);
+            card.remove();
+          }
+        }
+        refreshJsonOutput();
+      });
+
+      return card;
+    }
+
+    // ===== Wire buttons =====
+    document.getElementById('btnCreate').addEventListener('click', () => {
+      const card = createTableCard();
+      document.getElementById('tablesContainer').appendChild(card);
+    });
+
+    document.getElementById('btnShowJson').addEventListener('click', refreshJsonOutput);
+  </script>
 </body>
 </html>

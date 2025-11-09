@@ -1,37 +1,69 @@
 # -*- coding: utf-8 -*-
-"""
-doc_chapter2.py — บทที่ 2 (ฉบับเต็ม)
-(แก้ไขให้เรียกใช้ฟังก์ชันกลางจาก doc_function.py)
-"""
-
 from __future__ import annotations
-import os
 from typing import Any, Dict, List
-
+import json
 from docx import Document
-from docx.shared import Pt, Cm
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
 
-# Import ทุกอย่างจากไฟล์กลาง
-from man_doc.doc_function import *
-    
-# CHAPTER_NO ยังคงจำเป็นต้องมีในไฟล์นี้ เพื่อส่งค่า "2" 
-# เข้าไปในฟังก์ชันกลาง
-CHAPTER_NO = 2  
+from man_doc.doc_function import (
+    doc_setup, apply_rest_page_margin,
+    add_center_paragraph, two_spaces_join,
+    add_section_heading_level1_style_1, add_section_heading_level2_plus_style_1,
+    add_body_paragraph_style_1,            # ย่อหน้าเนื้อหา (ทั่วไป)
+    add_intro_caption_paragraph,           # ย่อหน้าบทนำ/คำอธิบายใต้รูป (เฉพาะ)
+    add_picture_box_with_caption,
+    walk_item_tree, resolve_image_path, t, as_list,
+)
 
-# ===================== main =====================
+CHAPTER_NO = 2
+
+def _parse_intro(intro_body: Any) -> Dict[str, Any]:
+    """
+    รองรับได้ทั้ง string เดิม และ JSON:
+    {"paragraphs":[...], "subnodes":[{"title":"", "paragraphs":[...]}]}
+    """
+    out = {"paragraphs": [], "subnodes": []}
+    if isinstance(intro_body, (dict, list, str)):
+        try:
+            data = json.loads(intro_body) if isinstance(intro_body, str) else intro_body
+            if isinstance(data, dict):
+                paras = data.get("paragraphs")
+                if isinstance(paras, list):
+                    out["paragraphs"] = [
+                        t(x if isinstance(x, str) else (x.get("text") if isinstance(x, dict) else ""))
+                        for x in paras if t(x if isinstance(x, str) else (x.get("text") if isinstance(x, dict) else ""))
+                    ]
+                subs = data.get("subnodes")
+                if isinstance(subs, list):
+                    res = []
+                    for sn in subs:
+                        if not isinstance(sn, dict): continue
+                        res.append({
+                            "title": t(sn.get("title")),
+                            "paragraphs": [
+                                t(x if isinstance(x, str) else (x.get("text") if isinstance(x, dict) else ""))
+                                for x in as_list(sn.get("paragraphs"))
+                                if t(x if isinstance(x, str) else (x.get("text") if isinstance(x, dict) else ""))
+                            ],
+                        })
+                    out["subnodes"] = res
+                return out
+        except Exception:
+            pass
+    s = t(intro_body)
+    if s:
+        out["paragraphs"] = [p.strip() for p in s.replace("\r\n","\n").split("\n\n") if p.strip()] or [s]
+    return out
 
 def doc_chapter2(
-    intro_body: str = "",
+    intro_body: Any = "",
     sections_json: List[Dict[str, Any]] | None = None,
     pictures: List[Dict[str, Any]] | None = None,
     media_root: str = "",
 ) -> Document:
     """
-    ตัวสร้างไฟล์บทที่ 2 (ปรับปรุงตาม requirement ใหม่)
-    (เรียกใช้ฟังก์ชันกลางทั้งหมด)
+    - บทนำ/หัวข้อย่อยบทนำ/คำอธิบายใต้รูป → add_intro_caption_paragraph (indent 1.25 ซม.)
+    - เนื้อหา (2.1.1 ฯลฯ) → add_body_paragraph_style_1 (indent 1.80 ซม.)
+    - คำอธิบายใต้รูป มีข้อความตายตัว: "จากภาพที่ <บท>-<เลขภาพ>  <ข้อความผู้ใช้>"
     """
     sections_json = sections_json or []
     pictures = pictures or []
@@ -44,79 +76,85 @@ def doc_chapter2(
 
     apply_rest_page_margin(doc, top_inch=1.5)
 
-    # ย่อหน้าเปิดบท (โหมด paragraphs)
-    if t(intro_body):
-        # (แก้ไข) เรียกใช้ฟังก์ชันสไตล์ที่กำหนดไว้ในไฟล์กลาง
-        add_body_paragraph_style_1(doc, t(intro_body))
+    # -------- 1) บทนำ --------
+    intro = _parse_intro(intro_body)
+    for s in intro.get("paragraphs", []):
+        if t(s): add_intro_caption_paragraph(doc, s)
 
-    pic_counter = [0]
+    for i, sn in enumerate(intro.get("subnodes") or []):
+        title_no = f"{CHAPTER_NO}.{i+1}"
+        title_txt = t((sn or {}).get("title"))
+        if title_no or title_txt:
+            add_section_heading_level1_style_1(doc, title_no, title_txt)
+        for s in as_list((sn or {}).get("paragraphs")):
+            s = t(s)
+            if s: add_intro_caption_paragraph(doc, s)
+
+    # -------- 2) หัวข้อหลัก --------
+    pic_counter = [0]   # ใช้ list เพื่อให้ส่งอ้างอิงเข้า walk_item_tree ได้
     seen_pics: set[str] = set()
 
-    # หัวข้อหลักทั้งบท
     for sec in sections_json:
         sec_no = t((sec or {}).get("title_no"))
         sec_title = t((sec or {}).get("title"))
         if sec_no or sec_title:
-            # (แก้ไข) เรียกใช้ฟังก์ชันสไตล์ที่กำหนดไว้ในไฟล์กลาง
             add_section_heading_level1_style_1(doc, sec_no, sec_title)
 
-        # เนื้อหาใต้หัวข้อหลัก (ขึ้นบรรทัดใหม่ตามปกติ)
+        # เนื้อหากล่าวนำของหัวข้อใหญ่
         for raw in as_list((sec or {}).get("body_paragraphs")):
             s = t(raw)
-            if s:
-                # (แก้ไข) เรียกใช้ฟังก์ชันสไตล์ที่กำหนดไว้ในไฟล์กลาง
-                add_body_paragraph_style_1(doc, s) 
+            if s: add_body_paragraph_style_1(doc, s)
 
-        # รูประดับหัวข้อ (ถ้ามี)
+        # รูปของหัวข้อใหญ่ + แคปชันแบบ "จากภาพที่ 2-x  <caption>"
         for pinfo in as_list((sec or {}).get("pictures")):
             abs_path = resolve_image_path(pinfo, media_root)
-            if not abs_path or abs_path in seen_pics:
-                continue
+            if not abs_path or abs_path in seen_pics: continue
             seen_pics.add(abs_path)
             pic_counter[0] += 1
-            
-            # (แก้ไข) ส่ง chapter_no เข้าไปในฟังก์ชันกลาง
-            add_picture_box_with_caption(
-                doc,
-                abs_path,
-                pic_name=t(pinfo.get("pic_name")),
-                chapter_no=CHAPTER_NO, # <-- ส่งเลขบท
-                run_no=pic_counter[0],
-            )
+            run_no = pic_counter[0]
 
-        # หัวข้อย่อยแบบต้นไม้ (2.1.1+ → ปรับปรุงแล้ว)
+            add_picture_box_with_caption(
+                doc, abs_path,
+                pic_name=t(pinfo.get("pic_name")),
+                chapter_no=CHAPTER_NO, run_no=run_no,
+            )
+            for cap in as_list(pinfo.get("captions")):
+                s = t(cap)
+                if s:
+                    # 1 วรรคหลัง "จากภาพที่", 2 วรรคก่อนข้อความผู้ใช้
+                    add_intro_caption_paragraph(doc, f"จากภาพที่ {CHAPTER_NO}-{run_no}  {s}")
+
+        # หัวข้อย่อยแบบ tree (2.1.1+)
+        # ส่ง caption_func ที่อิงค่าปัจจุบันของ pic_counter[0]
         walk_item_tree(
-            doc,
-            sec_no,
-            as_list((sec or {}).get("items")),
-            media_root=media_root,
-            pic_counter=pic_counter,
-            seen_pics=seen_pics,
-            
-            # (แก้ไข) ส่ง chapter_no และฟังก์ชันสไตล์เข้าไป
+            doc, sec_no, as_list((sec or {}).get("items")),
+            media_root=media_root, pic_counter=pic_counter, seen_pics=seen_pics,
             chapter_no=CHAPTER_NO,
             heading_func=add_section_heading_level2_plus_style_1,
-            body_func=add_body_paragraph_style_1
+            body_func=add_body_paragraph_style_1,
+            caption_func=lambda d, s: add_intro_caption_paragraph(
+                d, f"จากภาพที่ {CHAPTER_NO}-{pic_counter[0]}  {t(s)}"
+            ),
         )
 
-    # รูปท้ายบท (ถ้าส่งมา)
+    # -------- 3) รูปท้ายบท (ถ้ามี) --------
     if pictures:
-        doc.add_paragraph().add_run().add_break()
         for pinfo in pictures:
             abs_path = resolve_image_path(pinfo, media_root)
-            if not abs_path or abs_path in seen_pics:
-                continue
+            if not abs_path or abs_path in seen_pics: continue
             seen_pics.add(abs_path)
             pic_counter[0] += 1
-            
-            # (แก้ไข) ส่ง chapter_no เข้าไปในฟังก์ชันกลาง
+            run_no = pic_counter[0]
+
             add_picture_box_with_caption(
-                doc,
-                abs_path,
+                doc, abs_path,
                 pic_name=t(pinfo.get("pic_name")),
-                chapter_no=CHAPTER_NO, # <-- ส่งเลขบท
-                run_no=pic_counter[0],
+                chapter_no=CHAPTER_NO, run_no=run_no,
             )
+            for cap in as_list(pinfo.get("captions")):
+                s = t(cap)
+                if s:
+                    add_intro_caption_paragraph(doc, f"จากภาพที่ {CHAPTER_NO}-{run_no}  {s}")
 
     return doc
 

@@ -3,226 +3,154 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods
-from django.db import transaction
+from django.http import JsonResponse
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+
 import json
-import logging
+import os
+import datetime
 
 from backend.models import DocChapter3
 
-logger = logging.getLogger(__name__)
 
-
-# ---------- Utils ----------
-def _to_list_or_fallback(value, fallback=None):
+def safe_parse_list(raw_text, fallback):
     """
-    แปลงข้อมูลให้เป็น list อย่างปลอดภัย:
-      - ถ้าเป็น list อยู่แล้ว → คืนค่าเดิม
-      - ถ้าเป็น str → พยายาม json.loads ถ้าไม่สำเร็จ → fallback หรือ []
-      - อื่น ๆ / None → fallback หรือ []
+    แปลง string JSON -> list อย่างปลอดภัย
+    raw_text: ข้อมูลจาก <input type="hidden"> ที่หน้าเว็บส่งมา (เช่น sections_json / chapter3_tables_json)
+    fallback: ค่าจาก DB (list) เมื่อ parse ไม่สำเร็จ
     """
     try:
-        if isinstance(value, list):
-            return value
-        if isinstance(value, str):
-            s = value.strip()
-            if s == "":
-                return (fallback or [])
-            parsed = json.loads(s)
-            return parsed if isinstance(parsed, list) else (fallback or [])
-        return (fallback or [])
-    except (json.JSONDecodeError, TypeError, ValueError):
-        return (fallback or [])
+        data = json.loads(raw_text or '[]')
+        return data if isinstance(data, list) else (fallback or [])
+    except json.JSONDecodeError:
+        return fallback or []
 
 
-def _extract_list_from_request(request, key_candidates, fallback=None):
-    """
-    ดึง list จาก request โดยลองหลายชื่อคีย์ (key_candidates)
-    รองรับ:
-      1) form-encoded แบบหลายค่า: key[]  → request.POST.getlist(...)
-      2) form-encoded แบบสตริง JSON: key → request.POST.get(...)
-      3) application/json body: {key: [...]} หรือ {key: "[]"}
-    ถ้าไม่เจอเลย → คืน fallback
-    """
-    # 1) ลอง key[] ใน form ก่อน (เช่น chapter3_tables_json[])
-    for base in key_candidates:
-        many_key = f"{base}[]"
-        many_vals = request.POST.getlist(many_key)
-        if many_vals:
-            normalized = []
-            for item in many_vals:
-                try:
-                    # แต่ละรายการอาจถูกส่งเป็น JSON string
-                    normalized.append(json.loads(item))
-                except Exception:
-                    normalized.append(item)
-            return normalized
-
-    # 2) ลอง key (สตริง JSON)
-    for base in key_candidates:
-        raw = request.POST.get(base, None)
-        if raw is not None:
-            return _to_list_or_fallback(raw, fallback=fallback)
-
-    # 3) ลองอ่านจาก JSON body
-    ctype = (request.META.get("CONTENT_TYPE") or "").lower()
-    if "application/json" in ctype:
-        try:
-            body = json.loads(request.body.decode("utf-8") or "{}")
-            for base in key_candidates:
-                if base in body:
-                    return _to_list_or_fallback(body.get(base), fallback=fallback)
-                # กันเผื่อ key[] ใน body (พบน้อยมาก)
-                arr_key = f"{base}[]"
-                if arr_key in body:
-                    return _to_list_or_fallback(body.get(arr_key), fallback=fallback)
-        except Exception:
-            pass
-
-    # ไม่พบสักคีย์ → คืน fallback
-    return (fallback or [])
-
-
-def _extract_string_from_request(request, key, default=""):
-    """
-    ดึงค่าสตริงจาก form หรือ JSON body
-    """
-    val = request.POST.get(key)
-    if val is not None:
-        return (val or "").strip()
-    ctype = (request.META.get("CONTENT_TYPE") or "").lower()
-    if "application/json" in ctype:
-        try:
-            body = json.loads(request.body.decode("utf-8") or "{}")
-            return (body.get(key) or "").strip()
-        except Exception:
-            return default
-    return default
-
-
-# ---------- View ----------
 @login_required
-@require_http_methods(["GET", "POST"])
 def chapter_3_view(request):
-    """
-    จัดการบทที่ 3:
-      - GET  : โหลดค่าล่าสุดของผู้ใช้
-      - POST : action=save     → บันทึก intro_body, sections_json, tb_sections_json
-               action=get_data → คืนค่าล่าสุด
-    """
     user = request.user
 
-    # โหลดเรคคอร์ดล่าสุดของผู้ใช้ (ถ้ายังไม่มีจะเป็น None)
-    row = DocChapter3.objects.filter(user=user).order_by("-updated_at").first()
+    # อ่านข้อมูลล่าสุดจาก DB ของผู้ใช้คนนี้
+    row = DocChapter3.objects.filter(user=user).order_by('-updated_at').first()
+    db_intro   = (row.intro_body if row else '') or ''
+    db_secs    = row.sections_json    if (row and isinstance(row.sections_json, list))    else []
+    db_tables  = row.tb_sections_json if (row and isinstance(row.tb_sections_json, list)) else []
 
-    # ค่า default จาก DB (กัน None และชนิดไม่ตรง)
-    db_intro = (row.intro_body if row else "") or ""
-    db_secs = row.sections_json if (row and isinstance(row.sections_json, list)) else []
-    db_tables = row.tb_sections_json if (row and isinstance(row.tb_sections_json, list)) else []
+    # ============ POST ============
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
 
-    if request.method == "GET":
-        return render(request, "chapter_3.html", {
-            "initial": {
-                "intro_body": db_intro,
-                "chapter3_json": db_secs,
-                "chapter3_tables_json": db_tables,
+        # ---------- AJAX: add_picture ----------
+        if action == 'add_picture':
+            """
+            ฝั่ง JS จะส่ง:
+              - node_no    (ใช้เป็น anchor อ้างกับ UI)
+              - pic_name   (ชื่อ/คำอธิบายรูป)
+              - pic_path   (ชื่อไฟล์เดิมสำหรับโชว์ใน UI)
+              - pic_no     (เลขภาพ เช่น 3-1, 3-2 ... JS คำนวณให้แล้ว)
+              - pic_file   (ไฟล์จริง)
+            เราจะบันทึกไฟล์ลง default_storage แล้วตอบ JSON กลับ
+            """
+            pic_name = (request.POST.get('pic_name') or '').strip()
+            pic_no   = (request.POST.get('pic_no')   or '').strip()
+            upload   = request.FILES.get('pic_file')
+
+            if not upload or not pic_name:
+                return JsonResponse(
+                    {'ok': False, 'message': 'ข้อมูลรูปภาพไม่ครบ'},
+                    status=400
+                )
+
+            # สร้าง path เก็บไฟล์: img/user_<id>/chapter3/<YYYYMMDD_HHMMSS>_<orig>
+            ts = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            base_dir = f'img/user_{user.pk}/chapter3'
+            filename = f'{ts}_{upload.name}'
+            rel_path = os.path.join(base_dir, filename).replace('\\', '/')
+
+            saved_path = default_storage.save(rel_path, ContentFile(upload.read()))
+            file_url   = default_storage.url(saved_path)
+
+            payload = {
+                'ok': True,
+                'message': 'อัปโหลดสำเร็จ',
+                'picture': {
+                    'pic_no': pic_no,
+                    'pic_name': pic_name,
+                    # เก็บ path/url สำหรับโชว์กลับในหน้า
+                    'pic_path': file_url,
+                    'server_pic_no': pic_no,
+                }
             }
-        })
+            return JsonResponse(payload, status=200)
 
-    # ---------- POST ----------
-    action = (request.POST.get("action") or "").strip()
-    if not action:
-        # กันกรณีส่ง JSON body
-        action = _extract_string_from_request(request, "action", default="")
+        # ---------- ปกติ: save / get_data / generate_doc ----------
+        intro_body   = (request.POST.get('intro_body') or '').strip()
 
-    # intro_body
-    intro_body = _extract_string_from_request(request, "intro_body", default=db_intro)
+        # ชื่อฟิลด์ตาม template ปัจจุบัน
+        raw_secs     = request.POST.get('sections_json', '')
+        raw_tables   = request.POST.get('chapter3_tables_json', '')
 
-    # sections (ตัวเนื้อหา)
-    sections_key_candidates = [
-        "chapter3_json",
-        "sections_json",     # กันชื่อย่อ/ชื่อคอลัมน์
-        "sections"           # กันบางฟร้อนท์
-    ]
-    secs_in = _extract_list_from_request(request, sections_key_candidates, fallback=db_secs)
-    if not isinstance(secs_in, list):
-        secs_in = db_secs
+        if action == 'save':
+            secs_in   = safe_parse_list(raw_secs, db_secs)
+            tables_in = safe_parse_list(raw_tables, db_tables)
 
-    # tables (ประเด็นหลักที่ “ไม่ยอมบันทึก”)
-    # รองรับ alias ชื่อคีย์หลายแบบ
-    tables_key_candidates = [
-        "chapter3_tables_json",
-        "chapter3_table_json",
-        "tb_sections_json",
-        "tb_sections",
-        "tables_json",
-        "tables"
-    ]
-    tables_in = _extract_list_from_request(request, tables_key_candidates, fallback=db_tables)
-
-    # ทำความสะอาดค่าตารางเบื้องต้น (ตัด None/ค่าว่าง)
-    if isinstance(tables_in, list):
-        tables_in = [t for t in tables_in if t not in (None, "", {})]
-    else:
-        tables_in = db_tables
-
-    if action == "get_data":
-        messages.info(request, "🔄 ดึงข้อมูลล่าสุดเรียบร้อยแล้ว")
-        return render(request, "chapter_3.html", {
-            "initial": {
-                "intro_body": db_intro,
-                "chapter3_json": db_secs,
-                "chapter3_tables_json": db_tables,
-            }
-        })
-
-    if action != "save":
-        messages.info(request, "ยังไม่รองรับการทำงานนี้")
-        return render(request, "chapter_3.html", {
-            "initial": {
-                "intro_body": db_intro,
-                "chapter3_json": db_secs,
-                "chapter3_tables_json": db_tables,
-            }
-        })
-
-    # ---------- SAVE ----------
-    try:
-        with transaction.atomic():
             DocChapter3.objects.update_or_create(
                 user=user,
                 defaults={
-                    "intro_body": intro_body,
-                    "sections_json": secs_in,        # JSONField ← Python list
-                    "tb_sections_json": tables_in,   # JSONField ← Python list (สำคัญ)
-                    "chap_id": 3,
-                    "updated_at": timezone.now(),
+                    'intro_body'      : intro_body,
+                    'sections_json'   : secs_in,
+                    'tb_sections_json': tables_in,
+                    'chap_id'         : 3,
+                    'updated_at'      : timezone.now(),
                 }
             )
-    except Exception as e:
-        # ล็อกแล้วแจ้งผู้ใช้แบบอ่านง่าย
-        logger.exception("Save Chapter 3 failed")
-        messages.error(request, f"❌ บันทึกไม่สำเร็จ: {e}")
-        # คืนค่าเดิมจาก DB
-        return render(request, "chapter_3.html", {
-            "initial": {
-                "intro_body": db_intro,
-                "chapter3_json": db_secs,
-                "chapter3_tables_json": db_tables,
+            messages.success(request, '💾 บันทึกข้อมูลบทที่ 3 เรียบร้อยแล้ว', extra_tags='chapter3')
+            return render(request, 'chapter_3.html', {
+                'initial': {
+                    'intro_body': intro_body,
+                    # ส่งคีย์ที่ template รอใช้งานจริง
+                    'sections' : secs_in,
+                    'tables'   : tables_in,
+                }
+            })
+
+        elif action == 'get_data':
+            messages.info(request, '🔄 ดึงข้อมูลล่าสุดเรียบร้อยแล้ว', extra_tags='chapter3')
+            return render(request, 'chapter_3.html', {
+                'initial': {
+                    'intro_body': db_intro,
+                    'sections'  : db_secs,
+                    'tables'    : db_tables,
+                }
+            })
+
+        elif action == 'generate_doc':
+            # ตรงนี้คุณผูกกับตัว generator ของคุณเองได้ตามเดิม
+            messages.info(request, 'ยังไม่รองรับการสร้างเอกสารในส่วนนี้', extra_tags='chapter3')
+            return render(request, 'chapter_3.html', {
+                'initial': {
+                    'intro_body': db_intro,
+                    'sections'  : db_secs,
+                    'tables'    : db_tables,
+                }
+            })
+
+        # อื่น ๆ
+        messages.info(request, 'ยังไม่รองรับการทำงานนี้', extra_tags='chapter3')
+        return render(request, 'chapter_3.html', {
+            'initial': {
+                'intro_body': db_intro,
+                'sections'  : db_secs,
+                'tables'    : db_tables,
             }
         })
 
-    # โหลดกลับมาโชว์ (กันค่าเก่า/cache)
-    row = DocChapter3.objects.filter(user=user).order_by("-updated_at").first()
-    out_intro = (row.intro_body if row else "") or ""
-    out_secs = row.sections_json if (row and isinstance(row.sections_json, list)) else []
-    out_tables = row.tb_sections_json if (row and isinstance(row.tb_sections_json, list)) else []
-
-    messages.success(request, "💾 บันทึกข้อมูลบทที่ 3 เรียบร้อยแล้ว")
-    return render(request, "chapter_3.html", {
-        "initial": {
-            "intro_body": out_intro,
-            "chapter3_json": out_secs,
-            "chapter3_tables_json": out_tables,
+    # ============ GET ============
+    return render(request, 'chapter_3.html', {
+        'initial': {
+            'intro_body': db_intro,
+            'sections'  : db_secs,
+            'tables'    : db_tables,
         }
     })

@@ -15,6 +15,19 @@
   --shadow-card:    0 12px 24px rgba(0,0,0,.04);
   --shadow-inner:   0 2px 4px rgba(0,0,0,.04);
   --font-stack:     'Kanit', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  /* เพิ่มพาเลตปุ่ม */
+  --btn-add-bg:     #eef6ff; /* ฟ้าอ่อน */
+  --btn-add-bd:     #60a5fa; /* ขอบฟ้า */
+  --btn-add-tx:     #1e3a8a; /* ฟ้าน้ำเงินเข้ม */
+
+  --btn-del-bg:     #fef2f2; /* แดงอ่อน */
+  --btn-del-bd:     #f87171; /* ขอบแดง */
+  --btn-del-tx:     #b91c1c; /* แดงเข้ม */
+
+  --btn-select-bg:  #f9fafb; /* เทาอ่อน */
+  --btn-select-bd:  #d1d5db; /* ขอบเทา */
+  --btn-select-tx:  #374151; /* เทาเข้ม */
 }
 
 /* ----- Page shell ----- */
@@ -26,7 +39,6 @@ body {
   line-height: 1.45;
   padding: 16px;
 }
-
 .page-shell {
   max-width: 1280px;
   margin: 0 auto;
@@ -51,84 +63,53 @@ body {
   color: #000;
 }
 
-/* 1. CSS สำหรับการ์ดหลัก (จากคำตอบก่อนหน้า) */
+/* ----- Card (shell) ----- */
 .section-card-body {
   display: flex;
-  justify-content: space-between; /* ดัน 2 ส่วนออกจากกัน */
-  align-items: flex-start;       /* จัดให้ชิดขอบบน */
+  justify-content: space-between;
+  align-items: flex-start;
   width: 100%;
   margin: 16px 0;
   background-color: #ffffff;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   border: 1px solid #e0e0e0;
   box-sizing: border-box;
-  gap: 24px; /* เพิ่มช่องว่างเล็กน้อยระหว่าง 2 ส่วน */
+  gap: 24px;
 }
 
-/* 2. CSS สำหรับกล่องข้อความด้านซ้าย */
+/* left text area */
 .section-card-body .main-textarea {
-  flex: 1; /* ทำให้กล่องข้อความยืดหยุ่น (ใช้พื้นที่ที่เหลือ) */
-  min-width: 300px; /* กำหนดความกว้างขั้นต่ำ */
+  flex: 1;
+  min-width: 300px;
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 12px;
   font-size: 16px;
-  font-family: sans-serif; /* แนะนำให้กำหนด font ครับ */
-  resize: vertical; /* อนุญาตให้ย่อขยายเฉพาะแนวตั้ง */
+  font-family: sans-serif;
+  resize: vertical;
 }
 
-/* 3. CSS สำหรับกลุ่มหัวข้อด้านขวา (ส่วนที่เพิ่มใหม่) */
+/* right header block */
 .section-card-header {
-  /* ไม่ต้องตั้งค่า flex: 1 เพื่อให้มันใช้ขนาดตามเนื้อหา */
-  text-align: right; /* จัดข้อความชิดขวา */
-  flex-shrink: 0; /* ป้องกันไม่ให้มันหดตัวเมื่อจอแคบ */
-  white-space: nowrap; /* ป้องกันการตัดคำขึ้นบรรทัดใหม่ */
+  text-align: right;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
-
-.section-card-header h2 {
-  font-size: 28px;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-}
-
-.section-card-header p {
-  font-size: 20px;
-  color: #555;
-  margin: 4px 0 0 0;
-}
+.section-card-header h2 { font-size: 28px; font-weight: 600; color: #333; margin: 0; }
+.section-card-header p  { font-size: 20px; color: #555; margin: 4px 0 0 0; }
 
 /* ----- Alert box ----- */
 #alert-box{
-  font-size:14px;
-  border-radius:var(--radius-md);
-  padding:10px 12px;
-  border:1px solid var(--line-accent);
-  background:#eef2ff;
-  color:#1d2a73;
-  display:none;
-  margin-bottom:20px;
+  font-size:14px; border-radius:var(--radius-md); padding:10px 12px;
+  border:1px solid var(--line-accent); background:#eef2ff; color:#1d2a73;
+  display:none; margin-bottom:20px;
 }
-#alert-box.show{
-  display:block;
-}
-#alert-box.success{
-  background:#ecfdf5;
-  border-color:#a7f3d0;
-  color:#065f46;
-}
-#alert-box.error{
-  background:#fef2f2;
-  border-color:#fecaca;
-  color:#7f1d1d;
-}
-#alert-box.warning{
-  background:#fffbeb;
-  border-color:#fde68a;
-  color:#78350f;
-}
+#alert-box.show{ display:block; }
+#alert-box.success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
+#alert-box.error{   background:#fef2f2; border-color:#fecaca; color:#7f1d1d; }
+#alert-box.warning{ background:#fffbeb; border-color:#fde68a; color:#78350f; }
 
 /* ----- Card Section Wrapper ----- */
 .section-card-outer {
@@ -139,220 +120,82 @@ body {
   padding: 20px 16px 16px;
   margin-bottom: 20px;
 }
+.section-title-head { font-size: 18px; font-weight: 600; color: #111; margin-bottom: 12px; }
+.section-desc       { font-size: 13px; color: var(--txt-soft); margin-bottom: 12px; }
 
-.section-title-head {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111;
-  margin-bottom: 12px;
-}
-
-.section-desc {
-  font-size: 13px;
-  color: var(--txt-soft);
-  margin-bottom: 12px;
-}
-
-/* ----- textarea-block : ป้องกัน textarea ล้นกรอบ ----- */
+/* ----- textarea-block ----- */
 .textarea-block {
-  background: #fff;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-md);
-  padding: 12px;
-  box-sizing: border-box;
-  margin-top: 12px;
+  background: #fff; border: 1px solid var(--line-soft); border-radius: var(--radius-md);
+  padding: 12px; box-sizing: border-box; margin-top: 12px;
 }
-.textarea-block textarea {
-  width: 100%;
-  min-height: 100px;
-  background: transparent;
-  border: none;
-  outline: none;
-  resize: vertical;
-  font-family: var(--font-stack);
-  font-size: 15px;
-  line-height: 1.5;
-  color: #111;
-  box-sizing: border-box;
+.textarea-block textarea{
+  width: 100%; min-height: 100px; background: transparent; border: none; outline: none; resize: vertical;
+  font-family: var(--font-stack); font-size: 15px; line-height: 1.5; color: #111; box-sizing: border-box;
 }
-.textarea-block:focus-within {
-  border-color: var(--line-accent);
-  box-shadow: 0 0 0 3px rgba(141,148,252,.25);
+.textarea-block:focus-within{ border-color: var(--line-accent); box-shadow: 0 0 0 3px rgba(141,148,252,.25); }
+
+/* ----- Sections Container ----- */
+.chapter2-sections-wrapper{
+  background: var(--bg-card); border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-inner); padding: 16px;
 }
 
-/* ----- Sections Container (2.x list) ----- */
-.chapter2-sections-wrapper {
-  background: var(--bg-card);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-inner);
-  padding: 16px;
+/* ----- Section card (2.1, 2.2, ...) ----- */
+.chapter-section-card{
+  border: 1px solid rgba(141,148,252,.4); background: var(--bg-inner);
+  border-radius: var(--radius-md); padding: 12px 12px 16px; margin-bottom: 16px;
 }
+.chapter-head-row{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:12px; margin-bottom:12px; }
+.badge-no{
+  background: var(--badge-bg); border: 1px solid var(--badge-border); color: var(--badge-text);
+  min-width:44px; text-align:center; font-weight:600; font-size:15px; border-radius:var(--radius-sm);
+  padding: 8px 10px; box-shadow: 0 2px 4px rgba(0,0,0,.04);
+}
+.chapter-title-input{
+  flex:1; background:#fff; border:1px solid var(--line-soft); border-radius:var(--radius-sm);
+  font-size:15px; padding:10px 12px;
+}
+.chapter-title-input:focus{ outline:none; border-color:var(--line-accent); box-shadow:0 0 0 3px rgba(141,148,252,.25); }
 
-/* ----- การ์ดหัวข้อใหญ่ (2.1,2.2,...) ----- */
-.chapter-section-card {
-  border: 1px solid rgba(141,148,252,.4);
-  background: var(--bg-inner);
-  border-radius: var(--radius-md);
-  padding: 12px 12px 16px;
-  margin-bottom: 16px;
-}
+/* overview */
+.overview-block{ background:#fff; border:1px solid var(--line-soft); border-radius:var(--radius-sm); padding:12px; margin-bottom:12px; }
+.overview-label{ font-size:14px; font-weight:500; color:#1f2937; margin-bottom:8px; }
 
-.chapter-head-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;
+/* tree / node */
+.tree-wrap{ border-left: 3px solid rgba(141,148,252,.4); padding-left: 12px; }
+.node-card{ background:#fff; border:1px solid var(--line-soft); border-radius:var(--radius-sm); padding:12px; margin-bottom:12px; }
+.node-top-row{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px; margin-bottom:8px; }
+.node-no-badge{
+  background: var(--badge-bg); border:1px solid var(--badge-border); color:var(--badge-text);
+  font-size:14px; font-weight:600; min-width:44px; text-align:center; border-radius:var(--radius-sm); padding:6px 8px;
 }
-.badge-no {
-  background: var(--badge-bg);
-  border: 1px solid var(--badge-border);
-  color: var(--badge-text);
-  min-width: 44px;
-  text-align: center;
-  font-weight: 600;
-  font-size: 15px;
-  border-radius: var(--radius-sm);
-  padding: 8px 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,.04);
+.node-title-input{
+  flex:1; background:#fff; border:1px solid var(--line-soft); border-radius:var(--radius-sm);
+  font-size:14px; padding:8px 10px;
 }
-.chapter-title-input {
-  flex: 1;
-  background: #fff;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  padding: 10px 12px;
-}
-.chapter-title-input:focus {
-  outline: none;
-  border-color: var(--line-accent);
-  box-shadow: 0 0 0 3px rgba(141,148,252,.25);
-}
+.node-title-input:focus{ outline:none; border-color:var(--line-accent); box-shadow:0 0 0 3px rgba(141,148,252,.25); }
+.node-controls{ display:flex; flex-wrap:wrap; gap:6px; }
 
-/* ----- Overview block ของหัวข้อใหญ่ ----- */
-.overview-block {
-  background: #fff;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  margin-bottom: 12px;
-}
-.overview-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1f2937;
-  margin-bottom: 8px;
-}
+/* ---------- BUTTONS: แยกสีตามประเภท ---------- */
 
-/* ----- Tree / Node Card ----- */
-.tree-wrap {
-  border-left: 3px solid rgba(141,148,252,.4);
-  padding-left: 12px;
-}
-.node-card {
-  background: #fff;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  margin-bottom: 12px;
-}
-.node-top-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.node-no-badge {
-  background: var(--badge-bg);
-  border: 1px solid var(--badge-border);
-  color: var(--badge-text);
-  font-size: 14px;
-  font-weight: 600;
-  min-width: 44px;
-  text-align: center;
-  border-radius: var(--radius-sm);
-  padding: 6px 8px;
-}
-.node-title-input {
-  flex: 1;
-  background: #fff;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  padding: 8px 10px;
-}
-.node-title-input:focus {
-  outline: none;
-  border-color: var(--line-accent);
-  box-shadow: 0 0 0 3px rgba(141,148,252,.25);
-}
-.node-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* ----- ปุ่มจิ๋วใน node / paragraphs / รูป ----- */
-.mini-btn {
-  background: #fff;
-  border: 1px solid var(--line-accent);
-  color: var(--badge-text);
+/* ปุ่มจิ๋วพื้นฐาน (จะถูก override ด้านล่างตามประเภท) */
+.mini-btn{
+  background: var(--btn-add-bg);
+  border: 1px solid var(--btn-add-bd);
+  color: var(--btn-add-tx);
   border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 500;
   padding: 6px 8px;
   cursor: pointer;
 }
-.mini-btn:hover {
-  background: #eef2ff;
-}
+.mini-btn:hover{ background:#dbeafe; }
 
-/* ----- Paragraph editor ----- */
-.para-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.para-row textarea {
-  flex: 1;
-  min-height: 150px;
-  font-size: 14px;
-  font-family: var(--font-stack);
-  line-height: 1.4;
-  background: #fff;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
-  padding: 8px 10px;
-  box-sizing: border-box;
-}
-.para-row textarea:focus {
-  outline: none;
-  border-color: var(--line-accent);
-  box-shadow: 0 0 0 3px rgba(141,148,252,.25);
-}
-
-.del-para-btn {
-  background: #fff;
-  border: 1px solid #fca5a5;
-  color: #b91c1c;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px 8px;
-  cursor: pointer;
-}
-.del-para-btn:hover {
-  background: #fef2f2;
-}
-
-.add-para-btn {
-  background: #fff;
-  border: 1px solid var(--line-accent);
-  color: var(--badge-text);
+/* ปุ่ม "เพิ่มย่อหน้า" */
+.add-para-btn{
+  background: var(--btn-add-bg);
+  border: 1px solid var(--btn-add-bd);
+  color: var(--btn-add-tx);
   border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 500;
@@ -360,146 +203,152 @@ body {
   cursor: pointer;
   margin-top: 4px;
 }
-.add-para-btn:hover {
-  background: #eef2ff;
+.add-para-btn:hover{ background:#dbeafe; }
+
+/* ปุ่มลบ (แดง) — ใช้กับ .del-para-btn และ .mini-btn.danger */
+.del-para-btn,
+.mini-btn.danger{
+  background: var(--btn-del-bg);
+  border: 1px solid var(--btn-del-bd);
+  color: var(--btn-del-tx);
+}
+.del-para-btn:hover,
+.mini-btn.danger:hover{ background:#fee2e2; }
+
+/* ปุ่มรอง: เลือกรูป... */
+.mini-btn.select-btn{
+  background: var(--btn-select-bg);
+  border: 1px solid var(--btn-select-bd);
+  color: var(--btn-select-tx);
+}
+.mini-btn.select-btn:hover{ background:#f3f4f6; }
+
+/* paragraph editor */
+.para-row{ display:flex; align-items:flex-start; gap:8px; margin-bottom:8px; }
+.para-row textarea{
+  flex:1; min-height:150px; font-size:14px; font-family:var(--font-stack); line-height:1.4;
+  background:#fff; border:1px solid var(--line-soft); border-radius:var(--radius-sm); padding:8px 10px; box-sizing:border-box;
+}
+.para-row textarea:focus{ outline:none; border-color:var(--line-accent); box-shadow:0 0 0 3px rgba(141,148,252,.25); }
+
+/* picture box */
+.pics-box{ background:#fafafa; border:1px solid var(--line-soft); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px; }
+.pics-head{ font-size:14px; font-weight:500; margin-bottom:8px; color:#1f2937; }
+.pics-add-row{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+.pic-caption-input{
+  flex:1; min-width:180px; background:#fff; border:1px solid var(--line-soft); border-radius:var(--radius-sm);
+  font-size:13px; padding:8px 10px; font-family:var(--font-stack);
+}
+.pic-caption-input:focus{ outline:none; border-color:var(--line-accent); box-shadow:0 0 0 3px rgba(141,148,252,.25); }
+.pic-list{ margin-top:6px; }
+.pic-item{
+  background:#fff; border:1px solid var(--line-soft); border-radius:var(--radius-sm);
+  padding:8px 10px; font-size:13px; color:#111; margin-bottom:6px;
+}
+.pic-path{ color:var(--txt-soft); font-size:12px; margin-top:2px; word-break:break-all; }
+
+/* children block */
+.children-block{ border-left:2px dotted var(--line-soft); padding-left:12px; margin-top:8px; }
+
+/* footer bar */
+.footer-action-bar{
+  display:flex; flex-wrap:wrap; gap:12px; justify-content:flex-start;
+  margin-top:28px; padding-top:20px; border-top:1px solid var(--line-soft);
 }
 
-/* ----- Picture box ----- */
-.pics-box {
-  background: #fafafa;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  margin-bottom: 10px;
+/* ปุ่มหลักด้านล่าง */
+.main-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:14px; font-weight:500; border-radius:var(--radius-md);
+  padding:10px 16px; cursor:pointer; border:none;
+  box-shadow:0 6px 14px rgba(0,0,0,.08); font-family:var(--font-stack);
+  justify-content:center; min-width:140px;
 }
-.pics-head {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: #1f2937;
-}
-.pics-add-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.pic-caption-input {
-  flex: 1;
-  min-width: 180px;
-  background: #fff;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  padding: 8px 10px;
-  font-family: var(--font-stack);
-}
-.pic-caption-input:focus {
-  outline: none;
-  border-color: var(--line-accent);
-  box-shadow: 0 0 0 3px rgba(141,148,252,.25);
-}
-.pic-list {
-  margin-top: 6px;
-}
-.pic-item {
-  background: #fff;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
-  padding: 8px 10px;
-  font-size: 13px;
-  color: #111;
-  margin-bottom: 6px;
-}
-.pic-path {
-  color: var(--txt-soft);
-  font-size: 12px;
-  margin-top: 2px;
-  word-break: break-all;
-}
-
-/* children block (หัวข้อย่อยระดับถัดไป) */
-.children-block {
-  border-left: 2px dotted var(--line-soft);
-  padding-left: 12px;
-  margin-top: 8px;
-}
-
-/* ----- Footer action bar ----- */
-.footer-action-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: flex-start;
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line-soft);
-}
-
-/* ----- main buttons (ล่างสุด + ปุ่มเพิ่มหัวข้อใหญ่) ----- */
-.main-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  padding: 10px 16px;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 6px 14px rgba(0,0,0,.08);
-  font-family: var(--font-stack);
-  justify-content: center;
-  min-width: 140px;
-}
-.main-btn span.emoji {
-  font-size: 15px;
-  line-height: 1;
-}
+.main-btn span.emoji{ font-size:15px; line-height:1; }
 
 /* น้ำเงิน (ดึงข้อมูล) */
-.main-btn-info {
-  background: #005BFF;
-  color: #fff;
-  box-shadow: 0 8px 18px rgba(0,91,255,.35);
+.main-btn-info{
+  background:#2563eb; color:#fff; box-shadow:0 8px 18px rgba(37,99,235,.35);
 }
-.main-btn-info:hover {
-  background: #0046d4;
-}
+.main-btn-info:hover{ background:#1e40af; }
 
 /* เขียว (บันทึกข้อมูล) */
-.main-btn-success {
-  background: #00a66a;
-  color: #fff;
-  box-shadow: 0 8px 18px rgba(0,166,106,.35);
+.main-btn-success{
+  background:#059669; color:#fff; box-shadow:0 8px 18px rgba(5,150,105,.35);
 }
-.main-btn-success:hover {
-  background: #008d59;
-}
+.main-btn-success:hover{ background:#047857; }
 
-/* ม่วง/indigo (สร้างเอกสาร) */
-.main-btn-doc {
-  background: #4f46e5;
-  color: #fff;
-  box-shadow: 0 8px 18px rgba(79,70,229,.35);
+/* ม่วง (สร้างเอกสาร) */
+.main-btn-doc{
+  background:#6d28d9; color:#fff; box-shadow:0 8px 18px rgba(109,40,217,.35);
 }
-.main-btn-doc:hover {
-  background: #4338ca;
-}
+.main-btn-doc:hover{ background:#5b21b6; }
 
 /* ปุ่มเพิ่มหัวข้อใหญ่ (โทนขาว/ขอบม่วง) */
-.main-btn-neutral {
-  background: #ffffff;
-  color: #1f2937;
-  border: 1px solid var(--line-accent);
-  box-shadow: 0 4px 10px rgba(141,148,252,.25);
+.main-btn-neutral{
+  background:#ffffff; color:#1f2937; border:1px solid var(--line-accent);
+  box-shadow:0 4px 10px rgba(141,148,252,.25);
 }
-.main-btn-neutral:hover {
-  background: #eef2ff;
-}
+.main-btn-neutral:hover{ background:#eef2ff; }
 
 /* ซ่อน hidden input ที่เก็บ JSON */
-#sections_json {
-  display: none;
+#sections_json{ display:none; }
+
+/* ============ FIX: ปุ่มสี่เหลี่ยม + ปุ่มติดกัน ============ */
+
+/* บังคับให้ปุ่มโค้งทุกตัว (กันเคสที่มี CSS reset ตั้ง radius:0) */
+button,
+.mini-btn,
+.add-para-btn,
+.del-para-btn,
+.main-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: var(--radius-sm) !important;
 }
 
+/* รูปทรง/การจัดวางให้เหมือนกันทุกปุ่มย่อย */
+.mini-btn,
+.add-para-btn,
+.del-para-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+  padding: 8px 10px;              /* สูงขึ้นนิด -> กลมขึ้นด้วย */
+  border-width: 1px;
+  border-style: solid;
+}
+
+/* เว้นระยะระหว่างปุ่มที่อยู่ติดกัน */
+.mini-btn + .mini-btn,
+.mini-btn + .add-para-btn,
+.mini-btn + .del-para-btn,
+.add-para-btn + .mini-btn,
+.add-para-btn + .del-para-btn,
+.del-para-btn + .mini-btn,
+.del-para-btn + .add-para-btn {
+  margin-left: 8px;
+}
+
+/* กล่องที่รวบปุ่ม: เพิ่ม gap ให้กว้างขึ้นเล็กน้อย */
+.node-controls { gap: 10px; }
+.pics-add-row   { gap: 10px; }
+
+/* ปุ่มในรายการรูป: ให้ลบรูป/ย่อหน้าอยู่ห่างจากข้อความด้านบน */
+.pic-item .del-para-btn { margin-top: 8px; }
+
+/* ปุ่มรอง (เช่น เลือกรูป…) ให้มีมุมมนเท่ากัน */
+.mini-btn.select-btn { border-radius: var(--radius-sm) !important; }
+
+/* ย้ำสีปุ่มลบให้ชัด และโค้งเหมือนกัน */
+.mini-btn.danger,
+.del-para-btn {
+  background: var(--btn-del-bg);
+  border-color: var(--btn-del-bd);
+  color: var(--btn-del-tx);
+}
+.mini-btn.danger:hover,
+.del-para-btn:hover {
+  background: #fee2e2;
+}

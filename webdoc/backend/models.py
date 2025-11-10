@@ -425,27 +425,26 @@ class Chapter5(models.Model):
 
 
 
+
 class DocChapter2(models.Model):
-    """
-    map กับตาราง doc_chapter_2 ที่มีอยู่แล้วใน MySQL
-    """
-    doc_id = models.AutoField(primary_key=True)  # int UNSIGNED AUTO_INCREMENT
+    doc_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         db_column="user_id",
         on_delete=models.RESTRICT,
         related_name="chapter2_docs",
     )
-    intro_body = models.TextField(blank=True, null=True)
+    # คอลัมน์ JSON ตามสกีมาที่คุณตั้ง
+    intro_body = models.JSONField(blank=True, null=True)
     sections_json = models.JSONField(blank=True, null=True)
-    chap_id = models.IntegerField(blank=True, null=True)  # ใช้เก็บเลขบท (2)
-    created_at = models.DateTimeField(blank=True, null=True)
-    updated_at = models.DateTimeField(blank=True, null=True)
+
+    chap_id = models.IntegerField(default=2, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = False  # ใช้ตารางที่มีอยู่แล้ว
-        db_table = "doc_chapter_2"
-
+        db_table = "doc_chapter_2"   # <<< ชื่อตารางจริงใน MySQL ของคุณ
+        managed = False              # อย่าให้ Django migrate/สร้างตารางนี้
 
 
 # ----------------------------

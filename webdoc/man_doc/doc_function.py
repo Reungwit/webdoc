@@ -289,83 +289,60 @@ def add_picture_box_with_caption(
     cap.paragraph_format.space_after = Pt(8)
     
     # <-- 2. แก้ไข: ใช้ chapter_no ที่รับเข้ามา
-    cap.add_run(f"ภาพที่ {chapter_no}-{run_no} {pic_name or ''}")
+    cap.add_run(f"ภาพที่ {chapter_no}-{run_no}  {pic_name or ''}")
 
 
-# --- 2. ฟังก์ชันที่แก้ไข (รับและส่งต่อ chapter_no) ---
-
+# =============== เดินต้นไม้หัวข้อย่อย ===============
 def walk_item_tree(
-    doc: Document,
-    section_no: str,
-    nodes: List[Dict[str, Any]],
-    *,
-    chapter_no: int,  # <-- 1. แก้ไข: รับเลขบทเข้ามา
-    media_root: str,
-    pic_counter: List[int],
-    seen_pics: set[str],
-    
-    # (ฟังก์ชัน helper สำหรับสไตล์)
-    heading_func: callable,
-    body_func: callable,
+    doc: Document, section_no: str, nodes: List[Dict[str, Any]], *,
+    chapter_no: int, media_root: str, pic_counter: List[int], seen_pics: set[str],
+    heading_func: callable, body_func: callable, caption_func: callable | None = None,
 ):
-    """
-    (ฟังก์ชันกลาง) เรนเดอร์ items แบบ tree
-    (แก้ไขให้รับ chapter_no และฟังก์ชันสไตล์)
-    """
-    if not isinstance(nodes, list):
-        return
+    if not isinstance(nodes, list): return
+    caption_func = caption_func or body_func
 
     for i, node in enumerate(nodes):
         current_no = f"{section_no}.{i+1}" if section_no else f"{i+1}"
         title = t((node or {}).get("text"))
         paras = [t(x) for x in as_list((node or {}).get("paragraphs")) if t(x)]
 
-        # --- (ปรับปรุง) หัวข้อระดับ 2 ขึ้นไป
-        if title:
-            heading_func(doc, current_no, title) # <-- ใช้ฟังก์ชันสไตล์ที่รับมา
+        if current_no or title:
+            heading_func(doc, current_no, title)
 
-        # ย่อหน้าที่เหลือของ node
         for s in paras:
-            body_func(doc, s) # <-- ใช้ฟังก์ชันสไตล์ที่รับมา
+            body_func(doc, s)
 
-        # รูปของ node นี้
         for pinfo in as_list((node or {}).get("pictures")):
-            abs_path = resolve_image_path(pinfo, media_root) # (ต้อง import resolve_image_path)
-            if not abs_path or abs_path in seen_pics:
-                continue
-            seen_pics.add(abs_path)
-            pic_counter[0] += 1
-            add_picture_box_with_caption(
-                doc,
-                abs_path,
-                pic_name=t(pinfo.get("pic_name")),
-                chapter_no=chapter_no,  # <-- 2. แก้ไข: ส่งต่อเลขบท
-                run_no=pic_counter[0],
-            )
+            abs_path = resolve_image_path(pinfo, media_root)
+            if not abs_path or abs_path in seen_pics: continue
+            seen_pics.add(abs_path); pic_counter[0] += 1
 
-        # ลูก
+            add_picture_box_with_caption(
+                doc, abs_path, pic_name=t(pinfo.get("pic_name")),
+                chapter_no=chapter_no, run_no=pic_counter[0],
+            )
+            for cap in as_list(pinfo.get("captions")):
+                s = t(cap)
+                if s: caption_func(doc, s)
+
         walk_item_tree(
-            doc,
-            current_no,
-            as_list((node or {}).get("children")),
-            chapter_no=chapter_no,  # <-- 3. แก้ไข: ส่งต่อเลขบท (ตอนเรียกซ้ำ)
-            media_root=media_root,
-            pic_counter=pic_counter,
-            seen_pics=seen_pics,
-            heading_func=heading_func, # ส่งต่อฟังก์ชันสไตล์
-            body_func=body_func,       # ส่งต่อฟังก์ชันสไตล์
+            doc, current_no, as_list((node or {}).get("children")),
+            chapter_no=chapter_no, media_root=media_root,
+            pic_counter=pic_counter, seen_pics=seen_pics,
+            heading_func=heading_func, body_func=body_func, caption_func=caption_func,
         )
+
 
 # --- 3. ฟังก์ชันสไตล์ (ไม่จำเป็นต้องแก้ไข แต่ย้ายมาได้) ---
 # (ฟังก์ชันเหล่านี้คือ "สไตล์" ของเอกสารคุณ)
 
-def add_body_paragraph_style_1(doc: Document, text: str) -> None:
+def add_body_paragraph_style_1(doc: Document, text: str,disth: bool = False) -> None:
     """
     (ฟังก์ชันกลาง) สไตล์เนื้อหา: ย่อหน้า 1.85 ซม.
     """
     p = add_wrapped_paragraph(doc, text, n=120, disth=True, custom_tap=1.85)
-    pf = p.paragraph_format
     # (อาจตั้งค่าเพิ่มเติม เช่น p.alignment = ... ถ้า add_wrapped_paragraph ไม่ได้ทำ)
+
 
 
 def add_section_heading_level1_style_1(doc: Document, title_no: str, title: str) -> None:
@@ -388,13 +365,12 @@ def add_section_heading_level2_plus_style_1(doc: Document, title_no: str, title:
     """
     text = two_spaces_join(t(title_no), t(title)) # (ต้อง import two_spaces_join)
     p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     r = p.add_run(text)
     r.bold = True
-    pf = p.paragraph_format
-    pf.first_line_indent = Cm(0.75)
-    pf.space_before = Pt(3)
-    pf.space_after = Pt(0)
+    r.first_line_indent = Cm(0.75)
+    r.space_before = Pt(3)
+    r.space_after = Pt(0)
+
 
 
 # ----------function for views helpers ----------
@@ -620,3 +596,6 @@ def sections_doc_safe(
             out[i].update({"title": title, "body": body, "mains": mains_out})
 
     return out
+
+def add_intro_caption_paragraph(doc: Document, text: str) -> None:
+    add_wrapped_paragraph(doc, text, n=85, custom_tap=0.75,disth=True)

@@ -333,8 +333,7 @@ def walk_item_tree(
         )
 
 
-# --- 3. ฟังก์ชันสไตล์ (ไม่จำเป็นต้องแก้ไข แต่ย้ายมาได้) ---
-# (ฟังก์ชันเหล่านี้คือ "สไตล์" ของเอกสารคุณ)
+
 
 def add_body_paragraph_style_1(doc: Document, text: str,disth: bool = False) -> None:
     """
@@ -367,11 +366,101 @@ def add_section_heading_level2_plus_style_1(doc: Document, title_no: str, title:
     p = doc.add_paragraph()
     r = p.add_run(text)
     r.bold = True
-    r.first_line_indent = Cm(0.75)
-    r.space_before = Pt(3)
-    r.space_after = Pt(0)
+    pf = p.paragraph_format
+    pf.first_line_indent = Cm(0.75)
+    pf.space_before = Pt(3)
+    pf.space_after = Pt(0)
 
 
+# =================== NEW: mapped heading / thai alpha level-5 ===================
+# วางบล็อคนี้ "ต่อท้าย" ไฟล์ man_doc/doc_function.py
+from docx.shared import Cm, Pt
+
+THAI_ALPHA = [
+    "ก","ข","ค","ง","จ","ฉ","ช","ซ","ฌ","ญ",
+    "ฎ","ฏ","ฐ","ฑ","ฒ","ณ","ด","ต","ถ","ท",
+    "ธ","น","บ","ป","ผ","ฝ","พ","ฟ","ภ","ม",
+    "ย","ร","ล","ว","ศ","ษ","ส","ห","ฬ","อ","ฮ"
+]
+
+def level_inside_chapter_py(number: str) -> int:
+    """
+    แปลง '2.1'→1, '2.1.1'→2, '2.1.1.1'→3, '2.1.1.1.1'→4
+    คือ 'นับระดับหลังเลขบท' ให้ขั้นต่ำเป็น 1
+    """
+    s = str(number or "").strip()
+    if not s:
+        return 1
+    parts = s.split(".")
+    if len(parts) <= 1:
+        return 1
+    return max(1, len(parts) - 1)
+
+def last_index_from_number_py(number: str) -> int:
+    """
+    คืนค่าตัวเลขท้ายสุดของหัวข้อ เช่น '2.1.1.3' -> 3
+    หากหาไม่ได้ คืน 1
+    """
+    try:
+        parts = str(number).split(".")
+        tail = parts[-1] if parts else "1"
+        return int(tail) if tail.isdigit() else 1
+    except Exception:
+        return 1
+
+def add_section_heading_tap(doc, section_no: str = "", title: str = "",
+                            left_cm: float = 0.0, bold: bool = False,
+                            space_before_pt: int = 3, space_after_pt: int = 0):
+    """
+    สร้างหัวข้อด้วยการกำหนดระยะเยื้องซ้าย (ซม.) และกำหนดตัวหนา/บาง
+    ไม่ยุ่งกับฟอนต์/ขนาด เพราะสืบทอดจาก doc_setup() เดิม
+    """
+    p = doc.add_paragraph()
+    pf = p.paragraph_format
+    pf.left_indent = Cm(left_cm)
+    pf.first_line_indent = Cm(0)
+    pf.space_before = Pt(space_before_pt)
+    pf.space_after = Pt(space_after_pt)
+    pf.keep_with_next = True
+
+    text = two_spaces_join(section_no, title)
+    r = p.add_run(text)
+    r.font.bold = bool(bold)
+    return p
+
+def make_heading_tap_func_map(
+    *,
+    level_tap_cm: dict[int, float] | None = None,
+    level_bold: dict[int, bool] | None = None,
+    alpha_level: int = 5,
+    alpha_list: list[str] | None = None,
+    fallback_left_cm: float = 0.0,
+):
+    """
+    คืนฟังก์ชัน heading_func(doc, number, title, level=?)
+    - ระยะเยื้อง: ใช้ level_tap_cm ตามเลเวล (เช่น {1:0, 2:0.75, 3:1.0, 4:2.0, 5:2.0})
+    - ตัวหนา/บาง: ใช้ level_bold ตามเลเวล (เช่น {1:True,2:True,3:False,4:False,5:False})
+    - ถ้า level == alpha_level (เช่น 5) ให้แสดง prefix เป็นอักษรไทย 'ก)' แทนเลขท้ายจริง
+      โดย index อักษรอ้างอิงจากเลขท้ายสุดของหัวข้อ
+    """
+    level_tap_cm = level_tap_cm or {}
+    level_bold = level_bold or {}
+    alpha_list = alpha_list or THAI_ALPHA
+
+    def heading_func(d, number, text, level: int | None = None):
+        lv = level_inside_chapter_py(number) if level is None else int(level) or level_inside_chapter_py(number)
+        left_cm = level_tap_cm.get(lv, fallback_left_cm)
+        is_bold = level_bold.get(lv, False)
+
+        show_no = str(number)
+        if alpha_level and lv == alpha_level:
+            idx = max(1, last_index_from_number_py(number))
+            letter = alpha_list[(idx - 1) % len(alpha_list)]
+            show_no = f"{letter})"
+
+        return add_section_heading_tap(d, show_no, text, left_cm=left_cm, bold=is_bold)
+
+    return heading_func
 
 # ----------function for views helpers ----------
 def _t(v: Any) -> str:
@@ -598,4 +687,4 @@ def sections_doc_safe(
     return out
 
 def add_intro_caption_paragraph(doc: Document, text: str) -> None:
-    add_wrapped_paragraph(doc, text, n=85, custom_tap=0.75,disth=True)
+    add_wrapped_paragraph(doc, text, n=75, custom_tap=0.75,disth=True)

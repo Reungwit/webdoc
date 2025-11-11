@@ -327,15 +327,6 @@ function renderNode(sectionObj,secIndex,nodeObj,pathArr){
 
   const ctr=document.createElement('div'); ctr.className='node-controls';
 
-  const addPara=document.createElement('button'); addPara.type='button'; addPara.className='mini-btn';
-  addPara.textContent='➕ ย่อหน้าใน '+nodeNo;
-  addPara.addEventListener('click',()=>{ if(!nodeObj.paragraphs) nodeObj.paragraphs=[]; nodeObj.paragraphs.push(''); redrawSections(); });
-
-  const addChild=document.createElement('button'); addChild.type='button'; addChild.className='mini-btn';
-  const nextChildNo = nodeNo + '.' + ((nodeObj.children?.length || 0) + 1);
-  addChild.textContent='➕ เพิ่มหัวข้อย่อยถัดไป '+nextChildNo;
-  addChild.addEventListener('click',()=>{ if(!nodeObj.children) nodeObj.children=[]; nodeObj.children.push(makeNode()); redrawSections(); });
-
   const delNode=document.createElement('button'); delNode.type='button'; delNode.className='mini-btn danger'; delNode.textContent='ลบหัวข้อ '+nodeNo;
   delNode.addEventListener('click',()=>{
     if (!confirm('ยืนยันลบหัวข้อ '+nodeNo+' ?')) return;
@@ -343,23 +334,32 @@ function renderNode(sectionObj,secIndex,nodeObj,pathArr){
     if (ok){ redrawSections(); } else { alertBox.show('ลบหัวข้อไม่สำเร็จ','error'); }
   });
 
-  ctr.appendChild(addPara); ctr.appendChild(addChild); ctr.appendChild(delNode);
+  ctr.appendChild(delNode);
   top.appendChild(badge); top.appendChild(title); top.appendChild(ctr);
   wrap.appendChild(top);
 
   if(nodeObj.paragraphs && nodeObj.paragraphs.length){
     wrap.appendChild(renderParagraphs(nodeObj.paragraphs, ()=>syncSectionsHidden(), ()=>{redrawSections();}));
   }else{
-    const btn=document.createElement('button'); btn.type='button'; btn.className='mini-btn'; btn.textContent='➕ เพิ่มย่อหน้าใน '+nodeNo;
+    const btn=document.createElement('button'); btn.type='button'; btn.className='mini-btn'; btn.textContent='➕ เพิ่มย่อหน้า';
+    btn.style.marginBottom='12px';
     btn.addEventListener('click',()=>{ if(!nodeObj.paragraphs) nodeObj.paragraphs=[]; nodeObj.paragraphs.push(''); redrawSections(); });
     wrap.appendChild(btn);
   }
 
-  wrap.appendChild(renderPicturesBox(sectionObj,secIndex,pathArr));
+  const pics = renderPicturesBox(sectionObj,secIndex,pathArr);
+  pics.style.marginTop = '12px';
+  wrap.appendChild(pics);
 
   const children=document.createElement('div'); children.className='children-block';
   (nodeObj.children||[]).forEach((ch,i)=>{children.appendChild(renderNode(sectionObj,secIndex,ch,[...pathArr,i]));});
   wrap.appendChild(children);
+
+  const nextChildNo = nodeNo + '.' + ((nodeObj.children?.length || 0) + 1);
+  const addChild=document.createElement('button'); addChild.type='button'; addChild.className='mini-btn';
+  addChild.textContent='➕ เพิ่มหัวข้อย่อยถัดไป '+nextChildNo;
+  addChild.addEventListener('click',()=>{ if(!nodeObj.children) nodeObj.children=[]; nodeObj.children.push(makeNode()); redrawSections(); });
+  wrap.appendChild(addChild);
 
   return wrap;
 }
@@ -401,9 +401,17 @@ function renderSectionCard(sectionObj,secIndex){
   return card;
 }
 
+/* ---------- ใหม่: รีเซ็ตหมายเลขหัวข้อหลักตามลำดับใน sectionsState ---------- */
+function renumberSections(chapterNo='2'){
+  sectionsState.forEach((sec, i) => { sec.title_no = chapterNo + '.' + (i + 1); });
+}
+
 function redrawSections(){
   const cont=qs('sections-container'); cont.innerHTML='';
   if(!sectionsState.length){ cont.className=''; refreshAddSectionButton(); return; }
+
+  renumberSections('2'); /* <-- เรียกทุกครั้งก่อนเรนเดอร์ เพื่อแก้เลขค้างหลังลบ/แทรก */
+
   cont.className='chapter2-sections-wrapper';
   sectionsState.forEach((s,i)=>cont.appendChild(renderSectionCard(s,i)));
   syncSectionsHidden();

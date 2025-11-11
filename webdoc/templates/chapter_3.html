@@ -34,20 +34,30 @@
 
       <div class="section-card-body">
         <div class="badge-no">บทนำ</div>
-        <textarea id="intro_body" name="intro_body" class="clean-textarea main-textarea" rows="6" placeholder="พิมพ์เนื้อหาบทนำของบทที่ 3...">{{ initial.intro_body|default:'' }}</textarea>
+        
+        <div id="intro-paras"></div>
+        <div id="intro-nodes"></div>
+
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="btnAddIntroNode" class="main-btn main-btn-neutral" type="button">
+            <span class="emoji">➕</span><span>หัวข้อย่อยในบทนำ 3.1</span>
+          </button>
+        </div>
       </div>
     </section>
 
-    <div class="toolbar-top">
+    
+<div id="sections-container" class="chapter-sections-wrapper"></div>
+
+    <input type="hidden" id="intro_body" name="intro_body" value="{}">
+    <input type="hidden" id="sections_json" name="sections_json" value="[]">
+    <input type="hidden" id="tables_json"   name="chapter3_tables_json" value="[]">
+
+    <div class="toolbar-bottom" style="margin-top: 18px;">
       <button id="btnAddSection" class="main-btn main-btn-neutral" type="button">
         <span class="emoji">➕</span><span>เพิ่มหัวข้อใหญ่ (3.x)</span>
       </button>
     </div>
-
-    <div id="sections-container" class="chapter-sections-wrapper"></div>
-
-    <input type="hidden" id="sections_json" name="sections_json" value="[]">
-    <input type="hidden" id="tables_json"   name="chapter3_tables_json" value="[]">
 
     <div class="footer-action-bar">
       <button class="main-btn main-btn-success" 
@@ -69,6 +79,7 @@
 
   {% if initial.sections %}{{ initial.sections|json_script:"chapter3-sections" }}{% endif %}
   {% if initial.tables %}{{ initial.tables|json_script:"chapter3-tables" }}{% endif %}
+  {{ initial.intro_body|default:"{}"|json_script:"intro-body-data" }}
 
 </div> 
 
@@ -107,6 +118,119 @@ function getJsonScript(id){
   if(!el) return null;
   try { return JSON.parse(el.textContent); } catch(e){ console.error('JSON Script Error:', e); return null; }
 }
+
+/* ========================= Intro Management (เหมือนบท 2) ========================= */
+let introData = { paragraphs: [], subnodes: [] };
+
+function getIntroBodyData() {
+    const raw = document.getElementById('intro-body-data');
+    if (raw) {
+        try {
+            const d = JSON.parse(raw.textContent || '{}');
+            if (d && (Array.isArray(d.paragraphs) || Array.isArray(d.subnodes))) return d;
+        } catch (e) {
+            console.error("Error parsing intro data:", e);
+        }
+    }
+    return { paragraphs: [], subnodes: [] };
+}
+
+function syncIntroHidden() {
+    const h = document.getElementById('intro_body');
+    if (h) h.value = JSON.stringify(introData);
+}
+
+function refreshIntroButtons() {
+    const btn = document.getElementById('btnAddIntroNode');
+    if (btn) {
+        const next = ' 3.' + ((introData.subnodes?.length || 0) + 1);
+        btn.querySelector('span:last-child').textContent = 'หัวข้อย่อยในบทนำ' + next; 
+    }
+}
+
+function renderIntroParas() {
+    const mount = document.getElementById('intro-paras');
+    mount.innerHTML = '';
+    if (!introData.paragraphs || introData.paragraphs.length === 0) {
+        mount.className = '';
+        refreshIntroButtons();
+        return;
+    }
+    mount.className = 'paras-wrap';
+    mount.appendChild(
+        renderParagraphs(
+            introData.paragraphs, 
+            () => syncIntroHidden(), 
+            () => { renderIntroParas(); }
+        )
+    );
+    refreshIntroButtons();
+    syncIntroHidden();
+}
+
+function renderIntroNodes() {
+    const wrap = document.getElementById('intro-nodes');
+    wrap.innerHTML = '';
+    if (!introData.subnodes || introData.subnodes.length === 0) {
+        wrap.className = '';
+        refreshIntroButtons();
+        return;
+    }
+    wrap.className = 'chapter-sections-wrapper';
+
+    introData.subnodes.forEach((n, idx) => {
+        const card = document.createElement('div');
+        card.className = 'chapter-section-card';
+        card.style.padding = '12px';
+
+        const head = document.createElement('div');
+        head.className = 'chapter-head-row';
+        const badge = document.createElement('div');
+        badge.className = 'badge-no';
+        badge.textContent = '3.' + (idx + 1);
+        const title = document.createElement('input');
+        title.type = 'text';
+        title.className = 'chapter-title-input';
+        title.placeholder = 'หัวข้อย่อยของบทนำ';
+        title.value = n.title || '';
+        title.addEventListener('input', e => {
+            n.title = e.target.value;
+            syncIntroHidden();
+        });
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'mini-btn danger';
+        del.textContent = 'ลบ'; 
+        del.addEventListener('click', () => {
+            introData.subnodes.splice(idx, 1);
+            renderIntroNodes();
+            syncIntroHidden();
+        });
+        head.appendChild(badge);
+        head.appendChild(title);
+        head.appendChild(del);
+        card.appendChild(head);
+
+        if (!n.paragraphs) n.paragraphs = [];
+        const paraWrap = document.createElement('div');
+        paraWrap.className = "overview-block";
+        paraWrap.style.marginTop = '10px';
+        paraWrap.appendChild(
+            renderParagraphs(
+                n.paragraphs, 
+                () => syncIntroHidden(), 
+                () => { renderIntroNodes(); syncIntroHidden(); }
+            )
+        );
+        card.appendChild(paraWrap);
+
+        wrap.appendChild(card);
+    });
+
+    refreshIntroButtons();
+    syncIntroHidden();
+}
+
 
 /* ========================= Data Model ========================= */
 function makeNode() {
@@ -169,6 +293,15 @@ function buildNodeNumber(sectionNo, pathArr) {
   const suffix = pathArr.map(i => (i+1)).join(".");
   return sectionNo + "." + suffix;
 }
+// 💡 ฟังก์ชันสำหรับรันเลขที่ปุ่มเพิ่มหัวข้อใหญ่
+function refreshAddSectionButton() {
+  const btn = document.getElementById('btnAddSection');
+  if (btn) {
+    const nextNo = getNextSectionNumber();
+    btn.querySelector('span:last-child').textContent = 'เพิ่มหัวข้อใหญ่ (' + nextNo + ')';
+  }
+}
+
 function getNextSectionNumber() {
   if (sectionsState.length === 0) return "3.1";
   const last = sectionsState[sectionsState.length - 1].title_no || "3.1";
@@ -176,7 +309,7 @@ function getNextSectionNumber() {
   if (parts.length === 2) {
     const chap = parts[0];
     const idx  = parseInt(parts[1], 10) || 1;
-    return chap + "." + (idx + 1);
+    return chap + "." + (sectionsState.length + 1);
   }
   return "3." + (sectionsState.length + 1);
 }
@@ -258,42 +391,56 @@ function computeFirstFreeTableNoForChapter(chapterNo) {
   return `${chapterNo}-${i}`;
 }
 
-/* ========================= Paragraph Editor (คงเดิม) ========================= */
-function renderParagraphs(arr, onChangeContent, onAddOrRemove) {
+/* ========================= Paragraph Editor (ปรับปรุงให้รองรับปุ่มใหญ่/เล็ก) ========================= */
+// **หมายเหตุ:** ฟังก์ชันนี้จะถูกใช้ทั้งใน Intro และ Body/Node
+function renderParagraphs(arr, onChangeContent, onAddOrRemove, isBody = false) {
   const wrap = document.createElement("div");
   wrap.className = "paras-wrap";
-  arr.forEach((txt, idx) => {
-    const row = document.createElement("div");
-    row.className = "para-row";
-    const ta = document.createElement("textarea");
-    ta.classList.add("clean-textarea");
-    ta.value = txt || "";
-    ta.placeholder = "พิมพ์ย่อหน้า . . .";
-    ta.addEventListener("input", (e) => {
-      arr[idx] = e.target.value;
-      if (onChangeContent) onChangeContent();
-    });
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "mini-btn danger";
-    del.textContent = "ลบย่อหน้า";
-    del.addEventListener("click", () => {
-      arr.splice(idx,1);
-      if (onAddOrRemove) onAddOrRemove();
-    });
-    row.appendChild(ta);
-    row.appendChild(del);
-    wrap.appendChild(row);
-  });
+  
+  if(arr.length > 0) {
+      arr.forEach((txt, idx) => {
+        const row = document.createElement("div");
+        row.className = "para-row";
+        const ta = document.createElement("textarea");
+        ta.classList.add("clean-textarea");
+        ta.value = txt || "";
+        ta.placeholder = "พิมพ์ย่อหน้า . . .";
+        ta.addEventListener("input", (e) => {
+          arr[idx] = e.target.value;
+          if (onChangeContent) onChangeContent();
+        });
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "mini-btn danger";
+        del.textContent = "ลบย่อหน้า";
+        del.addEventListener("click", () => {
+          arr.splice(idx,1);
+          if (onAddOrRemove) onAddOrRemove();
+        });
+        row.appendChild(ta);
+        row.appendChild(del);
+        wrap.appendChild(row);
+      });
+      // ปุ่มเพิ่มย่อหน้าเล็กๆ จะถูกเรนเดอร์ผ่านปุ่มใน controls/node-top-row
+      // จึงไม่จำเป็นต้องมีปุ่ม 'เพิ่มย่อหน้า' ซ้ำอีกตรงนี้
+  }
+
   const addBtn = document.createElement("button");
   addBtn.type = "button";
   addBtn.className = "mini-btn";
   addBtn.textContent = "➕ เพิ่มย่อหน้า";
+  addBtn.style.padding = '10px 14px'; // 💡 ทำให้ดูเป็นปุ่มใหญ่ขึ้น
+  addBtn.style.width = '10%';
+  addBtn.style.textAlign = 'center';
+  addBtn.style.marginTop = '10px';
+
   addBtn.addEventListener("click", () => {
     arr.push("");
     if (onAddOrRemove) onAddOrRemove();
   });
+
   wrap.appendChild(addBtn);
+
   return wrap;
 }
 
@@ -364,7 +511,7 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
     const picName = (captionInput.value || "").trim();
     const f = pendingFiles[keyForThisNode];
     if (!picName) { alertBox.show("กรุณากรอกชื่อ/คำอธิบายรูป", "warning"); return; }
-    if (!f)       { alertBox.show("ยังไม่ได้เลือกรูป", "warning"); return; }
+    if (!f)       { alertBoxBox.show("ยังไม่ได้เลือกรูป", "warning"); return; }
     alertBox.show("กำลังอัปโหลดรูป...", "info", 0);
     try {
       const chapterNo = String(sectionObj.title_no).split(".")[0] || "3";
@@ -443,7 +590,7 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
   return picsBox;
 }
 
-/* ========================= Table builder & editor ========================= */
+/* ========================= Table builder & editor (คงเดิม) ========================= */
 /* === createEmptyTable (คงเดิม) === */
 function createEmptyTable(tableNo, caption, rows, cols, type="default"){
   const presets = {
@@ -517,18 +664,16 @@ function renderTableBuilder(sectionObj, pathArr, nodeObj) {
   return box;
 }
 
-/* === (✅✅✅ แก้ไข: รวมฟังก์ชัน) renderSingleNodeTable === */
+/* === (คงเดิม) renderSingleNodeTable === */
 function renderSingleNodeTable(t, nodeObj, reRenderFn) {
   const wrap = document.createElement("div");
   wrap.className = "table-card";
 
-  // ✅ 1. เพิ่ม: ตำแหน่งโฟกัสปัจจุบัน
   let sel = { r: 0, c: 0 };
 
   const head = document.createElement("div");
   head.className = "table-head";
   
-  // ✅ 2. แก้ไข: เปลี่ยนชุดปุ่ม
   head.innerHTML = `
     <div class="table-title">
       <span class="badge-no">ตารางที่ ${t.table_no || '?-?'}</span>
@@ -541,11 +686,11 @@ function renderSingleNodeTable(t, nodeObj, reRenderFn) {
       </select>
     </div>
     <div class="table-actions">
-      <button type="button" class="mini-btn" data-act="ins-row-above">↑ แทรกแถวบน</button>
-      <button type="button" class="mini-btn" data-act="ins-row-below">↓ แทรกแถวล่าง</button>
-      <button type="button" class="mini-btn" data-act="ins-col-left">← แทรกคอลัมน์ซ้าย</button>
-      <button type="button" class="mini-btn" data-act="ins-col-right">→ แทรกคอลัมน์ขวา</button>
-      <button type="button" class="mini-btn" data-act="add-section-row">+ แถวหัวข้อส่วน</button>
+      <button type="button" class="mini-btn" data-act="ins-row-above">↑ แถวบน</button>
+      <button type="button" class="mini-btn" data-act="ins-row-below">↓ แถวล่าง</button>
+      <button type="button" class="mini-btn" data-act="ins-col-left">← คอลัมน์ซ้าย</button>
+      <button type="button" class="mini-btn" data-act="ins-col-right">→ คอลัมน์ขวา</button>
+      <button type="button" class="mini-btn" data-act="add-section-row">+ แถวส่วน</button>
       <button type="button" class="mini-btn" data-act="del-row">- แถว</button>
       <button type="button" class="mini-btn" data-act="del-col">- คอลัมน์</button>
       <button type="button" class="mini-btn danger" data-act="del-table">ลบตาราง</button>
@@ -567,7 +712,7 @@ function renderSingleNodeTable(t, nodeObj, reRenderFn) {
     const inp = document.createElement("input");
     inp.type = "text"; inp.value = h || "";
     inp.addEventListener("input", (e) => { t.headers[cidx] = e.target.value; syncHiddenField(); });
-    inp.addEventListener("focus", () => { sel.c = cidx; sel.r = 0; }); // ✅ 3. เพิ่ม: focus listener
+    inp.addEventListener("focus", () => { sel.c = cidx; sel.r = 0; }); 
     th.appendChild(inp); trh.appendChild(th);
   });
   thead.appendChild(trh); tbl.appendChild(thead);
@@ -585,7 +730,7 @@ function renderSingleNodeTable(t, nodeObj, reRenderFn) {
       inp.type = "text"; inp.value = (row && row[0]) || "";
       inp.placeholder = "หัวข้อส่วน / กลุ่มเนื้อหา (เช่น ด้านคุณสมบัติของตัวอุปกรณ์)";
       inp.addEventListener("input", (e) => { t.rows[r] = [e.target.value]; syncHiddenField(); });
-      inp.addEventListener("focus", () => { sel.r = r; sel.c = 0; }); // ✅ 4. เพิ่ม: focus listener
+      inp.addEventListener("focus", () => { sel.r = r; sel.c = 0; }); 
       td.appendChild(inp); tr.appendChild(td);
     } else {
       const ensureCols = t.headers.length;
@@ -597,7 +742,7 @@ function renderSingleNodeTable(t, nodeObj, reRenderFn) {
         const inp = document.createElement("input");
         inp.type = "text"; inp.value = cell || "";
         inp.addEventListener("input", (e) => { t.rows[r][c] = e.target.value; syncHiddenField(); });
-        inp.addEventListener("focus", () => { sel.r = r; sel.c = c; }); // ✅ 5. เพิ่ม: focus listener
+        inp.addEventListener("focus", () => { sel.r = r; sel.c = c; }); 
         td.appendChild(inp); tr.appendChild(td);
       });
     }
@@ -721,8 +866,12 @@ function renderSingleNodeTable(t, nodeObj, reRenderFn) {
   return wrap;
 }
 
-/* ========================= Render nodes/sections (คงเดิม) ========================= */
-// (ฟังก์ชันนี้รองรับการซ้อนไม่จำกัดระดับ และการมีรูป/ตาราง ในทุกระดับอยู่แล้ว)
+/* ========================= Render nodes/sections (ปรับตำแหน่งปุ่ม) ========================= */
+// 💡 ฟังก์ชันนี้รับผิดชอบในการตั้งค่าหมายเลขหัวข้อหลัก
+function renumberSections(chapterNo = '3') {
+    sectionsState.forEach((sec, i) => { sec.title_no = chapterNo + '.' + (i + 1); });
+}
+
 function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   const nodeEl = document.createElement("div");
   nodeEl.className = "node-card";
@@ -747,40 +896,34 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   const controls = document.createElement("div");
   controls.className = "node-controls";
 
+  // 💡 ปุ่ม '➕ ย่อหน้า' (mini-btn)
   const btnAddPara = document.createElement("button");
   btnAddPara.type = "button";
   btnAddPara.className = "mini-btn";
-  btnAddPara.textContent = "➕ ย่อหน้า";
+  btnAddPara.textContent = "➕ ย่อหน้า"; 
   btnAddPara.addEventListener("click", () => {
     if (!nodeObj.paragraphs) nodeObj.paragraphs = [];
     nodeObj.paragraphs.push("");
     redrawSections();
   });
-
-  const btnAddChild = document.createElement("button");
-  btnAddChild.type = "button";
-  btnAddChild.className = "mini-btn";
-  btnAddChild.textContent = "➕ หัวข้อย่อยถัดไป"; // (ปุ่มนี้สร้างระดับที่ลึกลงไปเรื่อยๆ)
-  btnAddChild.addEventListener("click", () => {
-    if (!nodeObj.children) nodeObj.children = [];
-    nodeObj.children.push(makeNode());
-    redrawSections();
-  });
-
+  
+  // 💡 ปุ่ม 'ลบ' (mini-btn)
   const btnDelNode = document.createElement("button");
   btnDelNode.type = "button";
   btnDelNode.className = "mini-btn danger";
-  btnDelNode.textContent = "ลบหัวข้อย่อย";
+  btnDelNode.textContent = "ลบ"; 
   btnDelNode.addEventListener("click", () => {
     const ref = getParentAndIndex(sectionObj, pathArr);
-    if (ref) {
+    if (ref && confirm("ยืนยันลบหัวข้อ " + nodeNo + " ?")) {
       ref.listRef.splice(ref.idx, 1);
       redrawSections();
     }
   });
+  
+  // ❌ ลบปุ่ม หัวข้อย่อยถัดไป ออกจาก controls
+  // controls.appendChild(btnAddChild); 
 
   controls.appendChild(btnAddPara);
-  controls.appendChild(btnAddChild);
   controls.appendChild(btnDelNode);
 
   topRow.appendChild(badge);
@@ -796,8 +939,7 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
       () => { redrawSections(); }
     )
   );
-
-  // (กล่องรูป/ตาราง ถูกเพิ่มในทุก Node ไม่ว่าจะลึกแค่ไหน)
+  
   nodeEl.appendChild(renderPicturesBox(sectionObj, secIndex, pathArr));
   nodeEl.appendChild(renderTableBuilder(sectionObj, pathArr, nodeObj));
 
@@ -821,12 +963,28 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
 
   const childrenWrap = document.createElement("div");
   childrenWrap.className = "children-block";
-  // (การเรียกตัวเองซ้ำตรงนี้ ทำให้รองรับการซ้อนไม่จำกัดระดับ)
+  
   (nodeObj.children || []).forEach((childNode, childIdx) => {
     const childPath = [...pathArr, childIdx];
     childrenWrap.appendChild(renderNode(sectionObj, secIndex, childNode, childPath));
   });
   nodeEl.appendChild(childrenWrap);
+
+  // 💡 เพิ่ม: ย้ายปุ่ม "➕ หัวข้อย่อยถัดไป" มาไว้ด้านล่างสุดของ node
+  const btnAddChildBottom = document.createElement("button");
+  btnAddChildBottom.type = "button";
+  btnAddChildBottom.className = "mini-btn";
+  const nextChildNoBottom = nodeNo + '.' + ((nodeObj.children?.length || 0) + 1);
+  btnAddChildBottom.textContent = "➕ หัวข้อย่อยถัดไป (" + nextChildNoBottom + ")";
+  btnAddChildBottom.style.marginTop = '10px';
+  btnAddChildBottom.style.display = 'block'; // ให้ปุ่มอยู่คนเดียว
+  btnAddChildBottom.addEventListener("click", () => {
+    if (!nodeObj.children) nodeObj.children = [];
+    nodeObj.children.push(makeNode());
+    redrawSections();
+  });
+  nodeEl.appendChild(btnAddChildBottom);
+  
   return nodeEl;
 }
 
@@ -841,13 +999,19 @@ function renderSectionTree(sectionObj, secIndex) {
   const addRootBtn = document.createElement("button");
   addRootBtn.type = "button";
   addRootBtn.className = "mini-btn";
-  addRootBtn.textContent = "➕ เพิ่มหัวข้อย่อยระดับแรก";
+  const nextRootNo = sectionObj.title_no + '.' + ((sectionObj.items?.length || 0) + 1);
+  addRootBtn.textContent = "➕ หัวข้อย่อยระดับแรก (" + nextRootNo + ")"; 
   addRootBtn.addEventListener("click", () => {
     if (!sectionObj.items) sectionObj.items = [];
     sectionObj.items.push(makeNode());
     redrawSections();
   });
-  treeWrap.appendChild(addRootBtn);
+  
+  const wrapper = document.createElement("div");
+  wrapper.style.marginTop = '10px';
+  wrapper.appendChild(addRootBtn);
+  treeWrap.appendChild(wrapper);
+  
   return treeWrap;
 }
 
@@ -876,10 +1040,12 @@ function renderSectionCard(sectionObj, secIndex) {
   delSectionBtn.type = "button";
   delSectionBtn.className = "mini-btn danger";
   delSectionBtn.style.marginLeft = "auto";
-  delSectionBtn.textContent = "ลบหัวข้อใหญ่";
+  delSectionBtn.textContent = "ลบหัวข้อใหญ่"; 
   delSectionBtn.addEventListener("click", () => {
-    sectionsState.splice(secIndex, 1);
-    redrawSections();
+    if (confirm("ยืนยันลบหัวข้อหลัก " + sectionObj.title_no + " ?")) {
+        sectionsState.splice(secIndex, 1);
+        redrawSections();
+    }
   });
 
   headRow.appendChild(badge);
@@ -894,6 +1060,8 @@ function renderSectionCard(sectionObj, secIndex) {
   overLabel.textContent = "ย่อหน้าอธิบายหัวข้อนี้ (ภาพรวม):";
   overBlock.appendChild(overLabel);
   if (!sectionObj.body_paragraphs) sectionObj.body_paragraphs = [];
+  
+  // 💡 ใช้ renderParagraphs ที่มีปุ่ม เพิ่มย่อหน้าขนาดใหญ่อยู่ข้างใน
   overBlock.appendChild(
     renderParagraphs(
       sectionObj.body_paragraphs,
@@ -910,10 +1078,14 @@ function redrawSections() {
   const container = document.getElementById("sections-container");
   if (!container) return;
   container.innerHTML = "";
+  
+  renumberSections('3'); 
+
   sectionsState.forEach((secObj, secIndex) => {
     container.appendChild(renderSectionCard(secObj, secIndex));
   });
   syncHiddenField();
+  refreshAddSectionButton(); 
 }
 
 /* ========================= Mapping initial data to nodes (คงเดิม) ========================= */
@@ -956,6 +1128,8 @@ function attachTablesToNodesFromInitial(tables){
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("chapter3Form");
   const btnAddSection = document.getElementById("btnAddSection");
+  
+  // 💡 Event Listener สำหรับปุ่มเพิ่มหัวข้อใหญ่
   if (btnAddSection) {
     btnAddSection.addEventListener("click", () => {
       const nextNo = getNextSectionNumber();
@@ -963,6 +1137,29 @@ document.addEventListener("DOMContentLoaded", () => {
       redrawSections();
     });
   }
+
+  /* --- Init Intro Data และ Event Listeners --- */
+  introData = getIntroBodyData();
+  renderIntroParas();
+  renderIntroNodes();
+  
+  const btnAddIntroPara = document.getElementById('btnAddIntroPara');
+  if (btnAddIntroPara) {
+      btnAddIntroPara.onclick = () => {
+          if (!introData.paragraphs) introData.paragraphs = [];
+          introData.paragraphs.push('');
+          renderIntroParas();
+      };
+  }
+  const btnAddIntroNode = document.getElementById('btnAddIntroNode');
+  if (btnAddIntroNode) {
+      btnAddIntroNode.onclick = () => {
+          if (!introData.subnodes) introData.subnodes = [];
+          introData.subnodes.push({ title: '', paragraphs: [''] }); 
+          renderIntroNodes();
+      };
+  }
+  /* --- สิ้นสุดการเพิ่ม Intro --- */
 
   // เติมข้อมูลจาก server
   const preSecs = getJsonScript('chapter3-sections');
@@ -982,6 +1179,8 @@ document.addEventListener("DOMContentLoaded", () => {
       pictures: Array.isArray(sec.pictures) ? sec.pictures.map(remapPicture) : [],
       items: Array.isArray(sec.items) ? sec.items.map(remapNode) : [ makeNode() ]
     }));
+  } else {
+    sectionsState = [];
   }
 
   const preTables = getJsonScript('chapter3-tables');
@@ -1011,6 +1210,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
       syncHiddenField();
+      syncIntroHidden(); 
     });
   }
 });

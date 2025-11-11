@@ -12,6 +12,7 @@ from man_doc.doc_function import (
     add_intro_caption_paragraph,           # ย่อหน้าบทนำ/คำอธิบายใต้รูป (เฉพาะ)
     add_picture_box_with_caption,
     walk_item_tree, resolve_image_path, t, as_list,
+    
 )
 
 CHAPTER_NO = 2
@@ -88,7 +89,7 @@ def doc_chapter2(
             add_section_heading_level1_style_1(doc, title_no, title_txt)
         for s in as_list((sn or {}).get("paragraphs")):
             s = t(s)
-            if s: add_intro_caption_paragraph(doc, s)
+            if s: add_wrapped_paragraph(doc, s, n=85, custom_tap=0.75,disth=True)
 
     # -------- 2) หัวข้อหลัก --------
     pic_counter = [0]   # ใช้ list เพื่อให้ส่งอ้างอิงเข้า walk_item_tree ได้

@@ -367,9 +367,10 @@ def add_section_heading_level2_plus_style_1(doc: Document, title_no: str, title:
     p = doc.add_paragraph()
     r = p.add_run(text)
     r.bold = True
-    r.first_line_indent = Cm(0.75)
-    r.space_before = Pt(3)
-    r.space_after = Pt(0)
+    pf = p.paragraph_format
+    pf.first_line_indent = Cm(0.75)
+    pf.space_before = Pt(3)
+    pf.space_after = Pt(0)
 
 
 

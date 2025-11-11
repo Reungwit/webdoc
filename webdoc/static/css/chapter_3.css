@@ -109,3 +109,186 @@ h2{margin:0 0 8px;color:var(--primary);font-weight:700;}
 /* Handsontable wrapper */
 .hot-mount{width:100%; overflow:auto; border-radius:10px; border:1px solid var(--border)}
 .handsontable .wtHolder{max-height:360px;} /* เลื่อนภายในตารางได้ */
+
+
+/* ============ Enhanced Table UI ============ */
+
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;         /* ให้เส้นขอบชิดกัน */
+  border: 1px solid #d1d5db;        /* เส้นรอบนอก */
+  border-radius: 10px;
+  background: #fff;
+  table-layout: fixed;
+}
+
+/* --- ส่วนหัว --- */
+.ui-table thead th {
+  background: #f8fafc;
+  border: 1px solid #d1d5db;
+  padding: 8px 10px;
+  font-weight: 600;
+  color: #111827;
+  text-align: center;
+}
+
+.ui-table thead th input {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: center;
+  font-weight: 600;
+  color: #111827;
+}
+.ui-table thead th input:focus {
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .15);
+  outline: none;
+}
+
+/* --- เซลล์ --- */
+.ui-table tbody td {
+  border: 1px solid #d1d5db;
+  padding: 4px 6px;
+  vertical-align: top;
+  background: #fff;
+}
+
+.ui-table tbody tr:nth-child(odd):not(.is-section) td {
+  background: #f9fafb;
+}
+
+.ui-table tbody td input {
+  width: 100%;
+  border: none;
+  padding: 6px 8px;
+  background: transparent;
+  font-size: 14px;
+  color: #111827;
+}
+.ui-table tbody td input:focus {
+  background: #fff;
+  border: 1px solid #3b82f6;
+  border-radius: 6px;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, .15);
+}
+
+/* --- แถวหัวข้อส่วน (section-row) --- */
+.ui-table tbody tr .section-row {
+  background: #eef2ff !important;
+  font-weight: 700;
+  color: #1e3a8a;
+  text-align: left;
+  border: 1px dashed #94a3b8;
+}
+.ui-table tbody tr .section-row input {
+  background: transparent;
+  border: none;
+  width: 100%;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+/* --- Hover / Focus --- */
+.ui-table tbody tr:hover td {
+  background: #f1f5f9;
+  transition: background 0.15s ease;
+}
+.ui-table tbody tr:has(input:focus) td {
+  background: #ffffff;
+  border-color: #3b82f6;
+}
+
+/* --- Notes (คำอธิบายตาราง) --- */
+.table-notes-wrap {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed #d1d5db;
+}
+.table-notes-wrap .note-label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+/* --- Action Buttons --- */
+.table-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.table-head .mini-btn {
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+.table-head .mini-btn.danger {
+  background: #ef4444;
+  color: #fff;
+}
+.table-head .mini-btn.primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .ui-table thead th,
+  .ui-table tbody td {
+    font-size: 13px;
+    padding: 6px;
+  }
+  .table-head { flex-direction: column; }
+}
+
+/* ============ Intro Editor (บทนำ) ============ */
+.intro-editor .intro-add-row,
+.intro-editor .intro-root-paras,
+.intro-editor .intro-items-list { margin-top: 12px; }
+
+.intro-root-paras{ margin-bottom: 10px; }
+
+.intro-node-card{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:12px;
+  background:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.03);
+}
+
+.intro-node-head{
+  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  margin-bottom:8px;
+}
+
+.intro-no-input, .intro-title-input{
+  flex:1 1 240px;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+  font-size:14px;
+}
+.intro-no-input.invalid{ border-color:#ef4444; background:#fef2f2; }
+
+.intro-children-wrap{
+  padding-left:14px;
+  border-left:3px solid #f3f4f6;
+  margin-top:8px;
+}
+
+/* “ย่อหน้า (บทนำ)” ให้เหลือช่องว่างพอดี */
+.intro-root-paras .overview-label{
+  font-weight:600; color:#374151; margin-bottom:6px;
+}
+
+/* กล่องรูปบทนำให้เข้ากับของเดิม */
+.intro-editor .pics-box{ margin-top:8px; }
+.intro-editor .pics-head{ font-weight:700; margin-bottom:6px; }
+.intro-editor .pics-add-row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.intro-editor .pic-caption-input{ flex:1; }
+.intro-editor .pic-item.empty{ border-style:dashed; color:#6b7280; }

@@ -397,7 +397,6 @@ def _default_sections_for_ui() -> List[Dict[str, Any]]:
             out.append({"title": t, "body": "", "points": []})
     return out
 
-
 # ---------- 1) iterator กลาง: คืน (title, body, mains) ----------
 def iter_sections(sections_any: Any,*,first_section_mode: str = "paragraphs",  ) -> Iterable[Tuple[str, str, List[Dict[str, Any]]]]:
     """

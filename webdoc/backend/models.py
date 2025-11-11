@@ -458,7 +458,7 @@ class DocChapter3(models.Model):
         on_delete=models.RESTRICT,
         related_name="chapter3_docs",
     )
-    intro_body = models.TextField(blank=True, null=True)
+    intro_body = models.JSONField(blank=True, null=True)
     sections_json = models.JSONField(blank=True, null=True)       # เนื้อหา+รูปภาพ (โครงเดียวกับบท 2)
     tb_sections_json = models.JSONField(blank=True, null=True)    # ตารางของแต่ละหัวข้อ
     chap_id = models.IntegerField(blank=True, null=True, db_column="chap_id")

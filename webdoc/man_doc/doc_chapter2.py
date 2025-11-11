@@ -121,8 +121,7 @@ def doc_chapter2(
             add_section_heading_level1_style_1(doc, title_no, title_txt)
         for s in as_list((sn or {}).get("paragraphs")):
             s = t(s)
-            if s:
-                add_body_paragraph_style_1(doc, s)
+            if s: add_wrapped_paragraph(doc, s, n=85, custom_tap=0.75,disth=True)
 
     # -------- หัวข้อหลัก + ต้นไม้หัวข้อย่อย --------
     pic_counter = [0]   # ใช้ list เพื่ออ้างอิงข้ามฟังก์ชัน
@@ -171,25 +170,6 @@ def doc_chapter2(
             ),
         )
 
-    # -------- รูปท้ายบท (ถ้ามี) --------
-    if pictures:
-        for pinfo in pictures:
-            abs_path = resolve_image_path(pinfo, media_root)
-            if not abs_path or abs_path in seen_pics:
-                continue
-            seen_pics.add(abs_path)
-            pic_counter[0] += 1
-            run_no = pic_counter[0]
-
-            add_picture_box_with_caption(
-                doc, abs_path,
-                pic_name=t(pinfo.get("pic_name")),
-                chapter_no=CHAPTER_NO, run_no=run_no,
-            )
-            for cap in as_list(pinfo.get("captions")):
-                s = t(cap)
-                if s:
-                    add_intro_caption_paragraph(doc, f"จากภาพที่ {CHAPTER_NO}-{run_no}  {s}")
 
     return doc
 

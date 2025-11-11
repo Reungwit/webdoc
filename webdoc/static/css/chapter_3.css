@@ -1,12 +1,17 @@
 :root{
-  --bg:#f6f8fb;
-  --card:#ffffff;
-  --ink:#1f2937;
-  --muted:#6b7280;
-  --primary:#2d6cdf;
-  --border:#e5e7eb;
-  --ring:#c7d2fe;
-  --danger:#ef4444;
+ --bg:#f6f8fb;
+ --card:#ffffff;
+ --ink:#1f2937;
+ --muted:#6b7280;
+ --primary:#2d6cdf;
+ --border:#e5e7eb;
+ --ring:#c7d2fe;
+ --danger:#ef4444;
+  /* 💡 เพิ่มสีใหม่สำหรับปุ่ม */
+  --btn-primary-bg: #2d6cdf; 
+  --btn-primary-text: #ffffff;
+  --btn-neutral-bg: #f3f4f6;
+  --btn-neutral-border: #d1d5db;
 }
 
 *{box-sizing:border-box}
@@ -28,17 +33,21 @@ h2{margin:0 0 8px;color:var(--primary);font-weight:700;}
 .badge-no{display:inline-block;background:#edf2ff;border:1px solid var(--ring);color:#1e3a8a;font-weight:600;padding:2px 8px;border-radius:8px;margin-bottom:8px;}
 
 .clean-textarea,.node-title-input,.chapter-title-input,.tb-input,.table-caption-input{
-  width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;
+ width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;
 }
 .clean-textarea{min-height:120px;resize:vertical}
 .main-textarea{min-height:140px}
 
-.toolbar-top{display:flex; gap:8px; margin:12px 0;}
-.main-btn{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; font-weight:600;}
+/* 💡 Toolbar-top ถูกลบใน HTML แต่ถ้ามีปุ่มอื่นใช้จะยังคงอยู่ */
+.toolbar-top{display:flex; gap:8px; margin:12px 0;} 
+.toolbar-bottom{display:flex; gap:8px; margin:12px 0;} /* สำหรับปุ่มเพิ่มหัวข้อใหญ่ */
+
+/* 💡 ปรับปรุงสีปุ่มหลัก */
+.main-btn{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; font-weight:600; white-space: nowrap;}
 .main-btn-success{background:#10b981;color:#fff;border-color:#10b981}
-.main-btn-danger{background:#ef4444;color:#fff;border-color:#ef4444}
-.main-btn-info{background:#2563eb;color:#fff;border-color:#2563eb}
-.main-btn-neutral{background:#f3f4f6}
+.main-btn-danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+.main-btn-info{background:var(--btn-primary-bg);color:#fff;border-color:var(--btn-primary-bg)}
+.main-btn-neutral{background:var(--btn-neutral-bg); border-color:var(--btn-neutral-border); color:var(--ink)} 
 .footer-action-bar{display:flex; gap:8px; justify-content:center; margin:18px 0 28px;}
 
 .chapter-sections-wrapper{display:flex;flex-direction:column;gap:16px}
@@ -53,12 +62,12 @@ h2{margin:0 0 8px;color:var(--primary);font-weight:700;}
 .node-top-row{display:flex; gap:10px; align-items:center; margin-bottom:8px;}
 .node-no-badge{min-width:64px;text-align:center;padding:6px 8px;border-radius:10px;background:#f1f5ff;border:1px solid var(--ring);font-weight:700;color:#1e3a8a;}
 .node-title-input{flex:1}
-.node-controls{display:flex; gap:6px; flex-wrap:wrap}
+.node-controls{display:flex; gap:6px; flex-wrap:nowrap} /* 💡 ให้ปุ่มใน controls ไม่ขึ้นบรรทัดใหม่ */
 
 /* ปุ่มเล็ก */
-.mini-btn{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:13px;font-weight:600;}
-.mini-btn.primary{background:#2d6cdf;color:#fff;border-color:#2d6cdf}
-.mini-btn.danger{background:#ef4444;color:#fff;border-color:#ef4444}
+.mini-btn{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:13px;font-weight:600; white-space: nowrap;}
+.mini-btn.primary{background:var(--btn-primary-bg);color:var(--btn-primary-text);border-color:var(--btn-primary-bg)}
+.mini-btn.danger{background:var(--danger);color:#fff;border-color:var(--danger)}
 
 /* แถบปุ่ม toggle รูป/ตาราง */
 .node-toggle-bar{display:flex; gap:8px; margin:8px 0}

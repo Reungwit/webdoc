@@ -26,7 +26,7 @@
     --c-border:      #e5e7eb;
     --c-focus:       #60a5fa;
 
-    /* Textbox เทาอ่อนตามที่ผู้ใช้ขอ */
+    /* Textbox เทาอ่อน */
     --c-textbox-bg:  #f3f4f6;
 
     /* เงา/ขอบมน/spacing */
@@ -51,7 +51,7 @@
     --sp-6: 32px;
   }
 
-  /* Dark mode (เปิดใช้ได้สองทาง: data-theme="dark" หรือระบบ OS) */
+  /* Dark mode */
   [data-theme="dark"] {
     --c-bg:          #0b1220;
     --c-card:        #0f172a;
@@ -109,14 +109,12 @@
   a { color: var(--c-accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
 
-  /* Focus visible มาตรฐาน AA */
   :where(button, [type="button"], [type="submit"], input, textarea, a):focus-visible {
     outline: 2px solid var(--c-focus);
     outline-offset: 2px;
     border-radius: calc(var(--radius) - 2px);
   }
 
-  /* ข้อความ status จาก Django messages */
   .messages {
     list-style: none;
     padding: 0;
@@ -147,14 +145,13 @@
   }
   #alert-box.info   { color: var(--c-text); }
   #alert-box.success{ color: var(--c-success); }
-  #alert-box.warning{ color: #b45309; } /* ใช้เพียงข้อความ */
+  #alert-box.warning{ color: #b45309; }
   #alert-box.error,
   #alert-box.danger { color: var(--c-danger); }
 }
 
 /* ========== COMPONENTS ========== */
 @layer components {
-  /* การ์ดส่วนหัวบท */
   .section-card-outer {
     background: var(--c-card);
     border: 1px solid var(--c-border);
@@ -186,7 +183,6 @@
     font-size: var(--fs-sm);
   }
 
-  /* กล่องส่วนหัวหัวข้อหลัก */
   .chapter-section-card {
     background: var(--c-card);
     border: 1px solid var(--c-border);
@@ -224,7 +220,6 @@
     color: var(--c-muted);
   }
 
-  /* Editor: ย่อหน้า (1.1) */
   .paras-wrap {
     display: grid;
     gap: var(--sp-3);
@@ -234,7 +229,6 @@
     gap: var(--sp-2);
   }
 
-  /* Textarea เทาอ่อนตามที่ผู้ใช้ขอ */
   .clean-textarea,
   .main-textarea {
     width: 100%;
@@ -247,7 +241,6 @@
     min-height: 120px;
   }
 
-  /* Tree/Points (1.2+) */
   .tree-wrap {
     display: grid;
     gap: var(--sp-3);
@@ -292,7 +285,7 @@
     margin-top: var(--sp-2);
   }
 
-  /* ปุ่มหลัก (ยืมโทนเดียวกับ chapter_2) */
+  /* ปุ่มหลัก */
   .main-btn {
     -webkit-appearance: none;
     appearance: none;
@@ -311,20 +304,13 @@
   .main-btn:hover { filter: brightness(1.05); }
   .main-btn:active { transform: translateY(1px); box-shadow: none; }
 
-  .main-btn-neutral { /* ปุ่มกลาง/เพิ่มหัวข้อ */
-    border-color: var(--c-border);
-  }
-  .main-btn-success {
-    border-color: color-mix(in srgb, var(--c-success) 50%, var(--c-border));
-  }
-  .main-btn-info {
-    border-color: color-mix(in srgb, var(--c-info) 50%, var(--c-border));
-  }
-  .main-btn-danger {
-    border-color: color-mix(in srgb, var(--c-danger) 50%, var(--c-border));
-  }
+  .main-btn-neutral { border-color: var(--c-border); }
+  .main-btn-success { border-color: color-mix(in srgb, var(--c-success) 50%, var(--c-border)); }
+  .main-btn-info    { border-color: color-mix(in srgb, var(--c-info) 50%, var(--c-border)); }
+  .main-btn-danger  { border-color: color-mix(in srgb, var(--c-danger) 50%, var(--c-border)); }
 
-  /* ปุ่มจิ๋วใน editor */
+  /* ปุ่มใน editor */
+  .node-controls { display: inline-flex; gap: var(--sp-2); flex-wrap: wrap; }
   .mini-btn {
     appearance: none;
     border: 1px solid var(--c-border);
@@ -334,11 +320,19 @@
     border-radius: 8px;
     cursor: pointer;
   }
-  .mini-btn.danger {
-    border-color: color-mix(in srgb, var(--c-danger) 50%, var(--c-border));
+
+  /* ปุ่มแดง: ชนะสไตล์ฟ้าเดิม */
+  .mini-btn.mini-btn-danger,
+  .del-para-btn.mini-btn-danger,
+  .node-controls .mini-btn-danger {
+    background: #fee2e2 !important;
+    border: 1px solid #ef4444 !important;
+    color: #b91c1c !important;
   }
-  .mini-btn.outline {
-    background: transparent;
+  .mini-btn.mini-btn-danger:hover,
+  .del-para-btn.mini-btn-danger:hover,
+  .node-controls .mini-btn-danger:hover {
+    background: #fecaca !important;
   }
 
   .del-para-btn, .add-para-btn {
@@ -349,6 +343,11 @@
     padding: 6px 10px;
     border-radius: 8px;
     cursor: pointer;
+  }
+  .del-para-btn.mini-btn-danger{
+    background:#fee2e2 !important;
+    border-color:#ef4444 !important;
+    color:#b91c1c !important;
   }
 
   .footer-action-bar {
@@ -362,14 +361,13 @@
     background: linear-gradient(to top, var(--c-bg) 60%, transparent);
   }
 
-  /* Wrapper แบบ chapter_2 สำหรับพื้นที่ dynamic */
   .chapter1-sections-wrapper {
     display: grid;
     gap: var(--sp-4);
   }
 }
 
-/* ========== UTILITIES (เบา ๆ) ========== */
+/* ========== UTILITIES ========== */
 @layer utilities {
   .text-center { text-align: center; }
   .w-100 { width: 100%; }

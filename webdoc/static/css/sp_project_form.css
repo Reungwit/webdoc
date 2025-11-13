@@ -6,7 +6,7 @@
 }
 
 body {
-  font-family: "Kanit", ui-sans-serif, Roboto, Inter, "Noto Sans Thai";
+  font-family: "Kanit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Noto Sans Thai";
   background: #f0f2f5;
   min-height: 100vh;
   padding: 20px;

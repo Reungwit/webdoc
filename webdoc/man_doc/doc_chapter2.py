@@ -23,6 +23,7 @@ from man_doc.doc_function import (
     walk_item_tree,
     # ==== ฟังก์ชันใหม่ที่เพิ่มใน doc_function.py ====
     make_heading_tap_func_map,
+    add_wrapped_paragraph
 )
 
 CHAPTER_NO = 2
@@ -112,7 +113,7 @@ def doc_chapter2(
     intro = parse_intro_for_ch2(intro_body)
     for s in intro.get("paragraphs", []):
         if t(s):
-            add_intro_caption_paragraph(doc, s)
+            add_wrapped_paragraph(doc, s, n=99999, custom_tap=0.75,disth=True)
 
     for i, sn in enumerate(intro.get("subnodes") or []):
         title_no = f"{CHAPTER_NO}.{i + 1}"

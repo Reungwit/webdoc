@@ -106,7 +106,7 @@ def add_wrapped_paragraph(
     text = text or ""
     lines = []
     for paragraph in text.split("\n"):
-        words = word_tokenize(paragraph.strip(), engine="newmm")
+        words = word_tokenize(paragraph.strip(), engine="attcut") #attcut / newmm
         line = ""
         for word in words:
             if len(line + word) <= n:

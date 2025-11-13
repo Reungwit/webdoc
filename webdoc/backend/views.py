@@ -52,7 +52,8 @@ from man_views.views_initial_refs import initial_refs_web_from_db, initial_books
 
 from man_views.views_format_dates_for_doc import format_dates_for_doc
 from man_views.views_collect_references import collect_references_from_post
-
+# ทก01
+from man_views.views_sp_project_form import sp_project_form_view as sp_project_form_view_logic
 # ---------------- บทที่ 1 ----------------
 from man_views.views_chapter_1 import chapter_1_view as chapter_1_view_logic
 
@@ -105,7 +106,7 @@ def about(request):
     return render(request, 'index.html')
 
 def sp_project_form_view(request):
-    return render(request, 'sp_project_form.html')
+    return sp_project_form_view_logic(request)
 
 def intro_view(request):
     return render(request, 'intro.html')

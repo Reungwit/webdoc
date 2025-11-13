@@ -106,7 +106,7 @@ textarea {
     border-radius: 10px; /* ใช้ 10px สำหรับ input */
     border: 1px solid var(--card-border);
     background-color: #ffffff;
-    font-family: 'Kanit', sans-serif;
+    font-family: "Kanit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Noto Sans Thai";
     font-size: 1rem;
     color: var(--ink-2);
     transition: border-color .2s ease, box-shadow .2s ease;

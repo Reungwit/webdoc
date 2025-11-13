@@ -9,7 +9,7 @@
 }
 
 body {
-    font-family: 'Sarabun', sans-serif;
+    font-family: "Kanit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Noto Sans Thai";
     background-color: #f3f4f6;
     padding: 1rem;
     line-height: 1.6;

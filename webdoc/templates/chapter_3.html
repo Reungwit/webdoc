@@ -39,9 +39,6 @@
         <div id="intro-nodes"></div>
 
         <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button id="btnAddIntroPara" class="main-btn main-btn-neutral" type="button">
-            <span class="emoji">➕</span><span>ย่อหน้า</span>
-          </button>
           <button id="btnAddIntroNode" class="main-btn main-btn-neutral" type="button">
             <span class="emoji">➕</span><span>หัวข้อย่อยในบทนำ 3.1</span>
           </button>
@@ -58,7 +55,7 @@
 
     <div class="toolbar-bottom" style="margin-top: 18px;">
       <button id="btnAddSection" class="main-btn main-btn-neutral" type="button">
-        <span class="emoji">➕</span><span>เพิ่มหัวข้อใหญ่ (3.x)</span>
+        <span class="emoji">➕</span><span>เพิ่มหัวข้อ</span>
       </button>
     </div>
 
@@ -68,10 +65,6 @@
         <span class="emoji">💾</span><span>บันทึกข้อมูล</span>
       </button>
 
-      <button class="main-btn main-btn-info" 
-              type="submit" name="action" value="get_data">
-        <span class="emoji">🔄</span><span>ดึงข้อมูล</span>
-      </button>
 
       <button class="main-btn main-btn-danger" 
               type="submit" name="action" value="generate_doc">
@@ -152,24 +145,28 @@ function refreshIntroButtons() {
 }
 
 function renderIntroParas() {
-    const mount = document.getElementById('intro-paras');
-    mount.innerHTML = '';
-    if (!introData.paragraphs || introData.paragraphs.length === 0) {
-        mount.className = '';
-        refreshIntroButtons();
-        return;
-    }
-    mount.className = 'paras-wrap';
-    mount.appendChild(
-        renderParagraphs(
-            introData.paragraphs, 
-            () => syncIntroHidden(), 
-            () => { renderIntroParas(); }
-        )
-    );
-    refreshIntroButtons();
-    syncIntroHidden();
+  const mount = document.getElementById('intro-paras');
+  mount.innerHTML = '';
+
+  // ให้มีอาร์เรย์เสมอ แม้ยังไม่มีเนื้อหา
+  if (!Array.isArray(introData.paragraphs)) {
+    introData.paragraphs = [];
+  }
+
+  // เรนเดอร์ editor ของย่อหน้า พร้อมปุ่ม "➕ เพิ่มย่อหน้า" ภายในเสมอ
+  mount.className = 'paras-wrap';
+  mount.appendChild(
+    renderParagraphs(
+      introData.paragraphs,
+      () => syncIntroHidden(),
+      () => { renderIntroParas(); }   // refresh เองหลังเพิ่ม/ลบ
+    )
+  );
+
+  refreshIntroButtons();
+  syncIntroHidden();
 }
+
 
 function renderIntroNodes() {
     const wrap = document.getElementById('intro-nodes');
@@ -301,7 +298,7 @@ function refreshAddSectionButton() {
   const btn = document.getElementById('btnAddSection');
   if (btn) {
     const nextNo = getNextSectionNumber();
-    btn.querySelector('span:last-child').textContent = 'เพิ่มหัวข้อใหญ่ (' + nextNo + ')';
+    btn.querySelector('span:last-child').textContent = 'เพิ่มหัวข้อ (' + nextNo + ')';
   }
 }
 
@@ -423,18 +420,13 @@ function renderParagraphs(arr, onChangeContent, onAddOrRemove, isBody = false) {
         row.appendChild(ta);
         row.appendChild(del);
         wrap.appendChild(row);
+        
       });
       // ปุ่มเพิ่มย่อหน้าเล็กๆ จะถูกเรนเดอร์ผ่านปุ่มใน controls/node-top-row
       // จึงไม่จำเป็นต้องมีปุ่ม 'เพิ่มย่อหน้า' ซ้ำอีกตรงนี้
   }
 
-  // หากไม่มีเนื้อหา (empty array) หรือเป็นส่วน body (หัวข้อ 3.x) ให้แสดงปุ่มขนาดใหญ่ตามบทที่ 2
-  // 💡 ปัญหาคือปุ่มในรูปที่ 1 (กรอบเหลือง) หายไปเมื่อมีเนื้อหา
-  // เพื่อให้ง่ายที่สุด จะย้ายการเรนเดอร์ปุ่มเพิ่มย่อหน้า **ขนาดใหญ่** ออกจาก controls
-  // และใส่ไว้ตรงนี้เมื่อไม่มีเนื้อหา หรือเป็นส่วน body (3.x)
   
-  // 💡 เพื่อแก้ไขตามรูปที่ 1 (Body Paragraphs), เราจะเพิ่มปุ่มขนาดใหญ่
-  // เฉพาะในกรณีที่ array ว่างเปล่า หรือตามเงื่อนไขที่กำหนด
   const addBtn = document.createElement("button");
   addBtn.type = "button";
   addBtn.className = "mini-btn";
@@ -475,6 +467,53 @@ function postAction(action, extra = {}, fileToUpload = null) {
     return res.text();
   });
 }
+
+/* ========================= เพิ่มฟังก์ชันอธิบายใต้รูป (เหมือนบท 2) ========================= */
+/* ==== คำอธิบายใต้รูป (เหมือนบท 2) – บังคับให้มี textarea อย่างน้อย 1 ช่อง ==== */
+function renderImageCaptions(pic, onChange, onMutate) {
+  if (!Array.isArray(pic.captions)) pic.captions = [];
+  if (pic.captions.length === 0) pic.captions.push(""); // ให้มีช่องใหญ่ขึ้นมาก่อน 1 ช่อง
+
+  const box = document.createElement('div');
+  const list = document.createElement('div');
+
+  pic.captions.forEach((cap, i) => {
+    const row = document.createElement('div'); row.className = 'para-row';
+    const ta = document.createElement('textarea');
+    ta.value = cap || '';
+    ta.placeholder = 'ย่อหน้าอธิบายใต้รูป...';
+    ta.addEventListener('input', e => { pic.captions[i] = e.target.value; onChange && onChange(); });
+    row.appendChild(ta);
+    list.appendChild(row);
+  });
+
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'add-para-btn';
+  add.textContent = '➕ เพิ่มย่อหน้าใต้รูป';
+  add.addEventListener('click', () => { pic.captions.push(''); onMutate && onMutate(); });
+
+  const delLast = document.createElement('button');
+  delLast.type = 'button';
+  delLast.className = 'del-para-btn danger';
+  delLast.textContent = 'ลบย่อหน้าล่าสุด';
+  delLast.addEventListener('click', () => {
+    if (pic.captions.length > 1) {          // เหลืออย่างน้อย 1 ช่องใหญ่เสมอ
+      pic.captions.pop();
+      onMutate && onMutate();
+    } else {
+      pic.captions[0] = "";
+      onMutate && onMutate();
+    }
+  });
+
+  box.appendChild(list);
+  box.appendChild(add);
+  box.appendChild(delLast);
+  return box;
+}
+
+
 
 /* ========================= Picture box (per node) (คงเดิม) ========================= */
 function renderPicturesBox(sectionObj, secIndex, pathArr) {
@@ -585,7 +624,12 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
           <button type="button" class="mini-btn danger" data-act="del-pic" data-idx="${idx}">ลบรูป</button>
         </div>
       `;
+      
+
       list.appendChild(item);
+      item.appendChild(
+  renderImageCaptions(p, () => syncHiddenField(), () => { renderPicturesList(); syncHiddenField(); })
+);
     });
 
     list.querySelectorAll('[data-act="del-pic"]').forEach(btn=>{
@@ -702,10 +746,10 @@ function renderSingleNodeTable(t, nodeObj, reRenderFn) {
       <button type="button" class="mini-btn" data-act="ins-row-below">↓ แถวล่าง</button>
       <button type="button" class="mini-btn" data-act="ins-col-left">← คอลัมน์ซ้าย</button>
       <button type="button" class="mini-btn" data-act="ins-col-right">→ คอลัมน์ขวา</button>
-      <button type="button" class="mini-btn" data-act="add-section-row">+ แถวส่วน</button>
-      <button type="button" class="mini-btn" data-act="del-row">- แถว</button>
-      <button type="button" class="mini-btn" data-act="del-col">- คอลัมน์</button>
-      <button type="button" class="mini-btn danger" data-act="del-table">ลบตาราง</button>
+      <button type="button" class="mini-btn" data-act="add-section-row">เพิ่มแถวยาว</button>
+      <button type="button" class="mini-btn" data-act="del-row">ลบแถว</button>
+      <button type="button" class="mini-btn" data-act="del-col">ลบคอลัมน์</button>
+      <button type="button" class="mini-btn danger" data-act="del-table">ลบตารางนี้</button>
     </div>
   `;
   wrap.appendChild(head);
@@ -908,16 +952,8 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   const controls = document.createElement("div");
   controls.className = "node-controls";
 
-  // 💡 ปุ่ม '➕ ย่อหน้า' (mini-btn)
-  const btnAddPara = document.createElement("button");
-  btnAddPara.type = "button";
-  btnAddPara.className = "mini-btn";
-  btnAddPara.textContent = "➕ ย่อหน้า"; 
-  btnAddPara.addEventListener("click", () => {
-    if (!nodeObj.paragraphs) nodeObj.paragraphs = [];
-    nodeObj.paragraphs.push("");
-    redrawSections();
-  });
+
+ 
   
   // 💡 ปุ่ม 'ลบ' (mini-btn)
   const btnDelNode = document.createElement("button");
@@ -932,10 +968,9 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
     }
   });
   
-  // ❌ ลบปุ่ม หัวข้อย่อยถัดไป ออกจาก controls
-  // controls.appendChild(btnAddChild); 
 
-  controls.appendChild(btnAddPara);
+
+  
   controls.appendChild(btnDelNode);
 
   topRow.appendChild(badge);
@@ -987,7 +1022,7 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   btnAddChildBottom.type = "button";
   btnAddChildBottom.className = "mini-btn";
   const nextChildNoBottom = nodeNo + '.' + ((nodeObj.children?.length || 0) + 1);
-  btnAddChildBottom.textContent = "➕ หัวข้อย่อยถัดไป (" + nextChildNoBottom + ")";
+  btnAddChildBottom.textContent = "➕ หัวข้อย่อย (" + nextChildNoBottom + ")";
   btnAddChildBottom.style.marginTop = '10px';
   btnAddChildBottom.style.display = 'block'; // ให้ปุ่มอยู่คนเดียว
   btnAddChildBottom.addEventListener("click", () => {
@@ -1012,7 +1047,7 @@ function renderSectionTree(sectionObj, secIndex) {
   addRootBtn.type = "button";
   addRootBtn.className = "mini-btn";
   const nextRootNo = sectionObj.title_no + '.' + ((sectionObj.items?.length || 0) + 1);
-  addRootBtn.textContent = "➕ หัวข้อย่อยระดับแรก (" + nextRootNo + ")"; 
+  addRootBtn.textContent = "➕ หัวข้อย่อย (" + nextRootNo + ")"; 
   addRootBtn.addEventListener("click", () => {
     if (!sectionObj.items) sectionObj.items = [];
     sectionObj.items.push(makeNode());
@@ -1100,7 +1135,7 @@ function redrawSections() {
   refreshAddSectionButton(); 
 }
 
-/* ========================= Mapping initial data to nodes (คงเดิม) ========================= */
+
 /* === โหลดข้อมูลตาราง: รองรับ 'notes' (array) และ 'note' (string เก่า) === */
 function attachTablesToNodesFromInitial(tables){
   if (!tables || !Array.isArray(tables)) return;
@@ -1155,14 +1190,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderIntroParas();
   renderIntroNodes();
   
-  const btnAddIntroPara = document.getElementById('btnAddIntroPara');
-  if (btnAddIntroPara) {
-      btnAddIntroPara.onclick = () => {
-          if (!introData.paragraphs) introData.paragraphs = [];
-          introData.paragraphs.push('');
-          renderIntroParas();
-      };
-  }
+  
+  
   const btnAddIntroNode = document.getElementById('btnAddIntroNode');
   if (btnAddIntroNode) {
       btnAddIntroNode.onclick = () => {

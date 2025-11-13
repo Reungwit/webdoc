@@ -160,9 +160,6 @@ def chapter_3_view(request):
         # >>> ตัด tables/rows ออกจาก sections และย้ายไป tb_sections_json <<<
         secs_clean, secs_tables = splitSectionsAndTables(secs_in)
         
-        # [!] EDIT 1: ลบบรรทัดนี้ทิ้ง หรือ คอมเมนต์ออก เพื่อป้องกันตารางซ้ำซ้อน
-        # if secs_tables:
-        #     tbls_in = tbls_in + secs_tables
         
         secs_in = secs_clean
 

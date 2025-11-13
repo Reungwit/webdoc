@@ -30,7 +30,7 @@ def doc_refer(references):
     style.paragraph_format.line_spacing = 1.0
     
     section = doc.sections[0]
-    section.top_margin = Inches(1)
+    section.top_margin = Inches(2)
     section.bottom_margin = Inches(1)
     section.left_margin = Inches(1.5)
     section.right_margin = Inches(1)

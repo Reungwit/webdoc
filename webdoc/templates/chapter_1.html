@@ -55,7 +55,7 @@
 
     <!-- แถวปุ่ม action -->
     <div class="footer-action-bar">
-      <button class="main-btn main-btn-success" type="submit" name="action" value="save">
+     <button class="main-btn main-btn-success" type="submit" name="action" value="save">
         <span class="emoji">💾</span><span>บันทึกข้อมูล</span>
       </button>
 
@@ -290,9 +290,9 @@ function renderPointsCard(secObj, secIndex) {
     nodeBadge.className = "node-no-badge";
     nodeBadge.textContent = mainNo(secIndex, mainIdx); // 1.x.y
 
-    const titleInput = document.createElement("input");
+    const titleInput = document.createElement("textarea");
     titleInput.type = "text";
-    titleInput.className = "node-title-input";
+    titleInput.className = "node-title-textarea";
     titleInput.placeholder = "หัวข้อหลัก (main)";
     titleInput.value = point.main || "";
     titleInput.addEventListener("input", (e) => { point.main = e.target.value; });
@@ -337,15 +337,15 @@ function renderPointsCard(secObj, secIndex) {
     subsWrap.className = "children-block";
     (point.subs || []).forEach((sv, subIdx) => {
       const row = document.createElement("div");
-      row.className = "para-row";
+      row.className = "node-top-row";
 
       const lbl = document.createElement("label");
       lbl.className = "overview-label";
       lbl.textContent = subNo(secIndex, mainIdx, subIdx); // 1.x.y.z
 
-      const inp = document.createElement("input");
+      const inp = document.createElement("textarea");
       inp.type = "text";
-      inp.className = "node-title-input";
+      inp.className = "node-title-textarea";
       inp.placeholder = "หัวข้อย่อย";
       inp.value = sv || "";
       inp.addEventListener("input", (e) => { point.subs[subIdx] = e.target.value; });

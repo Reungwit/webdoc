@@ -106,7 +106,7 @@ def add_wrapped_paragraph(
     text = text or ""
     lines = []
     for paragraph in text.split("\n"):
-        words = word_tokenize(paragraph.strip(), engine="attcut") #attcut / newmm
+        words = word_tokenize(paragraph.strip(), engine="newmm") #attacut / newmm
         line = ""
         for word in words:
             if len(line + word) <= n:
@@ -262,7 +262,7 @@ def add_picture_box_with_caption(
     abs_path: str,
     *,
     pic_name: str = "",
-    chapter_no: int,  # <-- 1. แก้ไข: รับเลขบทเข้ามา
+    chapter_no: int,
     run_no: int,
     width_cm: float = 5.8,
     height_cm: float = 4.8,
@@ -287,9 +287,17 @@ def add_picture_box_with_caption(
     _reset_center_paragraph(cap)
     cap.paragraph_format.space_before = Pt(0)
     cap.paragraph_format.space_after = Pt(8)
-    
-    # <-- 2. แก้ไข: ใช้ chapter_no ที่รับเข้ามา
-    cap.add_run(f"ภาพที่ {chapter_no}-{run_no}  {pic_name or ''}")
+
+    # 🔹 ทำตัวหนาเฉพาะ "ภาพที่ x-y"
+    prefix = f"ภาพที่ {chapter_no}-{run_no}"
+    r1 = cap.add_run(prefix + "  ")   # มี 2 ช่องว่างคั่น
+    r1.bold = True
+
+    # 🔹 ชื่อรูป (pic_name) เป็นตัวบาง
+    if pic_name:
+        r2 = cap.add_run(pic_name)
+        r2.bold = False
+
 
 
 # =============== เดินต้นไม้หัวข้อย่อย ===============
@@ -339,7 +347,7 @@ def add_body_paragraph_style_1(doc: Document, text: str,disth: bool = False) -> 
     """
     (ฟังก์ชันกลาง) สไตล์เนื้อหา: ย่อหน้า 1.85 ซม.
     """
-    p = add_wrapped_paragraph(doc, text, n=120, disth=True, custom_tap=1.85)
+    p = add_wrapped_paragraph(doc, text, n=99999, disth=True, custom_tap=1.85)
     # (อาจตั้งค่าเพิ่มเติม เช่น p.alignment = ... ถ้า add_wrapped_paragraph ไม่ได้ทำ)
 
 
@@ -360,12 +368,12 @@ def add_section_heading_level1_style_1(doc: Document, title_no: str, title: str)
 
 def add_section_heading_level2_plus_style_1(doc: Document, title_no: str, title: str) -> None:
     """
-    (ฟังก์ชันกลาง) สไตล์หัวข้อระดับ 2+: หนา, ย่อ 0.75, ห่าง 3pt
+    (ฟังก์ชันกลาง) สไตล์หัวข้อระดับ 2+: ไม่หนา ย่อ 0.75, ห่าง 3pt
     """
     text = two_spaces_join(t(title_no), t(title)) # (ต้อง import two_spaces_join)
     p = doc.add_paragraph()
     r = p.add_run(text)
-    r.bold = True
+    r.bold = False
     pf = p.paragraph_format
     pf.first_line_indent = Cm(0.75)
     pf.space_before = Pt(3)
@@ -373,8 +381,6 @@ def add_section_heading_level2_plus_style_1(doc: Document, title_no: str, title:
 
 
 # =================== NEW: mapped heading / thai alpha level-5 ===================
-# วางบล็อคนี้ "ต่อท้าย" ไฟล์ man_doc/doc_function.py
-from docx.shared import Cm, Pt
 
 THAI_ALPHA = [
     "ก","ข","ค","ง","จ","ฉ","ช","ซ","ฌ","ญ",
@@ -685,6 +691,6 @@ def sections_doc_safe(
             out[i].update({"title": title, "body": body, "mains": mains_out})
 
     return out
-
+# wrapped_paragraph สำหรับคำอธิบายใต้รูป
 def add_intro_caption_paragraph(doc: Document, text: str) -> None:
-    add_wrapped_paragraph(doc, text, n=75, custom_tap=0.75,disth=True)
+    add_wrapped_paragraph(doc, text, n=99999, custom_tap=0.75,disth=True)

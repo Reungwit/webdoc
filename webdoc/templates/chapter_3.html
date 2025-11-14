@@ -115,6 +115,22 @@ function getJsonScript(id){
   try { return JSON.parse(el.textContent); } catch(e){ console.error('JSON Script Error:', e); return null; }
 }
 
+/* === [FIX] ฟังก์ชันสำหรับปรับขนาด textarea อัตโนมัติ === */
+function autoResizeTextarea(el) {
+  if (!el) return;
+  el.style.height = 'auto'; // รีเซ็ตความสูง
+  el.style.height = (el.scrollHeight) + 'px'; // ตั้งค่าความสูงตามเนื้อหา
+}
+// ฟังก์ชันสำหรับเรียกใช้ resize กับทุก textarea ของหัวข้อ
+function resizeAllTitleTextareas() {
+  /* === [FIX #1] เพิ่ม .table-caption-input === */
+  document.querySelectorAll('.chapter-title-input, .node-title-input, .table-caption-input').forEach(ta => {
+    autoResizeTextarea(ta);
+  });
+}
+/* === [END FIX] === */
+
+
 /* ========================= Intro Management (เหมือนบท 2) ========================= */
 let introData = { paragraphs: [], subnodes: [] };
 
@@ -188,14 +204,19 @@ function renderIntroNodes() {
         const badge = document.createElement('div');
         badge.className = 'badge-no';
         badge.textContent = '3.' + (idx + 1);
-        const title = document.createElement('input');
-        title.type = 'text';
+        
+        /* === เปลี่ยนจาก input เป็น textarea === */
+        const title = document.createElement('textarea');
         title.className = 'chapter-title-input';
         title.placeholder = 'หัวข้อย่อยของบทนำ';
         title.value = n.title || '';
+        title.rows = 1; // เริ่มต้นที่ 1 แถว
+        /* === [END] === */
+        
         title.addEventListener('input', e => {
             n.title = e.target.value;
             syncIntroHidden();
+            // (JS สำหรับ auto-resize จะทำงานผ่าน global listener)
         });
         const del = document.createElement('button');
         del.type = 'button';
@@ -229,6 +250,9 @@ function renderIntroNodes() {
 
     refreshIntroButtons();
     syncIntroHidden();
+    
+    /* === เรียก resize หลังจาก render เสร็จ === */
+    resizeAllTitleTextareas();
 }
 
 
@@ -468,15 +492,13 @@ function postAction(action, extra = {}, fileToUpload = null) {
   });
 }
 
-/* ========================= เพิ่มฟังก์ชันอธิบายใต้รูป (เหมือนบท 2) ========================= */
-/* ==== คำอธิบายใต้รูป (เหมือนบท 2) – บังคับให้มี textarea อย่างน้อย 1 ช่อง ==== */
+/* ========================= [CHANGE #1] ฟังก์ชันอธิบายใต้รูป (ยกมาจากบท 2) ========================= */
 function renderImageCaptions(pic, onChange, onMutate) {
-  if (!Array.isArray(pic.captions)) pic.captions = [];
-  if (pic.captions.length === 0) pic.captions.push(""); // ให้มีช่องใหญ่ขึ้นมาก่อน 1 ช่อง
-
+  if (!pic.captions) pic.captions = [];
   const box = document.createElement('div');
   const list = document.createElement('div');
-
+  
+  // (แก้จาก ch3) ถ้ามี captions ให้แสดง textarea
   pic.captions.forEach((cap, i) => {
     const row = document.createElement('div'); row.className = 'para-row';
     const ta = document.createElement('textarea');
@@ -489,26 +511,28 @@ function renderImageCaptions(pic, onChange, onMutate) {
 
   const add = document.createElement('button');
   add.type = 'button';
-  add.className = 'add-para-btn';
+  // (แก้จาก ch3) ใช้คลาส 'add-para-btn' จาก CSS บท 2 (ถ้ามี) หรือใช้ 'mini-btn'
+  add.className = 'mini-btn'; 
   add.textContent = '➕ เพิ่มย่อหน้าใต้รูป';
   add.addEventListener('click', () => { pic.captions.push(''); onMutate && onMutate(); });
 
   const delLast = document.createElement('button');
   delLast.type = 'button';
-  delLast.className = 'del-para-btn danger';
+  // (แก้จาก ch3) ใช้คลาส 'del-para-btn danger' หรือ 'mini-btn danger'
+  delLast.className = 'mini-btn danger';
   delLast.textContent = 'ลบย่อหน้าล่าสุด';
   delLast.addEventListener('click', () => {
-    if (pic.captions.length > 1) {          // เหลืออย่างน้อย 1 ช่องใหญ่เสมอ
+    // (แก้จาก ch3) ลบได้จนหมด (เหมือนบท 2)
+    if (pic.captions.length > 0) {
       pic.captions.pop();
-      onMutate && onMutate();
-    } else {
-      pic.captions[0] = "";
       onMutate && onMutate();
     }
   });
 
   box.appendChild(list);
   box.appendChild(add);
+  // (แก้จาก ch3) เพิ่มระยะห่างระหว่างปุ่ม
+  add.style.marginRight = '6px';
   box.appendChild(delLast);
   return box;
 }
@@ -535,7 +559,11 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
   const captionInput = document.createElement("input");
   captionInput.type = "text";
   captionInput.className = "pic-caption-input";
-  captionInput.placeholder = "คำอธิบายรูป / ชื่อรูป …";
+  
+  // --- 💡 [CHANGE #2] แก้ไข Placeholder ---
+  captionInput.placeholder = "ชื่อรูปภาพและอ้างอิง เช่น ตัวอย่างแบบทดสอบ [1]";
+  // --- [END CHANGE] ---
+
   const pendingLabel = document.createElement("div");
   pendingLabel.className = "pending-label";
   const fileInput = document.createElement("input");
@@ -596,9 +624,12 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
 
   const list = document.createElement("div");
   list.className = "pic-list";
+
+  // --- 💡 [CHANGE #3] แก้ไขฟังก์ชัน renderPicturesList ทั้งหมด ---
   function renderPicturesList() {
     list.innerHTML = "";
     const arr = targetNode.pictures || [];
+    
     if (arr.length === 0) {
       const empty = document.createElement("div");
       empty.className = "pic-item empty";
@@ -606,41 +637,66 @@ function renderPicturesBox(sectionObj, secIndex, pathArr) {
       list.appendChild(empty);
       return;
     }
+
+    // เรียงลำดับรูป (เหมือนเดิม)
     arr.sort((a, b) => {
       const an = parseSeqFromPicNo(normalizePicNo(a.pic_no));
       const bn = parseSeqFromPicNo(normalizePicNo(b.pic_no));
       return an - bn;
     });
+
     arr.forEach((p, idx) => {
       const shownNo = normalizePicNo(p.pic_no);
       const item = document.createElement("div");
       item.className = "pic-item";
-      item.innerHTML = `
-        <div class="pic-main">
-          <strong>ภาพที่ ${shownNo || "-"}</strong> : ${p.pic_name || ""}
-          ${p.pic_path ? `<div class="pic-path">${p.pic_path}</div>` : ""}
-        </div>
-        <div class="pic-actions">
-          <button type="button" class="mini-btn danger" data-act="del-pic" data-idx="${idx}">ลบรูป</button>
-        </div>
+
+      // --- [CHANGE] ---
+      // บังคับให้เป็น block layout เหมือนบทที่ 2 (แก้ปัญหา CSS)
+      item.style.display = 'block';
+      item.style.alignItems = '';
+      item.style.justifyContent = '';
+      // --- [END CHANGE] ---
+
+      // 1. สร้างส่วนหัว (ข้อมูลรูป)
+      const main = document.createElement("div");
+      main.className = "pic-main";
+      main.innerHTML = `
+        <strong>ภาพที่ ${shownNo || "-"}</strong> : ${p.pic_name || ""}
+        ${p.pic_path ? `<div class="pic-path">${p.pic_path}</div>` : ""}
       `;
-      
 
-      list.appendChild(item);
-      item.appendChild(
-  renderImageCaptions(p, () => syncHiddenField(), () => { renderPicturesList(); syncHiddenField(); })
-);
-    });
+      // 2. สร้างกล่องคำอธิบายใต้รูป (จากฟังก์ชันบท 2 ที่เราเพิ่งแก้)
+      const captionEditor = renderImageCaptions(
+        p,
+        () => syncHiddenField(),
+        () => { renderPicturesList(); syncHiddenField(); } // ให้ re-render ตัวเอง
+      );
+      captionEditor.style.marginTop = '8px';
 
-    list.querySelectorAll('[data-act="del-pic"]').forEach(btn=>{
-      btn.addEventListener("click", (e)=>{
-        const i = parseInt(e.currentTarget.dataset.idx,10);
-        targetNode.pictures.splice(i,1);
-        renderPicturesList();
+      // 3. สร้างปุ่มลบ (แยกออกมา)
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "mini-btn danger"; // ใช้คลาส 'mini-btn danger' ของ ch3
+      del.textContent = "ลบรูป";
+      del.style.marginTop = '8px';
+      del.addEventListener("click", () => {
+        if (!confirm('ยืนยันลบรูปหมายเลข ' + (shownNo || '-'))) return;
+        targetNode.pictures.splice(idx, 1);
+        renderPicturesList(); // re-render
         syncHiddenField();
       });
+
+      // 4. ประกอบร่างตามลำดับที่ถูกต้อง (main -> caption editor -> delete btn)
+      item.appendChild(main);
+      item.appendChild(captionEditor);
+      item.appendChild(del);
+
+      list.appendChild(item);
     });
+    // 5. ไม่ต้องมี list.querySelectorAll(.. 'del-pic' ..) อีกต่อไป
   }
+  // --- 💡 [END OF CHANGE #3] ---
+
   renderPicturesList();
   picsBox.appendChild(list);
   return picsBox;
@@ -730,28 +786,50 @@ function renderSingleNodeTable(t, nodeObj, reRenderFn) {
   const head = document.createElement("div");
   head.className = "table-head";
   
-  head.innerHTML = `
-    <div class="table-title">
-      <span class="badge-no">ตารางที่ ${t.table_no || '?-?'}</span>
-      <input type="text" class="table-caption-input" placeholder="คำอธิบาย/หัวตาราง" value="${t.caption || ''}">
-      <select class="table-type">
-        <option value="default" ${t.table_type==='default'?'selected':''}>ทั่วไป</option>
-        <option value="checklist" ${t.table_type==='checklist'?'selected':''}>ผ่าน/ไม่ผ่าน</option>
-        <option value="evaluation" ${t.table_type==='evaluation'?'selected':''}>ประเมินค่าเฉลี่ย</option>
-        <option value="accuracy" ${t.table_type==='accuracy'?'selected':''}>ทดสอบระบบ (%)</option>
-      </select>
-    </div>
-    <div class="table-actions">
-      <button type="button" class="mini-btn" data-act="ins-row-above">↑ แถวบน</button>
-      <button type="button" class="mini-btn" data-act="ins-row-below">↓ แถวล่าง</button>
-      <button type="button" class="mini-btn" data-act="ins-col-left">← คอลัมน์ซ้าย</button>
-      <button type="button" class="mini-btn" data-act="ins-col-right">→ คอลัมน์ขวา</button>
-      <button type="button" class="mini-btn" data-act="add-section-row">เพิ่มแถวยาว</button>
-      <button type="button" class="mini-btn" data-act="del-row">ลบแถว</button>
-      <button type="button" class="mini-btn" data-act="del-col">ลบคอลัมน์</button>
-      <button type="button" class="mini-btn danger" data-act="del-table">ลบตารางนี้</button>
-    </div>
+  /* === [FIX #3] เปลี่ยน HTML string ของ .table-title === */
+  const tableTitle = document.createElement('div');
+  tableTitle.className = 'table-title';
+  
+  const badge = document.createElement('span');
+  badge.className = 'badge-no';
+  badge.textContent = `ตารางที่ ${t.table_no || '?-?'}`;
+  
+  const captionTextarea = document.createElement('textarea');
+  captionTextarea.className = 'node-title-textarea';
+  captionTextarea.placeholder = 'คำอธิบาย/หัวตาราง';
+  captionTextarea.rows = 1;
+  captionTextarea.textContent = t.caption || ''; // ใช้ textContent สำหรับ textarea
+  
+  const typeSelect = document.createElement('select');
+  typeSelect.className = 'table-type';
+  typeSelect.innerHTML = `
+    <option value="default" ${t.table_type==='default'?'selected':''}>ทั่วไป</option>
+    <option value="checklist" ${t.table_type==='checklist'?'selected':''}>ผ่าน/ไม่ผ่าน</option>
+    <option value="evaluation" ${t.table_type==='evaluation'?'selected':''}>ประเมินค่าเฉลี่ย</option>
+    <option value="accuracy" ${t.table_type==='accuracy'?'selected':''}>ทดสอบระบบ (%)</option>
   `;
+  
+  tableTitle.appendChild(badge);
+  tableTitle.appendChild(captionTextarea);
+  tableTitle.appendChild(typeSelect);
+  
+  const tableActions = document.createElement('div');
+  tableActions.className = 'table-actions';
+  tableActions.innerHTML = `
+    <button type="button" class="mini-btn" data-act="ins-row-above">↑ แถวบน</button>
+    <button type="button" class="mini-btn" data-act="ins-row-below">↓ แถวล่าง</button>
+    <button type="button" class="mini-btn" data-act="ins-col-left">← คอลัมน์ซ้าย</button>
+    <button type="button" class="mini-btn" data-act="ins-col-right">→ คอลัมน์ขวา</button>
+    <button type="button" class="mini-btn" data-act="add-section-row">เพิ่มแถวยาว</button>
+    <button type="button" class="mini-btn" data-act="del-row">ลบแถว</button>
+    <button type="button" class="mini-btn" data-act="del-col">ลบคอลัมน์</button>
+    <button type="button" class="mini-btn danger" data-act="del-table">ลบตารางนี้</button>
+  `;
+  
+  head.appendChild(tableTitle);
+  head.appendChild(tableActions);
+  /* === [END FIX] === */
+
   wrap.appendChild(head);
 
   const tbl = document.createElement("table");
@@ -832,7 +910,7 @@ function renderSingleNodeTable(t, nodeObj, reRenderFn) {
   // --- (สิ้นสุด) "คำอธิบายตาราง" ---
 
   // (คงเดิม) Event Listeners สำหรับ Caption และ Type
-  const capInp = head.querySelector(".table-caption-input");
+  const capInp = head.querySelector(".node-title-textarea");
   capInp.addEventListener("input", (e)=> { t.caption = e.target.value; syncHiddenField(); });
 
   const typeSel = head.querySelector(".table-type");
@@ -939,22 +1017,23 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
   badge.className = "node-no-badge";
   badge.textContent = nodeNo;
 
-  const titleInput = document.createElement("input");
-  titleInput.type = "text";
+  /* === เปลี่ยนจาก input เป็น textarea === */
+  const titleInput = document.createElement("textarea");
   titleInput.className = "node-title-input";
   titleInput.placeholder = "พิมพ์ชื่อหัวข้อย่อย…";
   titleInput.value = nodeObj.text || "";
+  titleInput.rows = 1; // เริ่มต้นที่ 1 แถว
+  /* === [END] === */
+  
   titleInput.addEventListener("input", (e) => {
     nodeObj.text = e.target.value;
     syncHiddenField();
+    // (JS สำหรับ auto-resize จะทำงานผ่าน global listener)
   });
 
   const controls = document.createElement("div");
   controls.className = "node-controls";
 
-
- 
-  
   // 💡 ปุ่ม 'ลบ' (mini-btn)
   const btnDelNode = document.createElement("button");
   btnDelNode.type = "button";
@@ -967,10 +1046,7 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
       redrawSections();
     }
   });
-  
 
-
-  
   controls.appendChild(btnDelNode);
 
   topRow.appendChild(badge);
@@ -992,6 +1068,7 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
 
   const tablesWrap = document.createElement("div");
   tablesWrap.className = "node-tables-wrap";
+  
   function renderTablesOfNode(){
     tablesWrap.innerHTML = "";
     const sortedTables = (nodeObj.tables || []).slice().sort((a, b) => {
@@ -1004,6 +1081,8 @@ function renderNode(sectionObj, secIndex, nodeObj, pathArr) {
         renderSingleNodeTable(tb, nodeObj, renderTablesOfNode)
       );
     });
+    /* === [FIX #4] เรียก resize หลังจาก render ตารางเสร็จ === */
+    resizeAllTitleTextareas();
   }
   renderTablesOfNode();
   nodeEl.appendChild(tablesWrap);
@@ -1073,14 +1152,18 @@ function renderSectionCard(sectionObj, secIndex) {
   badge.className = "badge-no";
   badge.textContent = sectionObj.title_no;
 
-  const titleInput = document.createElement("input");
-  titleInput.type = "text";
-  titleInput.className = "chapter-title-input";
+  /* === เปลี่ยนจาก input เป็น textarea === */
+  const titleInput = document.createElement('textarea');
+  titleInput.className = 'chapter-title-input';
   titleInput.placeholder = "ชื่อหัวข้อหลัก เช่น ขั้นตอนการพัฒนา";
   titleInput.value = sectionObj.title || "";
+  titleInput.rows = 1; // เริ่มต้นที่ 1 แถว
+  /* === [END] === */
+
   titleInput.addEventListener("input", (e) => {
     sectionObj.title = e.target.value;
     syncHiddenField();
+    // (JS สำหรับ auto-resize จะทำงานผ่าน global listener)
   });
 
   const delSectionBtn = document.createElement("button");
@@ -1132,7 +1215,10 @@ function redrawSections() {
     container.appendChild(renderSectionCard(secObj, secIndex));
   });
   syncHiddenField();
-  refreshAddSectionButton(); 
+  refreshAddSectionButton();
+  
+  /* === เรียก resize หลังจาก render เสร็จ === */
+  resizeAllTitleTextareas();
 }
 
 
@@ -1246,14 +1332,30 @@ document.addEventListener("DOMContentLoaded", () => {
       textareas.forEach(textarea => {
         const rawText = textarea.value;
         if (!textarea.closest('.paras-wrap')) {
-            const cleanedText = rawText.replace(/\r?\n/g, "").replace(/\s+/g, " ").trim();
-            textarea.value = cleanedText;
+            // [FIX] แก้ไข: เราต้องอนุญาตให้ .table-caption-input มีการตัดบรรทัด (ถ้าผู้ใช้จงใจ)
+            // เราจะบีบอัดเฉพาะหัวข้อ .node-title-input และ .chapter-title-input
+            if(textarea.matches('.node-title-input, .chapter-title-input')) {
+                const cleanedText = rawText.replace(/\r?\n/g, " ").replace(/\s+/g, " ").trim();
+                textarea.value = cleanedText;
+            }
         }
       });
       syncHiddenField();
       syncIntroHidden(); 
     });
   }
+
+  /* === [FIX #2] เพิ่ม Global Listener สำหรับ auto-resize === */
+  document.body.addEventListener('input', function(event) {
+    /* === [FIX #2] เพิ่ม .table-caption-input === */
+    if (event.target.matches('.chapter-title-input, .node-title-input, .node-title-textarea')) {
+      autoResizeTextarea(event.target);
+    }
+  });
+  
+  /* === [FIX #3] เรียก resize ตอนโหลดหน้าครั้งแรก === */
+  resizeAllTitleTextareas();
+  
 });
 </script>
 

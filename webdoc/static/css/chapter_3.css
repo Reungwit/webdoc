@@ -12,6 +12,9 @@
   --btn-primary-text: #ffffff;
   --btn-neutral-bg: #f3f4f6;
   --btn-neutral-border: #d1d5db;
+   --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius-sm: 8px;
 }
 
 * {
@@ -697,4 +700,115 @@ h2 {
 .intro-editor .pic-item.empty {
   border-style: dashed;
   color: #6b7280;
+}
+
+/* ====== คำอธิบายใต้รูป: layout ====== */
+.pic-list .para-row,
+.pics-box .para-row {
+  margin-top: 8px;
+}
+
+.para-row {
+  display: block;
+}
+
+/* textarea ใหญ่แบบอ่านสบาย */
+.para-row textarea {
+  width: 100%;
+  min-height: 180px;            /* กล่องใหญ่เหมือนรูป 1 */
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 16px;
+  line-height: 1.6;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.para-row textarea:focus {
+  border-color: #93c5fd;        /* ฟ้าอ่อน */
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+
+/* ====== ปุ่ม เพิ่ม/ลบ ย่อหน้าใต้รูป ====== */
+.add-para-btn,
+.del-para-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  margin-right: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #111827;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .05s;
+  user-select: none;
+}
+
+.add-para-btn:hover,
+.del-para-btn:hover {
+  background: #f3f4f6;
+  border-color: #cfd8e3;
+}
+
+.add-para-btn:active,
+.del-para-btn:active {
+  transform: translateY(1px);
+}
+
+/* สไตล์ปุ่มลบ (แดง) */
+.del-para-btn,
+.del-para-btn.danger {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.del-para-btn:hover,
+.del-para-btn.danger:hover {
+  background: #fecaca;
+  border-color: #fca5a5;
+}
+
+/* ให้บล็อกปุ่มอยู่ใต้ textarea อย่างเป็นระเบียบเวลาอยู่ในรายการรูป */
+.pic-item .add-para-btn,
+.pic-item .del-para-btn {
+  margin-top: 12px;
+}
+
+/* เวอร์ชันจอเล็ก: ลดความสูงกล่องลงนิด */
+@media (max-width: 640px) {
+  .para-row textarea { min-height: 140px; font-size: 15px; }
+}
+
+
+.node-title-textarea {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e4e7ef;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  padding: 8px 10px;
+  min-width: 100px;
+  resize: vertical;
+  /*ให้ขยายขนาดได้*/white-space: pre-wrap;
+  /*ให้ตัดบรรทัดตามช่อง*/word-break: break-word;
+  /*ตัดคำที่ยาวเกิน*/min-height: 30px;
+  -webkit-border-radius: var(--radius-sm);
+  -moz-border-radius: var(--radius-sm);
+  -ms-border-radius: var(--radius-sm);
+  -o-border-radius: var(--radius-sm);
+}
+
+
+.node-title-textarea:focus {
+  outline: none;
+  border-color: var(--line-accent);
+  box-shadow: 0 0 0 3px rgba(141, 148, 252, .25);
 }

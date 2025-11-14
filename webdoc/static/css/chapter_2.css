@@ -322,10 +322,14 @@ body {
   font-size: 14px;
   padding: 8px 10px;
   min-width: 100px;
-  resize: vertical; /* ให้ขยายขนาดได้ */
-  white-space: pre-wrap; /* ให้ตัดบรรทัดตามช่อง */
-  word-break: break-word; /* ตัดคำที่ยาวเกิน */
-  min-height: 30px;
+  resize: vertical;
+  /*ให้ขยายขนาดได้*/white-space: pre-wrap;
+  /*ให้ตัดบรรทัดตามช่อง*/word-break: break-word;
+  /*ตัดคำที่ยาวเกิน*/min-height: 30px;
+  -webkit-border-radius: var(--radius-sm);
+  -moz-border-radius: var(--radius-sm);
+  -ms-border-radius: var(--radius-sm);
+  -o-border-radius: var(--radius-sm);
 }
 
 

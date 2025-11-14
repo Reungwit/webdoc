@@ -122,7 +122,7 @@ def doc_chapter2(
             add_section_heading_level1_style_1(doc, title_no, title_txt)
         for s in as_list((sn or {}).get("paragraphs")):
             s = t(s)
-            if s: add_wrapped_paragraph(doc, s, n=85, custom_tap=0.75,disth=True)
+            if s: add_wrapped_paragraph(doc, s, n=99999, custom_tap=0.75,disth=True)
 
     # -------- หัวข้อหลัก + ต้นไม้หัวข้อย่อย --------
     pic_counter = [0]   # ใช้ list เพื่ออ้างอิงข้ามฟังก์ชัน
